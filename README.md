@@ -46,7 +46,7 @@ Outputs land in `output/`: `race_scores.csv`, `report.md`, and `novelty_vs_timew
 
 ## Dashboard
 
-Interactive local web UI (Streamlit):
+Interactive web UI (Streamlit):
 
 ```bash
 pip install -e .
@@ -59,6 +59,12 @@ from `prereg.json`; you can override number set, threshold, and takeout for
 exploratory runs. Charts include daily novelty with rolling mean, inverted
 timewave, cumulative P&L, correlation stats, all four number sets, and an
 optional threshold sweep.
+
+### Share on Streamlit Community Cloud
+
+Deploy from the private GitHub repo with an optional shared password for friends.
+See **[DEPLOY_STREAMLIT.md](DEPLOY_STREAMLIT.md)** for step-by-step setup at
+[share.streamlit.io](https://share.streamlit.io/).
 
 ## Using real data
 

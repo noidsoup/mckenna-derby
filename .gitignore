@@ -3,6 +3,7 @@ __pycache__/
 *.pyc
 *.egg-info/
 .env
+.streamlit/secrets.toml
 uncommitted/
 rawdata/
 output/

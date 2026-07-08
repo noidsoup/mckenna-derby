@@ -25,6 +25,35 @@ HK_DIR = ROOT / "rawdata"
 ALL_SETS = ["kelley", "watkins", "sheliak", "huangti"]
 
 
+def _configured_password() -> str | None:
+    try:
+        value = st.secrets["dashboard"]["password"]
+    except (KeyError, TypeError, FileNotFoundError):
+        return None
+    if not value:
+        return None
+    return str(value)
+
+
+def require_auth() -> None:
+    """Optional shared password (set in Streamlit secrets on Community Cloud)."""
+    password = _configured_password()
+    if password is None:
+        return
+    if st.session_state.get("authenticated"):
+        return
+
+    st.title("McKenna Derby")
+    st.caption("Enter the shared password to open the dashboard.")
+    entered = st.text_input("Password", type="password", key="auth_password")
+    if st.button("Log in", type="primary"):
+        if entered == password:
+            st.session_state["authenticated"] = True
+            st.rerun()
+        st.error("Wrong password.")
+    st.stop()
+
+
 @st.cache_data
 def load_prereg() -> dict:
     return json.loads(PREREG_PATH.read_text())
@@ -148,10 +177,11 @@ def plot_sweep(sweep: pd.DataFrame) -> go.Figure:
 
 def main() -> None:
     st.set_page_config(page_title="McKenna Derby", layout="wide")
+    require_auth()
     st.title("McKenna Derby Dashboard")
     st.caption(
         "Horse-racing novelty vs Terence McKenna's Timewave Zero — "
-        "interactive local analysis"
+        "interactive analysis"
     )
 
     prereg = load_prereg()

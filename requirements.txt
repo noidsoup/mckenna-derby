@@ -1,9 +1,4 @@
-numpy>=1.24
-pandas>=2.0
-scipy>=1.10
-matplotlib>=3.7
+# Streamlit Community Cloud installs the package + deps from pyproject.toml
+.
+# Local-only extras (CLI data download); safe to skip on cloud but harmless
 kaggle>=1.6
-streamlit>=1.28
-plotly>=5.18
-requests>=2.31
-python-dotenv>=1.0
