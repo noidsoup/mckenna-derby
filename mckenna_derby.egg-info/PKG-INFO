@@ -1,0 +1,11 @@
+Metadata-Version: 2.4
+Name: mckenna-derby
+Version: 0.2.0
+Summary: Horse-racing novelty analysis vs Timewave Zero
+Requires-Python: >=3.9
+Requires-Dist: numpy>=1.24
+Requires-Dist: pandas>=2.0
+Requires-Dist: scipy>=1.10
+Requires-Dist: matplotlib>=3.7
+Requires-Dist: streamlit>=1.28
+Requires-Dist: plotly>=5.18
