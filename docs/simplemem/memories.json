@@ -1,0 +1,14 @@
+[
+  {
+    "id": "local_1783541646232",
+    "text": "AI Session: 2026-07-08 \u2014 Set up project for AI\n\n**Branch:** `main`\n\n**Completed:**\n- Bootstrapped SimpleMem (local-only, namespace `mckenna-derby`, committed store at `docs/simplemem/`)\n- Added `AGENTS.md`, `AI_RUNBOOK.md`, `.cursor/context7-libraries.md`, `.cursor/rules/simplemem.mdc`\n- Installed repo skills: `python-testing-patterns`, `python-project-structure` under `.agents/skills/`\n- Added CrewAI planner subproject in `crewai/` (requires Python 3.10+ and `OPENAI_API_KEY`)\n- Updated `.gitignore` for `.env` and `uncommitted/`; added `requests` and `python-dotenv` deps\n\n**Project state:** Phase 2 complete \u2014 frozen statistical core with golden tests, pre-registered analysis in `prereg.json`, CLI pipeline (`run_analysis.py`), Streamlit dashboard (`dashboard.py`), dashboard start script on port 8501.\n\n**Key decisions:**\n- SimpleMem uses **local backend** so memories travel with the repo without cloud tokens\n- CrewAI kept separate from main venv (3.9) because CrewAI requires Python 3.10+\n",
+    "metadata": {
+      "source": "ai_session_memory",
+      "date": "2026-07-08",
+      "session_title": "2026-07-08 \u2014 Set up project for AI",
+      "session_number": 1
+    },
+    "namespace": "mckenna-derby",
+    "timestamp": 1783541646.232256
+  }
+]

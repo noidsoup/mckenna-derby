@@ -1,0 +1,36 @@
+---
+description: SimpleMem memory integration for this project
+alwaysApply: true
+---
+
+# SimpleMem Memory Integration
+
+## Project Namespace
+
+Always use the namespace `mckenna-derby` when storing or querying memories for this project.
+
+## Privacy and Security
+
+- **NEVER store PII**: No personal information, addresses, phone numbers, or sensitive data
+- **NEVER store secrets**: No API keys, tokens, passwords, or credentials
+- **Sanitize data**: Remove sensitive fields before storing summaries
+- **Use summaries**: Store operation summaries, not full record payloads
+
+## When to Use SimpleMem
+
+- Store script/sync operation summaries (counts, durations, error counts)
+- Record important decisions about architecture or data flow
+- Capture user preferences or project conventions
+- Query for context about previous work or decisions
+
+## Integration Points
+
+SimpleMem is integrated into:
+- `simplemem_client.py` - Python client (add_memory, query, log_run)
+- `simplemem_cli.py` - CLI (add, query, import-ai-session)
+
+Enable with `SIMPLEMEM_ENABLED=true` in `.env`.
+
+## Committed store (default)
+
+Local JSON lives at **`docs/simplemem/memories.json`** (directory from **`SIMPLEMEM_LOCAL_DIR`**). **Commit** that file when the CLI updates it—do not keep SimpleMem under **`uncommitted/`**.
