@@ -25,3 +25,21 @@ def test_synthetic_data_passes_validation_unchanged():
         dt.date(2010, 1, 1), dt.date(2010, 1, 3), races_per_day=2, seed=1
     )
     assert data.validate_runners(df).shape[0] == df.shape[0]
+
+
+def test_load_uk_racing_converts_implied_probability(tmp_path):
+    """hwaitt decimalPrice is an implied win probability, not decimal odds."""
+    (tmp_path / "races_2010.csv").write_text(
+        "rid,date\n1,2010-06-01\n2,2010-06-02\n"
+    )
+    (tmp_path / "horses_2010.csv").write_text(
+        "rid,horseName,decimalPrice,position\n"
+        "1,A,0.5,1\n1,B,0.25,2\n1,C,0.125,3\n"
+        "2,A,0.4,1\n2,B,0.3,2\n2,C,0.2,3\n"
+    )
+    out = data.load_uk_racing(tmp_path)
+    assert set(out.columns) >= data.REQUIRED_COLUMNS
+    assert out["race_id"].nunique() == 2
+    # 0.5 implied prob → 2.0 decimal odds
+    assert float(out.loc[(out["race_id"] == 1) & (out["horse"] == "A"), "decimal_odds"].iloc[0]) == 2.0
+    assert float(out.loc[(out["race_id"] == 1) & (out["horse"] == "B"), "decimal_odds"].iloc[0]) == 4.0

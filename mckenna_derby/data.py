@@ -93,6 +93,58 @@ def load_hk_racing(rawdata_dir: str | Path) -> pd.DataFrame:
     return validate_runners(df)
 
 
+def load_uk_racing(
+    rawdata_dir: str | Path,
+    *,
+    start: str | None = None,
+    end: str | None = None,
+) -> pd.DataFrame:
+    """Load the hwaitt/horse-racing Kaggle dataset (races_YYYY + horses_YYYY).
+
+    ``decimalPrice`` in this dataset is an implied win probability in (0, 1];
+    we convert to decimal odds as ``1 / decimalPrice``. Optional ``start`` /
+    ``end`` (ISO dates) filter race dates — useful because the raw dump
+    includes a few malformed future-dated rows.
+    """
+    rawdata_dir = Path(rawdata_dir)
+    race_files = sorted(rawdata_dir.glob("races_*.csv"))
+    horse_files = sorted(rawdata_dir.glob("horses_*.csv"))
+    if not race_files or not horse_files:
+        raise FileNotFoundError(
+            f"expected races_*.csv and horses_*.csv under {rawdata_dir}"
+        )
+    races = pd.concat(
+        (pd.read_csv(p, usecols=["rid", "date"]) for p in race_files),
+        ignore_index=True,
+    )
+    horses = pd.concat(
+        (
+            pd.read_csv(p, usecols=["rid", "horseName", "decimalPrice", "position"])
+            for p in horse_files
+        ),
+        ignore_index=True,
+    )
+    df = horses.merge(races, on="rid", how="inner")
+    df = df.rename(
+        columns={
+            "rid": "race_id",
+            "horseName": "horse",
+            "position": "finish_position",
+        }
+    )
+    df["date"] = pd.to_datetime(df["date"], format="mixed", errors="coerce")
+    df = df.dropna(subset=["date", "decimalPrice", "finish_position"])
+    if start is not None:
+        df = df[df["date"] >= pd.Timestamp(start)]
+    if end is not None:
+        df = df[df["date"] <= pd.Timestamp(end)]
+    # decimalPrice is implied probability; reject non-positive / >1 junk.
+    df = df[(df["decimalPrice"] > 0.0) & (df["decimalPrice"] <= 1.0)]
+    df["decimal_odds"] = 1.0 / df["decimalPrice"]
+    df = df.drop(columns=["decimalPrice"])
+    return validate_runners(df)
+
+
 def synthetic_races(
     start: dt.date,
     end: dt.date,
