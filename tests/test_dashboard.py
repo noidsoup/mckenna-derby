@@ -34,7 +34,7 @@ def test_dashboard_passes_seed_to_compare():
 def test_dashboard_does_not_double_zscore_novelty():
     """animate_novelty_timewave should plot daily novelty as-is."""
     assert "Novelty z-score" not in DASHBOARD_SOURCE
-    assert "Daily novelty" in DASHBOARD_SOURCE
+    assert "Daily surprise" in DASHBOARD_SOURCE
 
 
 def test_dashboard_has_plain_english_empty_state_copy():
@@ -45,8 +45,14 @@ def test_dashboard_has_plain_english_empty_state_copy():
     assert "What is this?" in DASHBOARD_SOURCE
     assert "Run Analysis" in DASHBOARD_SOURCE
     assert "TAB_INTROS" in DASHBOARD_SOURCE
+    assert "TAB_LABELS" in DASHBOARD_SOURCE
+    assert "Surprise vs the wave" in DASHBOARD_SOURCE
+    assert "Did timing help?" in DASHBOARD_SOURCE
     assert '"About"' not in DASHBOARD_SOURCE
     assert 'key="tour_empty_intro"' in DASHBOARD_SOURCE
+    assert "Advanced options" in DASHBOARD_SOURCE
+    assert "Wave number table" in DASHBOARD_SOURCE
+    assert "Pool bias guess" in DASHBOARD_SOURCE
 
 
 def test_dashboard_wires_first_visit_tour():
@@ -58,3 +64,17 @@ def test_dashboard_wires_first_visit_tour():
     assert 'key="tour_data_source"' in DASHBOARD_SOURCE
     assert 'key="tour_run_button"' in DASHBOARD_SOURCE
     assert "from mckenna_derby.tour import" in DASHBOARD_SOURCE
+
+
+def test_dashboard_blurbs_under_main_views():
+    """Major charts and metric blocks should have captions underneath."""
+    for needle in (
+        "Blue = how weird race days were",
+        "Each dot is one day",
+        "Return is profit or loss",
+        "If wave timing helped",
+        "Green months made money",
+        "Each row is a betting rule",
+        "Each row is one horse in one race",
+    ):
+        assert needle in DASHBOARD_SOURCE, f"missing blurb: {needle}"

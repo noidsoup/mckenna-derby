@@ -25,8 +25,8 @@ TOUR_STEPS: list[dict[str, Any]] = [
             "title": "Welcome to McKenna Derby",
             "description": (
                 "A <b>research toy</b> — not betting advice. "
-                "Question: do weird race days line up with McKenna's Timewave "
-                "(his chaos calendar)?"
+                "Question: do weird race days line up with McKenna's calendar wave "
+                "(his map of when the world should feel more chaotic)?"
             ),
             "side": "over",
             "align": "center",
@@ -62,7 +62,7 @@ TOUR_STEPS: list[dict[str, Any]] = [
             "title": "Your data (sidebar)",
             "description": (
                 "Default is <b>real Hong Kong races</b> (1997–2005). "
-                "Open Advanced for a fake null demo or your own CSV."
+                "Open Advanced options for a fake null demo or your own CSV."
             ),
             "side": "right",
             "align": "start",
@@ -71,10 +71,10 @@ TOUR_STEPS: list[dict[str, Any]] = [
     {
         "element": "tour_run_params",
         "popover": {
-            "title": "Run parameters",
+            "title": "Run settings",
             "description": (
-                "Locked settings for the official test "
-                "(<code>prereg.json</code>). Change them only to explore."
+                "Settings for the official test "
+                "(locked in <code>prereg.json</code>). Change them only to explore."
             ),
             "side": "right",
             "align": "start",
@@ -83,10 +83,10 @@ TOUR_STEPS: list[dict[str, Any]] = [
     {
         "element": "tour_engine_params",
         "popover": {
-            "title": "McKenna Engine (optional)",
+            "title": "Picky betting (optional)",
             "description": (
-                "<b>Beta = 1.0</b> = fair prices (no free lunch). "
-                "Higher beta = pretend favorites are overbet — a guess, not a fact."
+                "<b>Bias guess = 1.0</b> means fair prices (no free lunch). "
+                "Higher values pretend favorites are overbet — a guess, not a fact."
             ),
             "side": "right",
             "align": "start",
@@ -99,7 +99,7 @@ TOUR_STEPS: list[dict[str, Any]] = [
             "description": (
                 "Click this. Then open <b>Overview</b>. "
                 "On this data the main answer is often \"no match\" — "
-                "an honest null, not a tip."
+                "an honest finding, not a tip."
             ),
             "side": "right",
             "align": "center",

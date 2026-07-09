@@ -42,55 +42,68 @@ EMPTY_STATE_MARKDOWN = """
 
 A research toy — **not** betting advice.
 
-**Question:** Do weird race days line up with Terence McKenna's Timewave
-calendar (his map of when the world should feel more chaotic)?
+**Question:** Do weird race days line up with McKenna's calendar wave
+(his map of when the world should feel more chaotic)?
 
 **Data:** Real Hong Kong races (1997–2005) are already loaded.
 
 **What to do:** Click **Run Analysis** in the sidebar.
 
-Then open **Overview**. On this data the main answer is usually "no match"
-(a null result). That is an honest finding, not a tip sheet.
+Then open **Overview**. On this data the main answer is usually "no match."
+That is an honest finding, not a tip sheet.
 """
 
 SIDEBAR_HELP = {
     "data": (
         "Real Hong Kong races (1997–2005) by default. "
-        "Advanced: fake demo data, or your own CSV."
+        "Advanced options: fake demo data, or your own CSV."
     ),
     "params": (
-        "Locked settings for the official test. "
+        "Settings for the official test. "
         "Change them only to explore — not to claim a new main result."
     ),
     "engine": (
-        "**Beta = 1.0** = fair prices (no free lunch). "
-        "Higher beta = pretend favorites are overbet. That is a guess, not a fact."
+        "**Bias guess = 1.0** means fair prices (no free lunch). "
+        "Higher values pretend favorites are overbet. That is a guess, not a fact."
     ),
 }
 
 TAB_INTROS = {
     "overview": (
-        "Big picture: how much data, did the wave match weird race days, "
-        "and did timing bets beat betting every day?"
+        "Big picture: how much data you have, whether the wave matched "
+        "weird race days, and whether picking days beat betting every day."
     ),
     "novelty": (
-        "**Novelty** = how surprising the finishes were (from the odds). "
-        "**Timewave** = McKenna's chaos calendar. His idea: they should move "
+        "**Surprise score** = how unexpected the finishes were, given the odds. "
+        "**The wave** = McKenna's calendar of chaos. His idea: they should move "
         "opposite ways."
     ),
     "backtest": (
-        "Pretend we buy every trifecta ticket on chosen days. "
-        "The track keeps a cut (takeout), so you usually lose a bit. "
+        "Pretend we buy every top-3 ticket on chosen days. "
+        "The track keeps a cut, so you usually lose a bit. "
         "Timing only helps if those days are truly better."
     ),
     "engine": (
-        "A pickier experiment: fewer tickets, fewer days, optional pool-bias "
-        "guess (beta). At beta = 1.0 you should not find an edge."
+        "A pickier experiment: fewer tickets, fewer days, and an optional "
+        "pool-bias guess. At bias = 1.0 you should not find an edge."
     ),
     "raw": (
         "The race rows we used, plus CSV downloads."
     ),
 }
+
+METRIC_LABELS = {
+    "trifecta_novelty": "Top-3 finish surprise",
+    "win_novelty": "Winner-only surprise",
+}
+
+TAB_LABELS = [
+    "Overview",
+    "Surprise vs the wave",
+    "Did timing help?",
+    "Picky betting",
+    "Race data",
+]
 
 
 # ---------------------------------------------------------------------------
@@ -222,12 +235,12 @@ def animate_novelty_timewave(
 
     fig = make_subplots(specs=[[{"secondary_y": True}]])
     fig.add_trace(
-        go.Scatter(x=[], y=[], name="Daily novelty", line=dict(color="rgb(31,119,180)")),
+        go.Scatter(x=[], y=[], name="Daily surprise", line=dict(color="rgb(31,119,180)")),
         secondary_y=False,
     )
     fig.add_trace(
         go.Scatter(
-            x=[], y=[], name="Timewave (inverted)",
+            x=[], y=[], name="McKenna's wave (flipped)",
             line=dict(color="rgb(148,103,189)", dash="dot"),
         ),
         secondary_y=True,
@@ -252,11 +265,11 @@ def animate_novelty_timewave(
 
     fig.frames = frames
     fig.update_xaxes(title_text="Date")
-    fig.update_yaxes(title_text="Daily novelty", secondary_y=False)
-    fig.update_yaxes(title_text="Timewave (inverted)", secondary_y=True)
+    fig.update_yaxes(title_text="Daily surprise", secondary_y=False)
+    fig.update_yaxes(title_text="McKenna's wave (flipped)", secondary_y=True)
     menus, sliders = _play_slider_menus(labels)
     fig.update_layout(
-        title="Animated novelty + timewave timeline",
+        title="Surprise score and McKenna's wave over time",
         height=480,
         hovermode="x unified",
         updatemenus=menus,
@@ -286,12 +299,12 @@ def animate_cumulative_pnl(
     fig = go.Figure()
     fig.add_trace(go.Scatter(x=[], y=[], name="Bet every race", line=dict(color="rgb(214,39,40)")))
     fig.add_trace(
-        go.Scatter(x=[], y=[], name="Timewave-filtered", line=dict(color="rgb(44,160,44)"))
+        go.Scatter(x=[], y=[], name="Wave-picked days only", line=dict(color="rgb(44,160,44)"))
     )
     if mckenna_cum is not None:
         fig.add_trace(
             go.Scatter(
-                x=[], y=[], name="McKenna selective (gated)",
+                x=[], y=[], name="Picky betting (gated days)",
                 line=dict(color="rgb(255,127,14)"),
             )
         )
@@ -316,9 +329,9 @@ def animate_cumulative_pnl(
     fig.frames = frames
     menus, sliders = _play_slider_menus(labels)
     fig.update_layout(
-        title="Animated cumulative P&L (race-by-race)",
+        title="Running money over time (race by race)",
         xaxis_title="Date",
-        yaxis_title="Cumulative P&L ($)",
+        yaxis_title="Running profit or loss ($)",
         height=480,
         hovermode="x unified",
         updatemenus=menus,
@@ -336,7 +349,7 @@ def animate_resonance(
 ) -> go.Figure:
     if resonance.empty:
         fig = go.Figure()
-        fig.update_layout(title="Resonance signal (no data)", height=400)
+        fig.update_layout(title="Echo signal (no data)", height=400)
         return fig
 
     dates = pd.to_datetime(pd.Index(resonance.index))
@@ -345,7 +358,7 @@ def animate_resonance(
 
     fig = go.Figure()
     fig.add_trace(
-        go.Scatter(x=[], y=[], name="RollingTimewave resonance", line=dict(color="rgb(148,103,189)"))
+        go.Scatter(x=[], y=[], name="Echo of past surprise", line=dict(color="rgb(148,103,189)"))
     )
     gate_dates = [pd.Timestamp(d) for d in gated_days if d in resonance.index]
     gate_y = [resonance.loc[d.date() if hasattr(d, "date") else d] for d in gate_dates]
@@ -354,7 +367,7 @@ def animate_resonance(
             x=gate_dates,
             y=gate_y,
             mode="markers",
-            name="Gated betting days",
+            name="Days we would bet",
             marker=dict(color="rgb(214,39,40)", size=8, symbol="line-ns-open"),
         )
     )
@@ -384,9 +397,9 @@ def animate_resonance(
     fig.frames = frames
     menus, sliders = _play_slider_menus(labels)
     fig.update_layout(
-        title="Animated McKenna resonance signal",
+        title="Echo signal and the days we would bet",
         xaxis_title="Date",
-        yaxis_title="Resonance",
+        yaxis_title="Echo strength",
         height=450,
         updatemenus=menus,
         sliders=sliders,
@@ -402,14 +415,15 @@ def animate_novelty_distribution(
     max_frames: int = MAX_ANIM_FRAMES,
 ) -> go.Figure:
     vals = scores[metric].dropna().to_numpy()
+    metric_label = METRIC_LABELS.get(metric, metric)
     if len(vals) == 0:
         fig = go.Figure()
-        fig.update_layout(title="Novelty distribution (no data)", height=400)
+        fig.update_layout(title="Surprise score spread (no data)", height=400)
         return fig
 
     idx = _subsample_indices(len(vals), max_frames)
     fig = go.Figure()
-    fig.add_trace(go.Histogram(x=[], name=metric, marker_color="rgb(31,119,180)", nbinsx=30))
+    fig.add_trace(go.Histogram(x=[], name=metric_label, marker_color="rgb(31,119,180)", nbinsx=30))
 
     frames = []
     labels = []
@@ -428,9 +442,9 @@ def animate_novelty_distribution(
     fig.frames = frames
     menus, sliders = _play_slider_menus(labels, frame_duration=100)
     fig.update_layout(
-        title=f"Animated {metric} distribution",
-        xaxis_title=metric,
-        yaxis_title="Count",
+        title=f"How {metric_label.lower()} is spread across races",
+        xaxis_title=metric_label,
+        yaxis_title="Number of races",
         height=420,
         updatemenus=menus,
         sliders=sliders,
@@ -444,7 +458,7 @@ def animate_lead_lag(lag: pd.DataFrame) -> go.Figure:
     idx = _subsample_indices(len(lag), MAX_ANIM_FRAMES)
     fig = go.Figure()
     fig.add_trace(
-        go.Scatter(x=[], y=[], mode="lines+markers", name="Spearman r", line=dict(color="rgb(31,119,180)"))
+        go.Scatter(x=[], y=[], mode="lines+markers", name="Rank link", line=dict(color="rgb(31,119,180)"))
     )
 
     frames = []
@@ -465,9 +479,9 @@ def animate_lead_lag(lag: pd.DataFrame) -> go.Figure:
     fig.frames = frames
     menus, sliders = _play_slider_menus(labels)
     fig.update_layout(
-        title="Lead-lag: Spearman r vs lag days",
-        xaxis_title="Lag (days)",
-        yaxis_title="Spearman r",
+        title="Does surprise lead or lag the wave?",
+        xaxis_title="Shift in days",
+        yaxis_title="Rank link (how much they move together)",
         height=420,
         updatemenus=menus,
         sliders=sliders,
@@ -518,7 +532,7 @@ def animate_roi_by_beta(
             continue
         frames.append(
             go.Frame(
-                name=f"β={beta:.2f}",
+                name=f"bias={beta:.2f}",
                 data=[
                     go.Bar(
                         x=roi["strategy"],
@@ -537,8 +551,8 @@ def animate_roi_by_beta(
     labels = [f.name for f in frames]
     menus, sliders = _play_slider_menus(labels, frame_duration=600)
     fig.update_layout(
-        title="Animated ROI by strategy (vary pool bias β)",
-        yaxis_title="ROI %",
+        title="Return by strategy as the bias guess changes",
+        yaxis_title="Return on money spent (%)",
         height=450,
         updatemenus=menus,
         sliders=sliders,
@@ -569,12 +583,12 @@ def plot_novelty_calendar_heatmap(daily: pd.Series) -> go.Figure:
             y=pivot.index,
             colorscale="RdBu_r",
             zmid=0.0,
-            colorbar=dict(title="Novelty z"),
-            hovertemplate="Month %{y}, day %{x}<br>novelty z = %{z:.3f}<extra></extra>",
+            colorbar=dict(title="Surprise"),
+            hovertemplate="Month %{y}, day %{x}<br>surprise = %{z:.3f}<extra></extra>",
         )
     )
     fig.update_layout(
-        title="Novelty calendar (month × day of month)",
+        title="Surprise score by calendar day",
         xaxis_title="Day of month",
         yaxis_title="Month",
         height=max(320, 24 * len(pivot.index) + 120),
@@ -587,7 +601,7 @@ def plot_novelty_vs_timewave_scatter(daily: pd.Series, tw: pd.Series) -> go.Figu
     df = pd.DataFrame({"novelty": daily, "timewave_inv": -tw}).dropna()
     if df.empty:
         fig = go.Figure()
-        fig.update_layout(title="Novelty vs timewave (no data)", height=400)
+        fig.update_layout(title="Surprise vs the wave (no data)", height=400)
         return fig
 
     dates = pd.to_datetime(pd.Index(df.index))
@@ -608,7 +622,7 @@ def plot_novelty_vs_timewave_scatter(daily: pd.Series, tw: pd.Series) -> go.Figu
                 opacity=0.7,
             ),
             text=[str(d.date()) for d in dates],
-            hovertemplate="%{text}<br>timewave (inv) = %{x:.4f}<br>novelty z = %{y:.3f}<extra></extra>",
+            hovertemplate="%{text}<br>wave (flipped) = %{x:.4f}<br>surprise = %{y:.3f}<extra></extra>",
         )
     )
     # OLS trendline (descriptive only — inference stays with the permutation test).
@@ -622,14 +636,14 @@ def plot_novelty_vs_timewave_scatter(daily: pd.Series, tw: pd.Series) -> go.Figu
                 x=xs,
                 y=slope * xs + intercept,
                 mode="lines",
-                name=f"OLS (slope {slope:+.3f})",
+                name=f"Trend line (slope {slope:+.3f})",
                 line=dict(color="rgb(214,39,40)", dash="dash"),
             )
         )
     fig.update_layout(
-        title="Daily novelty vs inverted timewave (per day, colored by time)",
-        xaxis_title="Timewave (inverted)",
-        yaxis_title="Daily novelty (z)",
+        title="Each day: surprise score vs McKenna's wave",
+        xaxis_title="McKenna's wave (flipped)",
+        yaxis_title="Daily surprise score",
         height=460,
         # Horizontal legend on top so it doesn't collide with the colorbar.
         legend=dict(orientation="h", yanchor="bottom", y=1.02, x=0),
@@ -643,7 +657,7 @@ def plot_rolling_correlation(daily: pd.Series, tw: pd.Series, window: int = 30) 
     fig = go.Figure()
     if len(df) < window + 1:
         fig.update_layout(
-            title=f"Rolling correlation (needs > {window} aligned days)", height=360
+            title=f"Rolling match (needs more than {window} days)", height=360
         )
         return fig
 
@@ -663,7 +677,7 @@ def plot_rolling_correlation(daily: pd.Series, tw: pd.Series, window: int = 30) 
             x=dates,
             y=vals,
             mode="lines",
-            name=f"{window}-day Spearman r",
+            name=f"{window}-day rank link",
             line=dict(color="rgb(31,119,180)"),
             fill="tozeroy",
             fillcolor="rgba(31,119,180,0.15)",
@@ -671,9 +685,9 @@ def plot_rolling_correlation(daily: pd.Series, tw: pd.Series, window: int = 30) 
     )
     fig.add_hline(y=0.0, line_dash="dot", line_color="gray")
     fig.update_layout(
-        title=f"Rolling {window}-day Spearman correlation (novelty vs inverted timewave)",
+        title=f"How well surprise and the wave match ({window}-day window)",
         xaxis_title="Date",
-        yaxis_title="Spearman r",
+        yaxis_title="Rank link (−1 to +1)",
         yaxis_range=[-1, 1],
         height=380,
     )
@@ -682,6 +696,7 @@ def plot_rolling_correlation(daily: pd.Series, tw: pd.Series, window: int = 30) 
 
 def plot_field_size_novelty(scores: pd.DataFrame, metric: str = "trifecta_novelty") -> go.Figure:
     """Distribution of raw novelty per field size — shows why we z-score within bucket."""
+    metric_label = METRIC_LABELS.get(metric, metric)
     fig = go.Figure()
     for n, g in sorted(scores.groupby("n_runners"), key=lambda kv: kv[0]):
         fig.add_trace(
@@ -695,9 +710,9 @@ def plot_field_size_novelty(scores: pd.DataFrame, metric: str = "trifecta_novelt
             )
         )
     fig.update_layout(
-        title=f"Raw {metric} by field size (bigger fields ⇒ higher surprisal; z-scored before daily aggregation)",
-        xaxis_title="Runners in race",
-        yaxis_title=metric,
+        title=f"{metric_label} by how many horses ran (bigger fields look weirder raw)",
+        xaxis_title="Horses in the race",
+        yaxis_title=metric_label,
         height=420,
     )
     return fig
@@ -708,14 +723,14 @@ def plot_winner_profile(scores: pd.DataFrame) -> go.Figure:
     fig = make_subplots(
         rows=1,
         cols=2,
-        subplot_titles=("Winning odds distribution (log x)", "Favorite strike rate by month"),
+        subplot_titles=("How long the winners paid", "How often the favorite won"),
     )
     fig.add_trace(
         go.Histogram(
             x=np.log10(scores["winner_odds"].clip(lower=1.01)),
             nbinsx=40,
             marker_color="rgb(31,119,180)",
-            name="log10(winner odds)",
+            name="Winner odds (log scale)",
             showlegend=False,
         ),
         row=1,
@@ -739,11 +754,11 @@ def plot_winner_profile(scores: pd.DataFrame) -> go.Figure:
         row=1,
         col=2,
     )
-    fig.update_xaxes(title_text="log10(decimal odds)", row=1, col=1)
+    fig.update_xaxes(title_text="Winner odds (log scale)", row=1, col=1)
     fig.update_yaxes(title_text="Races", row=1, col=1)
     fig.update_xaxes(title_text="Month", row=1, col=2)
-    fig.update_yaxes(title_text="Favorite win %", row=1, col=2)
-    fig.update_layout(title="Winner profile", height=400)
+    fig.update_yaxes(title_text="Favorite won (%)", row=1, col=2)
+    fig.update_layout(title="Who won, and how often favorites did", height=400)
     return fig
 
 
@@ -755,7 +770,7 @@ def plot_pnl_distribution(per_race: pd.DataFrame) -> go.Figure:
     fig.add_trace(
         go.Violin(
             y=rest,
-            name=f"Not selected (n={len(rest):,})",
+            name=f"Other days (n={len(rest):,})",
             side="negative",
             line_color="rgb(214,39,40)",
             meanline_visible=True,
@@ -765,7 +780,7 @@ def plot_pnl_distribution(per_race: pd.DataFrame) -> go.Figure:
     fig.add_trace(
         go.Violin(
             y=sel,
-            name=f"Timewave-selected (n={len(sel):,})",
+            name=f"Wave-picked days (n={len(sel):,})",
             side="positive",
             line_color="rgb(44,160,44)",
             meanline_visible=True,
@@ -773,8 +788,8 @@ def plot_pnl_distribution(per_race: pd.DataFrame) -> go.Figure:
         )
     )
     fig.update_layout(
-        title="Per-race P&L distribution: selected vs not-selected days",
-        yaxis_title="P&L per race ($)",
+        title="Profit or loss per race: wave-picked days vs the rest",
+        yaxis_title="Profit or loss per race ($)",
         violinmode="overlay",
         height=430,
     )
@@ -787,7 +802,7 @@ def plot_drawdown(per_race: pd.DataFrame) -> go.Figure:
     fig = go.Figure()
     for name, pnl, color in [
         ("Bet every race", pr["pnl"], "rgb(214,39,40)"),
-        ("Timewave-filtered", pr["pnl"].where(pr["selected"], 0.0), "rgb(44,160,44)"),
+        ("Wave-picked days only", pr["pnl"].where(pr["selected"], 0.0), "rgb(44,160,44)"),
     ]:
         cum = pnl.cumsum()
         dd = cum - cum.cummax()
@@ -796,15 +811,15 @@ def plot_drawdown(per_race: pd.DataFrame) -> go.Figure:
                 x=pr["date"],
                 y=dd,
                 mode="lines",
-                name=f"{name} (max {dd.min():,.0f})",
+                name=f"{name} (worst dip {dd.min():,.0f})",
                 line=dict(color=color),
                 fill="tozeroy",
             )
         )
     fig.update_layout(
-        title="Drawdown from running peak (cumulative P&L)",
+        title="How far money fell from its best point",
         xaxis_title="Date",
-        yaxis_title="Drawdown ($)",
+        yaxis_title="Drop from peak ($)",
         height=400,
         hovermode="x unified",
     )
@@ -830,12 +845,12 @@ def plot_monthly_pnl_heatmap(per_race: pd.DataFrame) -> go.Figure:
             y=[str(y) for y in pivot.index],
             colorscale="RdYlGn",
             zmid=0.0,
-            colorbar=dict(title="P&L ($)"),
-            hovertemplate="%{y} %{x}<br>P&L $%{z:,.0f}<extra></extra>",
+            colorbar=dict(title="Profit/loss ($)"),
+            hovertemplate="%{y} %{x}<br>$%{z:,.0f}<extra></extra>",
         )
     )
     fig.update_layout(
-        title="Timewave-filtered strategy: monthly P&L heatmap",
+        title="Wave-picked days: profit or loss by month",
         xaxis_title="Month",
         yaxis_title="Year",
         yaxis_type="category",
@@ -851,14 +866,14 @@ def plot_sweep(sweep: pd.DataFrame) -> go.Figure:
             x=sweep["threshold_pct"],
             y=sweep["roi_pct"],
             mode="lines+markers",
-            name="ROI %",
+            name="Return %",
             line=dict(color="rgb(214,39,40)"),
         )
     )
     fig.update_layout(
-        title="Threshold sweep (exploratory — shape only)",
-        xaxis_title="Threshold percentile (low wave = bet)",
-        yaxis_title="ROI %",
+        title="What if we change the wave cutoff? (curiosity only)",
+        xaxis_title="Wave cutoff (lowest % of days we bet)",
+        yaxis_title="Return on money spent (%)",
         height=400,
     )
     return fig
@@ -1026,15 +1041,15 @@ def render_sidebar(prereg: dict) -> dict | None:
         render_tour_sidebar_controls()
 
         with st.container(key="tour_data_source"):
-            st.header("Data source")
+            st.header("Your data")
             st.caption(SIDEBAR_HELP["data"])
             source = "Hong Kong (bundled)"
             uploaded = None
             start = end = None
 
-            with st.expander("Advanced: other sources", expanded=False):
+            with st.expander("Advanced options", expanded=False):
                 advanced = st.radio(
-                    "Override source",
+                    "Use a different source",
                     [
                         "Use default (Hong Kong bundled)",
                         "Synthetic demo",
@@ -1057,47 +1072,48 @@ def render_sidebar(prereg: dict) -> dict | None:
                 elif advanced == "Upload CSV":
                     source = "Upload CSV"
                     uploaded = st.file_uploader(
-                        "Runner-level CSV", type=["csv"]
+                        "Your race CSV", type=["csv"]
                     )
 
-        st.header("Pre-registration (prereg.json)")
+        st.header("Official test settings")
         st.caption(
-            "Official test settings. Keep them fixed after the first real run."
+            "Locked settings for the main claim. Keep them fixed after the first real run."
         )
-        with st.expander("Frozen prereg settings", expanded=False):
+        with st.expander("View locked settings", expanded=False):
             st.json(prereg)
 
         with st.container(key="tour_run_params"):
-            st.header("Run parameters")
+            st.header("Run settings")
             st.caption(SIDEBAR_HELP["params"])
             number_set = st.selectbox(
-                "Number set (primary)",
+                "Wave number table",
                 ALL_SETS,
                 index=ALL_SETS.index(prereg["primary_number_set"]),
-                help="Which number table builds the wave. Kelley is the default.",
+                help="Which number table builds McKenna's wave. Kelley is the default.",
                 key="tour_number_set",
             )
             threshold_pct = st.slider(
-                "Timewave threshold % (low wave = bet)",
+                "Wave cutoff % (low = bet)",
                 5.0, 100.0, float(prereg["primary_threshold_pct"]), 5.0,
                 help="Only bet when the wave is in its lowest X%. Low wave = high chaos in McKenna's idea.",
                 key="tour_threshold_pct",
             )
             takeout = st.slider(
-                "Takeout",
+                "Track's cut",
                 0.10, 0.35, float(prereg["takeout"]), 0.01,
-                help="Track's cut. With no edge, expect to lose about this much.",
+                help="Share the track keeps. With no edge, expect to lose about this much.",
                 key="tour_takeout",
             )
             metric = st.selectbox(
-                "Novelty metric",
+                "Surprise score type",
                 ["trifecta_novelty", "win_novelty"],
                 index=0 if prereg["metric"] == "trifecta_novelty" else 1,
-                help="Trifecta = surprise of 1st–2nd–3rd. Win = surprise of the winner only.",
+                format_func=lambda m: METRIC_LABELS.get(m, m),
+                help="Top-3 = surprise of 1st–2nd–3rd. Winner-only = surprise of the winner alone.",
                 key="tour_metric",
             )
             engine_seed = st.number_input(
-                "Random seed (I Ching)",
+                "Random seed",
                 1, 99999, 1904,
                 help="Same seed → same ticket picks every run.",
                 key="tour_engine_seed",
@@ -1109,38 +1125,38 @@ def render_sidebar(prereg: dict) -> dict | None:
                 end = dt.date(2010, 12, 31)
 
             do_sweep = st.checkbox(
-                "Threshold sweep (exploratory)",
+                "Try many wave cutoffs",
                 value=True,
                 help="Try many cutoffs and plot returns. Curiosity only — not the official test.",
                 key="tour_do_sweep",
             )
             max_lag = st.number_input(
-                "Lead-lag window (days, 0=off)",
+                "Lead/lag window (days)",
                 0, 60, 10,
-                help="Does surprise lead or lag the wave by a few days?",
+                help="Does surprise lead or lag the wave by a few days? 0 turns this off.",
                 key="tour_max_lag",
             )
 
         with st.container(key="tour_engine_params"):
-            st.header("McKenna Engine")
+            st.header("Picky betting")
             st.caption(SIDEBAR_HELP["engine"])
             run_engine = st.checkbox(
-                "Run McKenna Engine", value=True, key="tour_run_engine"
+                "Run picky betting", value=True, key="tour_run_engine"
             )
             engine_beta = st.slider(
-                "Pool bias beta (ASSUMPTION; 1.0 = fair pool)",
+                "Pool bias guess (1.0 = fair)",
                 0.80, 1.50, 1.00, 0.05,
                 help="1.0 = fair prices (no edge expected). Above 1 = pretend favorites are overbet.",
                 key="tour_engine_beta",
             )
             engine_gate_pct = st.slider(
-                "Resonance gate (top % of days)",
+                "Hottest days to bet (%)",
                 5.0, 100.0, 20.0, 5.0,
-                help="Only bet on the \"hottest\" X% of days by the echo signal.",
+                help="Only bet on the hottest X% of days by the echo signal.",
                 key="tour_engine_gate_pct",
             )
             engine_k_max = st.number_input(
-                "Max tickets per race (I Ching cap)",
+                "Max tickets per race",
                 1, 500, 50,
                 help="If too many tickets look good, a coin-cast pick keeps this many.",
                 key="tour_engine_k_max",
@@ -1204,33 +1220,35 @@ def render_overview(state: dict) -> None:
     st.caption(TAB_INTROS["overview"])
     c1, c2, c3, c4, c5 = st.columns(5)
     c1.metric("Races", f"{runners['race_id'].nunique():,}")
-    c2.metric("Runners", f"{len(runners):,}")
-    c3.metric("Chance check (p)", f"{primary['permutation_p']:.4f}",
-              help="Permutation p — could this match happen by luck?")
-    c4.metric("Rank link (r)", f"{primary['spearman_r']:+.4f}",
-              help="Spearman r — do the lines move together? Near 0 = no. Negative = McKenna's guess.")
-    c5.metric("Days", f"{primary['n_days']:,}")
+    c2.metric("Horses entered", f"{len(runners):,}")
+    c3.metric("Chance score", f"{primary['permutation_p']:.4f}",
+              help="Could this match happen by luck? Small means unlikely by chance — not a tip.")
+    c4.metric("Rank link", f"{primary['spearman_r']:+.4f}",
+              help="Do surprise and the wave move together? Near 0 = little match. Negative = McKenna's guess.")
+    c5.metric("Days compared", f"{primary['n_days']:,}")
     st.caption(
-        "**Chance check (p):** small means \"unlikely by luck\" under this test — not \"bet the farm.\" "
-        "**Rank link (r):** near 0 = little match. McKenna guessed negative."
+        "**Chance score:** how often a shuffled calendar looks this strong by luck. "
+        "Small means \"unlikely by chance\" — not \"bet the farm.\" "
+        "**Rank link:** near 0 = little match. McKenna guessed negative."
     )
 
     with st.expander("All run settings & data summary", expanded=True):
         sc1, sc2, sc3 = st.columns(3)
         sc1.metric("Data source", state["source_label"])
         sc2.metric("Date range", f"{runners['date'].min().date()} → {runners['date'].max().date()}")
-        sc3.metric("Number set", opts["number_set"])
+        sc3.metric("Wave table", opts["number_set"])
         st.write(
-            f"Threshold {opts['threshold_pct']}%, takeout {opts['takeout']:.0%}, "
-            f"metric `{opts['metric']}`, seed {opts['engine_seed']}"
+            f"Wave cutoff {opts['threshold_pct']}%, track's cut {opts['takeout']:.0%}, "
+            f"surprise type `{METRIC_LABELS.get(opts['metric'], opts['metric'])}`, "
+            f"seed {opts['engine_seed']}"
         )
         if state.get("engine_summary") is not None:
             best = state["engine_summary"].dropna(subset=["roi_pct"])
             if not best.empty:
                 top = best.loc[best["roi_pct"].idxmax()]
                 st.caption(
-                    f"McKenna best strategy: **{top['strategy']}** "
-                    f"(ROI {top['roi_pct']:+.2f}%)"
+                    f"Best picky strategy in this run: **{top['strategy']}** "
+                    f"(return {top['roi_pct']:+.2f}%)"
                 )
 
     st.plotly_chart(
@@ -1238,7 +1256,10 @@ def render_overview(state: dict) -> None:
         use_container_width=True,
         key="overview_timeline",
     )
-    st.caption("Hit **Play** or drag the slider to walk through time.")
+    st.caption(
+        "Blue = how weird race days were. Purple = McKenna's wave (flipped so high means "
+        "\"chaos\" in his story). Hit **Play** or drag the slider to walk through time."
+    )
 
     oc1, oc2 = st.columns(2)
     with oc1:
@@ -1247,23 +1268,34 @@ def render_overview(state: dict) -> None:
             use_container_width=True,
             key="overview_scatter",
         )
+        st.caption(
+            "Each dot is one day. A clear slope would mean surprise and the wave move together. "
+            "A flat cloud means little match."
+        )
     with oc2:
         st.plotly_chart(
             plot_rolling_correlation(daily, tw),
             use_container_width=True,
             key="overview_rolling_corr",
         )
+        st.caption(
+            "Does the match come and go over time? Values near zero mean little link in that window."
+        )
 
-    st.markdown("**Money check at a glance**")
+    st.markdown("**Did the wave help pick better days?**")
     st.caption(
-        "Timewave-filtered = bet only on low-wave days. "
+        "Wave-picked days = bet only when the wave is low. "
         "Bet every race = no filter (expect to lose about the track's cut)."
     )
     bc1, bc2 = st.columns(2)
     s = res["strategy"]
-    bc1.metric("Timewave-filtered", f"ROI {s['roi_pct']:+.2f}%", f"P&L ${s['total_pnl']:+,.0f}")
+    bc1.metric("Wave-picked days", f"Return {s['roi_pct']:+.2f}%", f"Profit/loss ${s['total_pnl']:+,.0f}")
     s_all = res["bet_every_race"]
-    bc2.metric("Bet every race", f"ROI {s_all['roi_pct']:+.2f}%", f"P&L ${s_all['total_pnl']:+,.0f}")
+    bc2.metric("Bet every race", f"Return {s_all['roi_pct']:+.2f}%", f"Profit/loss ${s_all['total_pnl']:+,.0f}")
+    st.caption(
+        "Return is profit or loss as a percent of money spent. "
+        "On real Hong Kong data, wave timing usually does not beat betting every day."
+    )
 
 
 def render_novelty_timewave(state: dict) -> None:
@@ -1274,81 +1306,96 @@ def render_novelty_timewave(state: dict) -> None:
     tw = result["timewave"]
     scores = result["scores"]
 
-    st.subheader("Primary correlation (pre-registered)")
+    st.subheader("Main match test")
     st.caption(TAB_INTROS["novelty"])
     c1, c2, c3, c4 = st.columns(4)
-    c1.metric("Chance check (p)", f"{primary['permutation_p']:.4f}",
-              help="Permutation p — main honesty check")
-    c2.metric("Rank link (r)", f"{primary['spearman_r']:+.4f}",
-              help="Spearman r — do ranks move together?")
-    c3.metric("Days aligned", f"{primary['n_days']:,}")
-    c4.metric("Naive Pearson p", f"{primary['pearson_p']:.4f}",
-              help="Simple linear check — not the main claim")
+    c1.metric("Chance score", f"{primary['permutation_p']:.4f}",
+              help="Main honesty check: could this match happen by luck?")
+    c2.metric("Rank link", f"{primary['spearman_r']:+.4f}",
+              help="Do surprise and the wave move together by rank?")
+    c3.metric("Days compared", f"{primary['n_days']:,}")
+    c4.metric("Simple linear check", f"{primary['pearson_p']:.4f}",
+              help="A simpler line-fit check — not the main claim")
     st.caption(
-        "We trust the **chance check** (permutation p) for the main claim. "
-        f"Other p-values are shown for curiosity only "
-        f"(Spearman {primary['spearman_p']:.4f}, Pearson {primary['pearson_p']:.4f})."
+        "We trust the **chance score** for the main claim. "
+        f"Other checks are shown for curiosity only "
+        f"(rank-link chance {primary['spearman_p']:.4f}, "
+        f"simple linear {primary['pearson_p']:.4f})."
     )
     st.info(primary["interpretation"])
 
-    st.subheader("Extra look: all number tables")
+    st.subheader("Extra look: all wave tables")
     st.caption(
-        "Same test on four wave tables. We raise the bar (Bonferroni ×4) "
-        "because we peeked at four versions."
+        "Same test on four number tables that build the wave. "
+        "We raise the bar because we peeked at four versions."
     )
     st.dataframe(result["exploratory"], use_container_width=True, hide_index=True)
+    st.caption(
+        "Each row is one wave table. Chance score is the honesty check; "
+        "the raised bar is the same check made stricter for peeking."
+    )
 
-    st.subheader("Daily novelty statistics")
+    st.subheader("Daily surprise scores")
     st.caption("How weird finishes were, day by day. Higher = weirder.")
     dstat = series_stats(daily)
     dc1, dc2, dc3, dc4, dc5 = st.columns(5)
-    dc1.metric("Mean", f"{dstat['mean']:.4f}")
-    dc2.metric("Std", f"{dstat['std']:.4f}")
-    dc3.metric("Min", f"{dstat['min']:.4f}")
-    dc4.metric("Max", f"{dstat['max']:.4f}")
-    dc5.metric("Current", f"{dstat['current']:.4f}")
+    dc1.metric("Average", f"{dstat['mean']:.4f}")
+    dc2.metric("Spread", f"{dstat['std']:.4f}")
+    dc3.metric("Lowest", f"{dstat['min']:.4f}")
+    dc4.metric("Highest", f"{dstat['max']:.4f}")
+    dc5.metric("Last day", f"{dstat['current']:.4f}")
+    st.caption("These summarize the blue surprise line across all race days.")
 
-    st.subheader("Timewave statistics (same dates)")
+    st.subheader("McKenna's wave (same days)")
     st.caption(
-        "McKenna's wave on the same days. Low values = his \"high chaos\" zone."
+        "The calendar wave on the same days. Low values = his \"high chaos\" zone."
     )
     tstat = series_stats(tw)
     tc1, tc2, tc3, tc4 = st.columns(4)
-    tc1.metric("Mean", f"{tstat['mean']:.4f}")
-    tc2.metric("Min", f"{tstat['min']:.4f}")
-    tc3.metric("Max", f"{tstat['max']:.4f}")
-    tc4.metric("Current", f"{tstat['current']:.4f}")
+    tc1.metric("Average", f"{tstat['mean']:.4f}")
+    tc2.metric("Lowest", f"{tstat['min']:.4f}")
+    tc3.metric("Highest", f"{tstat['max']:.4f}")
+    tc4.metric("Last day", f"{tstat['current']:.4f}")
+    st.caption("These summarize the purple wave line on the same dates.")
 
     resonance = result["resonance"]
     if not resonance.empty:
-        st.subheader("Echo signal (resonance)")
+        st.subheader("Echo of past surprise")
         st.caption(
-            "A delayed echo of past race surprise. Used to pick days in the Engine — "
+            "A delayed echo of past race surprise. Used to pick days in picky betting — "
             "not for the main wave test."
         )
         rstat = series_stats(resonance)
         rc1, rc2, rc3, rc4, rc5 = st.columns(5)
-        rc1.metric("Mean", f"{rstat['mean']:.4f}")
-        rc2.metric("Std", f"{rstat['std']:.4f}")
-        rc3.metric("Min", f"{rstat['min']:.4f}")
-        rc4.metric("Max", f"{rstat['max']:.4f}")
-        rc5.metric("Current", f"{rstat['current']:.4f}")
+        rc1.metric("Average", f"{rstat['mean']:.4f}")
+        rc2.metric("Spread", f"{rstat['std']:.4f}")
+        rc3.metric("Lowest", f"{rstat['min']:.4f}")
+        rc4.metric("Highest", f"{rstat['max']:.4f}")
+        rc5.metric("Last day", f"{rstat['current']:.4f}")
+        st.caption("Higher echo = a \"hotter\" day for the picky-betting gate.")
 
     st.plotly_chart(
         animate_novelty_timewave(daily, tw),
         use_container_width=True,
         key="novelty_timeline",
     )
+    st.caption(
+        "Same timeline as Overview. Watch whether the two lines move opposite ways, "
+        "as McKenna guessed."
+    )
     st.plotly_chart(
         animate_novelty_distribution(scores, metric=opts["metric"]),
         use_container_width=True,
         key="novelty_hist",
     )
-
-    st.subheader("Relationship diagnostics")
     st.caption(
-        "Extra pictures of how surprise and the wave relate. "
-        "The official answer still comes from the chance check above."
+        "How surprise scores are spread across races. Play adds races one batch at a time."
+    )
+
+    st.subheader("Extra pictures of the match")
+    st.caption(
+        "More views of how surprise and the wave relate. "
+        "The official answer still comes from the chance score above."
     )
     nc1, nc2 = st.columns(2)
     with nc1:
@@ -1357,45 +1404,59 @@ def render_novelty_timewave(state: dict) -> None:
             use_container_width=True,
             key="novelty_scatter",
         )
+        st.caption("One dot per day. Flat cloud = little match.")
     with nc2:
         st.plotly_chart(
             plot_rolling_correlation(daily, tw),
             use_container_width=True,
             key="novelty_rolling_corr",
         )
+        st.caption("Does the link strengthen or fade in different periods?")
 
     st.plotly_chart(
         plot_novelty_calendar_heatmap(daily),
         use_container_width=True,
         key="novelty_calendar",
     )
+    st.caption(
+        "Surprise by calendar day. Redder = weirder finishes that day of the month."
+    )
 
-    st.subheader("Race structure")
+    st.subheader("What the races look like")
+    st.caption("Background on field size and favorites — not the main wave test.")
     st.plotly_chart(
         plot_field_size_novelty(scores, metric=opts["metric"]),
         use_container_width=True,
         key="field_size_box",
+    )
+    st.caption(
+        "Bigger fields look \"weirder\" in raw scores, so we compare within similar field sizes "
+        "before averaging by day."
     )
     st.plotly_chart(
         plot_winner_profile(scores),
         use_container_width=True,
         key="winner_profile",
     )
+    st.caption(
+        "Left: how long winners paid. Right: how often the favorite won each month."
+    )
 
     if result["lag"] is not None:
         lag = result["lag"]
         best = lag.loc[lag["spearman_r"].abs().idxmax()]
-        st.subheader("Lead-lag (exploratory)")
+        st.subheader("Does surprise lead or lag?")
         st.caption(
-            "Does surprise lead or lag the wave by a few days? "
+            "Maybe surprise peaks a few days before or after the wave. "
             "Curiosity only — not the main claim."
         )
         st.write(
-            f"Strongest |r| at lag **{int(best['lag_days'])}** days "
-            f"(r = {best['spearman_r']:+.4f})"
+            f"Strongest link at a shift of **{int(best['lag_days'])}** days "
+            f"(rank link = {best['spearman_r']:+.4f})"
         )
         st.plotly_chart(animate_lead_lag(lag), use_container_width=True, key="lead_lag")
-        with st.expander("Lead-lag table"):
+        st.caption("The peak shows the shift (in days) with the strongest link.")
+        with st.expander("Lead/lag numbers"):
             st.dataframe(lag, use_container_width=True, hide_index=True)
 
     with st.expander("Race-level scores (all columns)", expanded=False):
@@ -1404,6 +1465,7 @@ def render_novelty_timewave(state: dict) -> None:
             if c in scores.columns
         ]
         st.dataframe(scores[display_cols], use_container_width=True, hide_index=True)
+        st.caption("One row per race with the surprise scores used above.")
 
 
 def render_backtest(state: dict) -> None:
@@ -1411,9 +1473,9 @@ def render_backtest(state: dict) -> None:
     res = result["backtest"]
     mckenna_daily = state.get("mckenna_daily_pnl")
 
-    st.subheader("Backtest summary")
+    st.subheader("Did timing help?")
     st.caption(TAB_INTROS["backtest"])
-    for label, key in [("Timewave-filtered", "strategy"), ("Bet every race", "bet_every_race")]:
+    for label, key in [("Wave-picked days", "strategy"), ("Bet every race", "bet_every_race")]:
         s = res[key]
         st.markdown(f"**{label}**")
         if key == "strategy":
@@ -1422,24 +1484,35 @@ def render_backtest(state: dict) -> None:
             st.caption("Same idea with no day filter — the baseline.")
         bc1, bc2, bc3, bc4, bc5, bc6 = st.columns(6)
         bc1.metric("Races", f"{s['races']:,}")
-        bc2.metric("Cost", f"${s['total_cost']:,.0f}")
-        bc3.metric("Payout", f"${s['total_payout']:,.0f}")
-        bc4.metric("P&L", f"${s['total_pnl']:+,.0f}")
-        bc5.metric("ROI", f"{s['roi_pct']:+.2f}%")
-        bc6.metric("Hit rate", f"{s['hit_profit_pct']:.1f}%")
+        bc2.metric("Money spent", f"${s['total_cost']:,.0f}")
+        bc3.metric("Money returned", f"${s['total_payout']:,.0f}")
+        bc4.metric("Profit/loss", f"${s['total_pnl']:+,.0f}")
+        bc5.metric("Return %", f"{s['roi_pct']:+.2f}%")
+        bc6.metric("Winning races", f"{s['hit_profit_pct']:.1f}%")
+        st.caption(
+            "Return % is profit or loss divided by money spent. "
+            "Winning races is the share of races that paid more than they cost."
+        )
 
-    st.metric("Wave threshold value", f"{res['threshold_wave_value']:.6f}")
+    st.metric("Wave cutoff value", f"{res['threshold_wave_value']:.6f}")
     src_counts = res["per_race"]["payout_source"].value_counts().to_dict()
-    st.caption(f"Payout sources: {src_counts}")
+    st.caption(
+        f"Wave cutoff value is the wave level that marks \"low enough to bet.\" "
+        f"Payout sources: {src_counts}"
+    )
 
     st.plotly_chart(
         animate_cumulative_pnl(res["per_race"], mckenna_daily),
         use_container_width=True,
         key="cum_pnl",
     )
-    st.caption("Play walks race-by-race money over time.")
+    st.caption(
+        "Running profit or loss over time. Play walks race by race. "
+        "If wave timing helped, the green line should stay above the red one."
+    )
 
-    st.subheader("Risk & distribution")
+    st.subheader("Risk and spread")
+    st.caption("How bumpy the money ride was — not just the final total.")
     rc1, rc2 = st.columns(2)
     with rc1:
         st.plotly_chart(
@@ -1447,30 +1520,35 @@ def render_backtest(state: dict) -> None:
             use_container_width=True,
             key="pnl_violin",
         )
+        st.caption("Shape of per-race wins and losses on wave-picked days vs other days.")
     with rc2:
         st.plotly_chart(
             plot_drawdown(res["per_race"]),
             use_container_width=True,
             key="drawdown",
         )
+        st.caption("How far below its best point the running total fell.")
     st.plotly_chart(
         plot_monthly_pnl_heatmap(res["per_race"]),
         use_container_width=True,
         key="monthly_pnl_heatmap",
     )
+    st.caption("Green months made money on wave-picked days; red months lost.")
 
     if result["sweep"] is not None:
-        st.subheader("Threshold sweep (exploratory)")
+        st.subheader("What if we change the cutoff?")
         st.caption(
             "Returns across many wave cutoffs. Good for intuition — "
             "not a replacement for the locked official cutoff."
         )
         st.plotly_chart(plot_sweep(result["sweep"]), use_container_width=True, key="sweep")
-        with st.expander("Sweep table"):
+        st.caption("A bump at one cutoff is curiosity, not a new official result.")
+        with st.expander("Cutoff sweep numbers"):
             st.dataframe(result["sweep"], use_container_width=True, hide_index=True)
 
-    with st.expander("Per-race backtest detail"):
+    with st.expander("Per-race detail"):
         st.dataframe(res["per_race"], use_container_width=True, hide_index=True)
+        st.caption("One row per race with cost, payout, and whether that day was wave-picked.")
 
 
 def render_mckenna_engine(state: dict) -> None:
@@ -1480,39 +1558,48 @@ def render_mckenna_engine(state: dict) -> None:
     engine_summary = state.get("engine_summary")
     hexagram = state.get("hexagram")
 
-    st.subheader("McKenna Engine")
+    st.subheader("Picky betting")
     st.caption(TAB_INTROS["engine"])
     st.info(
-        "**Beta is a guess** about whether the pool overbets favorites. "
-        "At beta = 1.0 (fair prices), picky betting should find no edge. "
-        "A win at other beta values only means \"if the pool were biased that way.\""
+        "**Pool bias guess** is an assumption about whether the pool overbets favorites. "
+        "At 1.0 (fair prices), picky betting should find no edge. "
+        "A win at other values only means \"if the pool were biased that way.\""
     )
 
     ec1, ec2, ec3, ec4 = st.columns(4)
-    ec1.metric("Beta (pool bias)", f"{opts['engine_beta']:.2f}")
-    ec2.metric("Gate %", f"{opts['engine_gate_pct']:.0f}")
-    ec3.metric("k_max", opts["engine_k_max"])
+    ec1.metric("Bias guess", f"{opts['engine_beta']:.2f}")
+    ec2.metric("Hottest days %", f"{opts['engine_gate_pct']:.0f}")
+    ec3.metric("Max tickets", opts["engine_k_max"])
     ec4.metric("Seed", opts["engine_seed"])
+    st.caption(
+        "These are the sidebar settings for this run. "
+        "Bias 1.0 is the honest fair-price case."
+    )
 
     if hexagram is not None:
-        st.markdown(f"### Last I Ching cast: hexagram **{hexagram}** / 64")
+        st.markdown(f"### Last coin-cast pick: pattern **{hexagram}** / 64")
+        st.caption("A repeatable random pick used when too many tickets look good.")
 
     if engine_summary is None:
-        st.info("Turn on **Run McKenna Engine** in the sidebar, then run again.")
+        st.info("Turn on **Run picky betting** in the sidebar, then run again.")
         return
 
     st.dataframe(engine_summary, use_container_width=True, hide_index=True)
+    st.caption(
+        "Each row is a betting rule. Compare returns — at bias 1.0, none should look like a free lunch."
+    )
 
     for _, row in engine_summary.iterrows():
-        with st.expander(f"Strategy: {row['strategy']}", expanded=False):
+        with st.expander(f"Rule: {row['strategy']}", expanded=False):
             sc1, sc2, sc3, sc4, sc5, sc6 = st.columns(6)
             sc1.metric("Races", f"{int(row['races']):,}")
             sc2.metric("Tickets", f"{int(row['tickets']):,}")
-            sc3.metric("Cost", f"${row['cost']:,.2f}")
-            sc4.metric("Payout", f"${row['payout']:,.2f}")
-            sc5.metric("P&L", f"${row['pnl']:+,.2f}")
+            sc3.metric("Money spent", f"${row['cost']:,.2f}")
+            sc4.metric("Money returned", f"${row['payout']:,.2f}")
+            sc5.metric("Profit/loss", f"${row['pnl']:+,.2f}")
             roi = row["roi_pct"]
-            sc6.metric("ROI", f"{roi:+.2f}%" if pd.notna(roi) else "N/A")
+            sc6.metric("Return %", f"{roi:+.2f}%" if pd.notna(roi) else "N/A")
+            st.caption("Detail for this one rule.")
 
     from mckenna_derby.mckenna_engine import _compute_gated_days
 
@@ -1526,8 +1613,11 @@ def render_mckenna_engine(state: dict) -> None:
         use_container_width=True,
         key="resonance",
     )
+    st.caption(
+        "The line is the echo of past surprise. Marks show the hottest days we would bet on."
+    )
 
-    with st.spinner("Building beta comparison animation …"):
+    with st.spinner("Building bias comparison animation …"):
         st.plotly_chart(
             animate_roi_by_beta(
                 runners,
@@ -1539,7 +1629,10 @@ def render_mckenna_engine(state: dict) -> None:
             use_container_width=True,
             key="roi_beta",
         )
-    st.caption("Slider steps through β = 1.00 … 1.20. Play cycles strategy returns.")
+    st.caption(
+        "Slider steps through bias guesses from 1.00 to 1.20. "
+        "Play cycles returns for each rule. Only 1.0 is the fair-price case."
+    )
 
 
 def render_raw_data(state: dict) -> None:
@@ -1548,12 +1641,14 @@ def render_raw_data(state: dict) -> None:
     scores = result["scores"]
     daily = result["daily"]
 
-    st.subheader("Raw data preview")
+    st.subheader("Race data")
     st.caption(TAB_INTROS["raw"])
     st.write(f"First 100 rows ({len(runners):,} total)")
     st.dataframe(runners.head(100), use_container_width=True, hide_index=True)
+    st.caption("Each row is one horse in one race — the raw input to the analysis.")
 
     st.subheader("Downloads")
+    st.caption("Save the scored races, daily surprise line, or picky-betting summary.")
     dc1, dc2, dc3 = st.columns(3)
     dc1.download_button(
         "race_scores.csv",
@@ -1577,8 +1672,9 @@ def render_raw_data(state: dict) -> None:
             "text/csv",
         )
 
-    with st.expander("Full runners schema"):
+    with st.expander("Column types"):
         st.json({c: str(runners[c].dtype) for c in runners.columns})
+        st.caption("Technical column types for the race table above.")
 
 
 def main() -> None:
@@ -1587,7 +1683,7 @@ def main() -> None:
     with st.container(key="tour_app_header"):
         st.title("McKenna Derby")
         st.caption(
-            "Do weird horse-race days line up with McKenna's Timewave? "
+            "Do weird horse-race days line up with McKenna's calendar wave? "
             "Click **Run Analysis** to find out. Not betting advice."
         )
 
@@ -1595,15 +1691,7 @@ def main() -> None:
     opts = render_sidebar(prereg)
 
     def _render_result_tabs(state: dict) -> None:
-        tab_over, tab_nt, tab_bt, tab_eng, tab_raw = st.tabs(
-            [
-                "Overview",
-                "Novelty & Timewave",
-                "Backtest",
-                "McKenna Engine",
-                "Raw Data",
-            ]
-        )
+        tab_over, tab_nt, tab_bt, tab_eng, tab_raw = st.tabs(TAB_LABELS)
         with tab_over:
             render_overview(state)
         with tab_nt:
@@ -1620,7 +1708,7 @@ def main() -> None:
             with st.container(key="tour_empty_intro"):
                 st.caption(
                     "Research toy — not betting advice. "
-                    "Weird race days vs McKenna's Timewave. "
+                    "Weird race days vs McKenna's calendar wave. "
                     "Change the sidebar and click **Run Analysis** to refresh."
                 )
             st.info(
@@ -1643,16 +1731,16 @@ def main() -> None:
     with st.container(key="tour_empty_intro"):
         st.caption(
             "Research toy — not betting advice. "
-            "Weird race days vs McKenna's Timewave."
+            "Weird race days vs McKenna's calendar wave."
         )
 
     n_races = runners["race_id"].nunique()
     st.success(
-        f"Loaded **{source_label}**: {n_races:,} races, {len(runners):,} runners "
+        f"Loaded **{source_label}**: {n_races:,} races, {len(runners):,} horses "
         f"({runners['date'].min().date()} → {runners['date'].max().date()})"
     )
 
-    with st.spinner("Running analysis pipeline …"):
+    with st.spinner("Running analysis …"):
         result = run_pipeline(
             runners,
             opts["number_set"],
@@ -1669,7 +1757,7 @@ def main() -> None:
     hexagram = None
     mckenna_daily_pnl = None
     if opts["run_engine"]:
-        with st.spinner("Running McKenna Engine (four strategies) …"):
+        with st.spinner("Running picky betting (four rules) …"):
             engine_summary = run_engine_summary(
                 runners,
                 opts["engine_beta"],
@@ -1680,7 +1768,7 @@ def main() -> None:
             )
             iching = IChingSelector(seed=opts["engine_seed"])
             hexagram = iching.cast_hexagram()
-        with st.spinner("Computing McKenna gated P&L series …"):
+        with st.spinner("Computing picky-betting money series …"):
             mckenna_daily_pnl = mckenna_gated_daily_pnl(
                 runners,
                 opts["engine_beta"],
