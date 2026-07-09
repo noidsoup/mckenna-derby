@@ -119,7 +119,7 @@ def apply_plotly_theme(fig: go.Figure) -> go.Figure:
 
 
 def inject_app_css() -> None:
-    """Light CSS polish for metrics, tabs, empty state, and sidebar."""
+    """Loud CSS polish: neon chrome, bouncing metrics, null sparkles, sticker flair."""
     st.markdown(
         f"""
 <style>
@@ -127,42 +127,96 @@ def inject_app_css() -> None:
     --md-accent: {PALETTE["wave"]};
     --md-cyan: {PALETTE["surprise"]};
     --md-paper: {PALETTE["paper"]};
+    --md-neon: rgba(167, 139, 250, 0.85);
+    --md-neon-cyan: rgba(56, 189, 248, 0.75);
   }}
-  /* Metric cards */
+  /* Metric cards — neon glow + gentle bounce */
   div[data-testid="stMetric"] {{
     background: linear-gradient(145deg, rgba(26, 29, 39, 0.95), rgba(20, 23, 34, 0.9));
-    border: 1px solid rgba(167, 139, 250, 0.28);
+    border: 1px solid rgba(167, 139, 250, 0.55);
     border-radius: 10px;
     padding: 0.65rem 0.85rem;
-    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.35);
+    box-shadow:
+      0 0 12px rgba(167, 139, 250, 0.35),
+      0 0 28px rgba(56, 189, 248, 0.12),
+      0 4px 18px rgba(0, 0, 0, 0.35);
+    animation: md-metric-bounce 2.8s ease-in-out infinite;
   }}
   div[data-testid="stMetric"] label {{
     color: {PALETTE["muted"]} !important;
   }}
-  /* Tabs */
+  @keyframes md-metric-bounce {{
+    0%, 100% {{ transform: translateY(0) scale(1); }}
+    40% {{ transform: translateY(-3px) scale(1.012); }}
+    70% {{ transform: translateY(1px) scale(0.995); }}
+  }}
+  /* Tabs — underline pulse + panel fade-in */
   button[data-baseweb="tab"] {{
     color: {PALETTE["muted"]};
+    transition: color 0.25s ease, border-color 0.25s ease, text-shadow 0.25s ease;
   }}
   button[data-baseweb="tab"][aria-selected="true"] {{
     color: {PALETTE["text"]} !important;
     border-bottom-color: var(--md-accent) !important;
+    border-bottom-width: 3px !important;
+    text-shadow: 0 0 12px rgba(167, 139, 250, 0.55);
+    animation: md-tab-underline 1.8s ease-in-out infinite;
+  }}
+  @keyframes md-tab-underline {{
+    0%, 100% {{ box-shadow: inset 0 -3px 0 0 rgba(167, 139, 250, 0.9); }}
+    50% {{ box-shadow: inset 0 -3px 0 0 rgba(56, 189, 248, 0.95); }}
+  }}
+  div[data-testid="stTabContent"],
+  div[data-baseweb="tab-panel"] {{
+    animation: md-tab-fade 0.45s ease-out;
+  }}
+  @keyframes md-tab-fade {{
+    from {{ opacity: 0; transform: translateY(8px); }}
+    to {{ opacity: 1; transform: translateY(0); }}
   }}
   .block-container {{
     padding-top: 1.4rem;
   }}
-  /* Soft radial wash behind main title area */
+  /* Animated gradient wash behind main title area */
   section.main > div {{
     background:
-      radial-gradient(ellipse 80% 40% at 15% 0%, rgba(167, 139, 250, 0.14), transparent 55%),
-      radial-gradient(ellipse 60% 35% at 85% 5%, rgba(56, 189, 248, 0.08), transparent 50%);
+      radial-gradient(ellipse 80% 45% at 12% 0%, rgba(167, 139, 250, 0.28), transparent 55%),
+      radial-gradient(ellipse 65% 40% at 88% 8%, rgba(56, 189, 248, 0.18), transparent 50%),
+      radial-gradient(ellipse 50% 30% at 50% 0%, rgba(244, 114, 182, 0.10), transparent 60%),
+      linear-gradient(125deg, rgba(15, 17, 23, 0.2), rgba(26, 29, 39, 0.35), rgba(15, 17, 23, 0.2));
+    background-size: 140% 140%, 140% 140%, 120% 120%, 200% 200%;
+    animation: md-bg-shift 14s ease-in-out infinite alternate;
   }}
-  /* Empty-state intro: gentle accent on first markdown block */
+  @keyframes md-bg-shift {{
+    0% {{ background-position: 0% 0%, 100% 0%, 50% 0%, 0% 50%; }}
+    50% {{ background-position: 40% 20%, 60% 30%, 45% 10%, 50% 50%; }}
+    100% {{ background-position: 80% 10%, 20% 40%, 55% 20%, 100% 50%; }}
+  }}
+  /* Empty-state intro — neon frame */
   div[class*="st-key-tour_empty_intro"] {{
-    border: 1px solid rgba(167, 139, 250, 0.22);
+    border: 1px solid rgba(167, 139, 250, 0.55);
     border-radius: 12px;
     padding: 0.75rem 1rem;
-    background: linear-gradient(145deg, rgba(26, 29, 39, 0.9), rgba(15, 17, 23, 0.85));
-    box-shadow: 0 0 40px rgba(167, 139, 250, 0.08);
+    background: linear-gradient(145deg, rgba(26, 29, 39, 0.92), rgba(15, 17, 23, 0.88));
+    box-shadow:
+      0 0 24px rgba(167, 139, 250, 0.35),
+      0 0 48px rgba(56, 189, 248, 0.15),
+      inset 0 0 30px rgba(167, 139, 250, 0.06);
+    animation: md-neon-pulse 3.2s ease-in-out infinite;
+  }}
+  @keyframes md-neon-pulse {{
+    0%, 100% {{
+      box-shadow:
+        0 0 18px rgba(167, 139, 250, 0.3),
+        0 0 36px rgba(56, 189, 248, 0.12),
+        inset 0 0 24px rgba(167, 139, 250, 0.05);
+    }}
+    50% {{
+      box-shadow:
+        0 0 32px rgba(167, 139, 250, 0.55),
+        0 0 56px rgba(56, 189, 248, 0.28),
+        inset 0 0 36px rgba(167, 139, 250, 0.1);
+    }}
   }}
   /* Sidebar section headers */
   section[data-testid="stSidebar"] h1,
@@ -174,14 +228,90 @@ def inject_app_css() -> None:
     letter-spacing: 0.02em;
   }}
   section[data-testid="stSidebar"] {{
-    border-right: 1px solid rgba(167, 139, 250, 0.18);
+    border-right: 1px solid rgba(167, 139, 250, 0.35);
+    box-shadow: 4px 0 24px rgba(167, 139, 250, 0.08);
   }}
-  /* Primary buttons */
+  /* Primary Run button — loud neon */
   .stButton > button[kind="primary"],
   button[data-testid="baseButton-primary"] {{
-    background: linear-gradient(135deg, #8b5cf6, #6366f1);
-    border: 0;
-    box-shadow: 0 0 20px rgba(167, 139, 250, 0.35);
+    background: linear-gradient(135deg, #a78bfa, #6366f1, #22d3ee);
+    background-size: 200% 200%;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    box-shadow:
+      0 0 18px rgba(167, 139, 250, 0.65),
+      0 0 36px rgba(56, 189, 248, 0.35);
+    animation: md-btn-glow 2.4s ease-in-out infinite;
+  }}
+  @keyframes md-btn-glow {{
+    0%, 100% {{
+      background-position: 0% 50%;
+      box-shadow: 0 0 16px rgba(167, 139, 250, 0.55), 0 0 28px rgba(56, 189, 248, 0.25);
+    }}
+    50% {{
+      background-position: 100% 50%;
+      box-shadow: 0 0 28px rgba(167, 139, 250, 0.85), 0 0 48px rgba(56, 189, 248, 0.45);
+    }}
+  }}
+  /* Plotly chart neon frame */
+  div[data-testid="stPlotlyChart"],
+  .stPlotlyChart {{
+    border-radius: 12px;
+    border: 1px solid rgba(167, 139, 250, 0.4);
+    box-shadow:
+      0 0 16px rgba(167, 139, 250, 0.22),
+      0 0 32px rgba(56, 189, 248, 0.1);
+  }}
+  /* Null “So what?” sparkle / confetti rain */
+  div[class*="st-key-md_null_"],
+  .md-null-sparkle {{
+    position: relative;
+    overflow: hidden;
+    border-radius: 12px;
+    border: 1px solid rgba(251, 191, 36, 0.45);
+    box-shadow:
+      0 0 20px rgba(251, 191, 36, 0.25),
+      0 0 40px rgba(167, 139, 250, 0.2);
+    animation: md-null-glow 2.6s ease-in-out infinite;
+  }}
+  div[class*="st-key-md_null_"]::before,
+  .md-null-sparkle::before {{
+    content: "✨ ⭐ 💫 ✨ 🌟 ✨ ⭐ 💫 ✨ 🌟 ✨ ⭐ 💫 ✨ 🌟";
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    pointer-events: none;
+    font-size: 1.05rem;
+    letter-spacing: 0.55em;
+    line-height: 2.2;
+    white-space: pre-wrap;
+    word-break: break-all;
+    opacity: 0.55;
+    animation: md-confetti-rain 4.5s linear infinite;
+    text-shadow: 0 0 8px rgba(251, 191, 36, 0.8);
+  }}
+  div[class*="st-key-md_null_"]::after,
+  .md-null-sparkle::after {{
+    content: "💫 ✨ ⭐ 🌟 ✨ 💫 ⭐ ✨ 🌟 💫 ✨ ⭐";
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    pointer-events: none;
+    font-size: 0.9rem;
+    letter-spacing: 0.7em;
+    line-height: 2.6;
+    white-space: pre-wrap;
+    word-break: break-all;
+    opacity: 0.4;
+    animation: md-confetti-rain 6s linear infinite reverse;
+    animation-delay: -1.5s;
+  }}
+  @keyframes md-confetti-rain {{
+    0% {{ transform: translateY(-40%) translateX(0); }}
+    100% {{ transform: translateY(40%) translateX(4%); }}
+  }}
+  @keyframes md-null-glow {{
+    0%, 100% {{ box-shadow: 0 0 16px rgba(251, 191, 36, 0.2), 0 0 28px rgba(167, 139, 250, 0.15); }}
+    50% {{ box-shadow: 0 0 28px rgba(251, 191, 36, 0.45), 0 0 48px rgba(244, 114, 182, 0.25); }}
   }}
   /* Local clipart flair (flat SVGs + tiny GIFs — no web hotlinks) */
   .md-clipart-row {{
@@ -196,7 +326,7 @@ def inject_app_css() -> None:
     width: 52px;
     height: 52px;
     border-radius: 12px;
-    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35), 0 0 10px rgba(167, 139, 250, 0.25);
     object-fit: contain;
   }}
   .md-clipart-row.md-clipart-hero img {{
@@ -241,6 +371,14 @@ def inject_app_css() -> None:
   }}
   .mckenna-sticker.md-exit-done {{
     display: none !important;
+  }}
+  .mckenna-sticker.md-sticker-pop-in {{
+    animation: md-sticker-pop-in 0.55s cubic-bezier(0.34, 1.56, 0.64, 1) forwards !important;
+  }}
+  @keyframes md-sticker-pop-in {{
+    0% {{ transform: scale(0.2) rotate(-20deg); opacity: 0; }}
+    70% {{ transform: scale(1.12) rotate(4deg); opacity: 1; }}
+    100% {{ transform: scale(1) rotate(0); opacity: 1; }}
   }}
   .md-clipart-row img:nth-child(2) {{ animation-delay: 0.35s; }}
   .md-clipart-row img:nth-child(3) {{ animation-delay: 0.7s; }}
@@ -299,6 +437,25 @@ def inject_app_css() -> None:
       animation-iteration-count: 1 !important;
       transition-duration: 0.01ms !important;
     }}
+    div[data-testid="stMetric"],
+    section.main > div,
+    div[class*="st-key-tour_empty_intro"],
+    .stButton > button[kind="primary"],
+    button[data-testid="baseButton-primary"],
+    button[data-baseweb="tab"][aria-selected="true"],
+    div[data-testid="stTabContent"],
+    div[data-baseweb="tab-panel"],
+    div[class*="st-key-md_null_"],
+    .md-null-sparkle {{
+      animation: none !important;
+    }}
+    div[class*="st-key-md_null_"]::before,
+    div[class*="st-key-md_null_"]::after,
+    .md-null-sparkle::before,
+    .md-null-sparkle::after {{
+      content: none !important;
+      animation: none !important;
+    }}
     .mckenna-sticker.in-view.md-clipart-anim-bobble,
     .mckenna-sticker.in-view.md-clipart-anim-spin,
     .mckenna-sticker.in-view.md-clipart-anim-pulse,
@@ -306,7 +463,8 @@ def inject_app_css() -> None:
     .md-clipart-anim-bobble,
     .md-clipart-anim-spin,
     .md-clipart-anim-pulse,
-    .md-clipart-anim-wiggle {{
+    .md-clipart-anim-wiggle,
+    .mckenna-sticker.md-sticker-pop-in {{
       animation: none !important;
     }}
     .mckenna-sticker.md-exit-fly-left,
@@ -325,6 +483,7 @@ def inject_app_css() -> None:
     )
     inject_sticker_click_js()
     inject_scroll_autoplay_js()
+    inject_null_sparkle_js()
 
 
 _STICKER_CLICK_JS = """
@@ -338,21 +497,53 @@ _STICKER_CLICK_JS = """
     "md-exit-fade-out",
     "md-exit-shatter",
   ];
+  const EXIT_ALL = EXITS.concat(["md-exit-done", "md-sticker-pop-in"]);
+  const RESPAWN_MS = 1600;
   const reduce = window.matchMedia &&
     window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  function clearExitClasses(el) {
+    EXIT_ALL.forEach((c) => el.classList.remove(c));
+  }
+
+  function respawn(el) {
+    if (!el || !el.parentNode) return;
+    clearExitClasses(el);
+    el.dataset.mdExiting = "0";
+    el.style.display = "";
+    el.style.opacity = "";
+    el.style.transform = "";
+    el.style.filter = "";
+    if (reduce) return;
+    // Force reflow so pop-in restarts cleanly.
+    void el.offsetWidth;
+    el.classList.add("md-sticker-pop-in");
+    el.classList.add("in-view");
+    const done = () => {
+      el.classList.remove("md-sticker-pop-in");
+      el.removeEventListener("animationend", done);
+    };
+    el.addEventListener("animationend", done);
+    setTimeout(done, 700);
+  }
 
   function dismiss(el) {
     if (!el || el.dataset.mdExiting === "1") return;
     el.dataset.mdExiting = "1";
     if (reduce) {
       el.classList.add("md-exit-done");
+      setTimeout(() => respawn(el), RESPAWN_MS);
       return;
     }
     const cls = EXITS[Math.floor(Math.random() * EXITS.length)];
     el.classList.add(cls);
+    let finished = false;
     const finish = () => {
+      if (finished) return;
+      finished = true;
       el.classList.add("md-exit-done");
       el.removeEventListener("animationend", finish);
+      setTimeout(() => respawn(el), RESPAWN_MS);
     };
     el.addEventListener("animationend", finish);
     // Fallback if animationend never fires
@@ -364,7 +555,7 @@ _STICKER_CLICK_JS = """
     root.querySelectorAll("img.mckenna-sticker").forEach((img) => {
       if (img.dataset.mdBound === "1") return;
       img.dataset.mdBound = "1";
-      img.title = img.title || "Click to dismiss";
+      img.title = img.title || "Click to dismiss (they come back)";
       img.addEventListener("click", (ev) => {
         ev.preventDefault();
         ev.stopPropagation();
@@ -384,6 +575,49 @@ _STICKER_CLICK_JS = """
     const obs = new MutationObserver(() => bind(doc));
     obs.observe(doc.body || doc.documentElement, { childList: true, subtree: true });
     doc.__mdStickerObs = obs;
+  });
+})();
+</script>
+"""
+
+_NULL_SPARKLE_JS = """
+<script>
+(function () {
+  const reduce = window.matchMedia &&
+    window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (reduce) return;
+
+  const docs = [];
+  try { if (window.parent && window.parent.document) docs.push(window.parent.document); } catch (e) {}
+  docs.push(document);
+
+  function markNullAlerts(root) {
+    if (!root || !root.querySelectorAll) return;
+    root.querySelectorAll('[data-testid="stAlert"]').forEach((el) => {
+      if (el.dataset.mdNullChecked === "1") return;
+      el.dataset.mdNullChecked = "1";
+      const text = (el.textContent || "").toLowerCase();
+      const isNull =
+        text.indexOf("so what?") !== -1 &&
+        (text.indexOf("null") !== -1 ||
+          text.indexOf("bummer") !== -1 ||
+          text.indexOf("bummed") !== -1 ||
+          text.indexOf("broke") !== -1 ||
+          text.indexOf("sorry man") !== -1 ||
+          text.indexOf("expected null") !== -1 ||
+          text.indexOf("no free lunch") !== -1);
+      if (isNull) el.classList.add("md-null-sparkle");
+    });
+  }
+
+  docs.forEach((doc) => {
+    const root = doc.body || doc.documentElement;
+    if (!root) return;
+    markNullAlerts(root);
+    if (doc.__mdNullSparkleObs) return;
+    const obs = new MutationObserver(() => markNullAlerts(root));
+    obs.observe(root, { childList: true, subtree: true });
+    doc.__mdNullSparkleObs = obs;
   });
 })();
 </script>
@@ -513,6 +747,41 @@ def inject_scroll_autoplay_js() -> None:
     import streamlit.components.v1 as components
 
     components.html(_SCROLL_AUTOPLAY_JS, height=0, width=0)
+
+
+def inject_null_sparkle_js() -> None:
+    """Tag null/bummer ``st.info`` alerts with sparkle/confetti CSS class."""
+    import streamlit.components.v1 as components
+
+    components.html(_NULL_SPARKLE_JS, height=0, width=0)
+
+
+def _is_null_interpret_blurb(text: str) -> bool:
+    """True when an interpret blurb is a null / bummer “So what?” reveal."""
+    low = (text or "").lower()
+    if "so what?" not in low:
+        return False
+    markers = (
+        "null",
+        "bummer",
+        "bummed",
+        "broke",
+        "sorry man",
+        "no free lunch",
+        "expected null",
+        "null/negative",
+        "boring baseline",
+    )
+    return any(m in low for m in markers)
+
+
+def render_interpret_info(text: str, *, key: str) -> None:
+    """Show an interpret blurb; wrap null/bummer reveals for sparkle CSS."""
+    if _is_null_interpret_blurb(text):
+        with st.container(key=f"md_null_{key}"):
+            st.info(text)
+    else:
+        st.info(text)
 
 
 def ensure_clipart_seed(*, reshuffle: bool = False) -> int:
@@ -3085,7 +3354,7 @@ def render_overview(state: dict) -> None:
         "≈ unlikely by chance. **Rank link** near 0 = little match; McKenna guessed "
         "negative (low wave ↔ high surprise)."
     )
-    st.info(_interpret_match(primary))
+    render_interpret_info(_interpret_match(primary), key="overview_match")
 
     with st.expander("All run settings & data summary", expanded=True):
         st.caption(
@@ -3225,7 +3494,7 @@ def render_overview(state: dict) -> None:
         "baseline, man, and my old lady is not gonna like that story. "
         "Wave-picked clearly better than every-day would be far out ✨ — rare on this data."
     )
-    st.info(_interpret_timing(s, s_all, opts["takeout"]))
+    render_interpret_info(_interpret_timing(s, s_all, opts["takeout"]), key="overview_timing")
 
 
 def render_novelty_timewave(state: dict) -> None:
@@ -3256,7 +3525,7 @@ def render_novelty_timewave(state: dict) -> None:
         f"(rank-link chance {primary['spearman_p']:.4f}, "
         f"simple linear {primary['pearson_p']:.4f})."
     )
-    st.info(_interpret_match(primary))
+    render_interpret_info(_interpret_match(primary), key="novelty_match")
     st.caption(f"Engine note: {primary['interpretation']}")
 
     st.subheader("✨ Extra look: all wave tables")
@@ -3485,7 +3754,10 @@ def render_backtest(state: dict) -> None:
             "A high win rate with a bad return still loses money overall."
         )
 
-    st.info(_interpret_timing(res["strategy"], res["bet_every_race"], opts["takeout"]))
+    render_interpret_info(
+        _interpret_timing(res["strategy"], res["bet_every_race"], opts["takeout"]),
+        key="backtest_timing",
+    )
 
     st.metric("Wave cutoff value", f"{res['threshold_wave_value']:.6f}")
     src_counts = res["per_race"]["payout_source"].value_counts().to_dict()
@@ -3618,7 +3890,7 @@ def render_mckenna_engine(state: dict) -> None:
         st.info("Turn on **Run picky betting** 🎲 in the sidebar, then run again 🏇.")
         return
 
-    st.info(_interpret_engine(opts, engine_summary))
+    render_interpret_info(_interpret_engine(opts, engine_summary), key="engine_interpret")
 
     st.dataframe(engine_summary, use_container_width=True, hide_index=True)
     st.caption(
