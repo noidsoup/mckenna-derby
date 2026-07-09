@@ -34,6 +34,127 @@ MAX_ANIM_FRAMES = 80
 
 
 # ---------------------------------------------------------------------------
+# Plain-English copy (shown in the UI)
+# ---------------------------------------------------------------------------
+
+ABOUT_MARKDOWN = """
+### What is this?
+
+**McKenna Derby** is a research tool — not a betting tip sheet. It asks a
+simple question in plain language:
+
+> Do days when horse races produce *surprising* results line up with the
+> days Terence McKenna's **Timewave Zero** theory said the world should feel
+> more "novel" or chaotic?
+
+We measure surprise from real (or demo) race results, compare that timeline
+to McKenna's wave, and check whether betting only on "high novelty" days
+would have beaten betting every day. The goal is an **honest statistical
+answer**, not a product that tells you what to bet.
+
+### The big idea in one minute
+
+1. **Novelty** — How surprising was today's racing? A heavy favorite winning
+   is boring (low novelty). A longshot trifecta is shocking (high novelty).
+   We score every race from the betting odds, then average into a daily
+   "how weird was racing today?" line.
+2. **Timewave Zero** — McKenna's I Ching–based calendar of when history
+   should feel more or less novel. His convention: **low wave = high
+   novelty**. So if his theory fits racing chaos, the two lines should move
+   in opposite directions (a *negative* correlation).
+3. **Honest test** — We don't just eyeball the charts. A permutation test
+   asks: "Could this matchup happen by chance with two wiggly lines?" If
+   the answer is yes, we say so.
+4. **Backtest** — Imagine buying *every* trifecta combination on selected
+   days (you always hold the winner, but you pay the track's cut). Without
+   a real timing edge, you expect to lose about the **takeout** (the track's
+   commission). Profit only shows up if the timewave genuinely picks better
+   days.
+
+### Principles we stick to
+
+- **Pre-registration** — The main analysis settings live in `prereg.json`
+  *before* looking at real results, so we can't quietly shop for a prettier
+  p-value. Extra charts are labeled **exploratory**.
+- **Honest nulls** — The built-in synthetic demo is market-calibrated on
+  purpose. It should show **no** timewave signal and roughly −takeout ROI.
+  That proves the pipeline works, not that the hypothesis is true.
+- **Transparent math** — Prefer real trifecta payouts when you have them;
+  otherwise we model the pool and say so. Modeled results are conditional
+  on assumptions (especially **beta** in the McKenna Engine).
+- **Finite history** — McKenna's wave is undefined after 2012-12-21. Later
+  dates use a mirrored extension that we flag. This is a historical
+  experiment, not a live tip service.
+
+### What each tab shows
+
+| Tab | In plain English |
+| --- | --- |
+| **Overview** | Snapshot: how much data, did the main test find a signal, and how did the simple timing strategy do? |
+| **Novelty & Timewave** | The two timelines side by side, correlation stats, and optional "does one lead the other?" checks. |
+| **Backtest** | Money in / money out if you only bet when the wave is low, vs betting every race. |
+| **McKenna Engine** | A more selective experiment: pick fewer tickets, gate days by a fractal "resonance" signal, and (optionally) assume the betting pool is biased. |
+| **Raw Data** | Peek at the rows and download CSVs. |
+
+### How to read the numbers (without a stats degree)
+
+- **Spearman r** near 0 → little relationship. McKenna's idea predicts a
+  **negative** r (low wave with high novelty).
+- **Permutation p** — the one we trust for the primary claim. Small p
+  (e.g. under 0.05) means "unlikely by chance" *under this test*; it does
+  **not** mean "go bet the farm."
+- **ROI ≈ −takeout** on the demo (or on "bet every race") is the expected
+  baseline. Beating that is the interesting claim — and it needs real data
+  and real payouts to be credible.
+"""
+
+SIDEBAR_HELP = {
+    "data": (
+        "Start with **Synthetic demo** to see a known null result. "
+        "Use Hong Kong or an uploaded CSV when you have real races."
+    ),
+    "params": (
+        "Defaults come from the pre-registered experiment. Changing them "
+        "makes an **exploratory** run — fine for curiosity, not for claiming "
+        "a primary result."
+    ),
+    "engine": (
+        "**Beta = 1.0** means a fair betting pool (no free lunch). "
+        "Values above 1 assume favorites are overbet so longshots look cheap — "
+        "that is an assumption, not a measurement."
+    ),
+}
+
+TAB_INTROS = {
+    "overview": (
+        "A bird's-eye view of this run: data size, the pre-registered "
+        "correlation test, and whether timewave-timed trifecta buying beat "
+        "betting every race."
+    ),
+    "novelty": (
+        "Novelty is \"how surprising were the race results given the odds.\" "
+        "The timewave is McKenna's predicted novelty calendar. His theory "
+        "says they should move opposite each other (negative correlation)."
+    ),
+    "backtest": (
+        "We buy every trifecta combination on chosen days so the winning "
+        "ticket is always held. The track's takeout is a built-in headwind — "
+        "timing only helps if high-novelty days are genuinely better."
+    ),
+    "engine": (
+        "A selective layer on top of the basic backtest: fractal resonance "
+        "to pick days, I Ching casting to pick which tickets, and an optional "
+        "pool-bias (beta) model. Treat beta ≠ 1 results as \"what if the "
+        "pool were biased this way?\""
+    ),
+    "raw": (
+        "The runner-level rows that fed the analysis, plus downloads of "
+        "scored races and daily novelty."
+    ),
+}
+
+
+# ---------------------------------------------------------------------------
 # Auth & config
 # ---------------------------------------------------------------------------
 
@@ -665,9 +786,32 @@ def series_stats(s: pd.Series) -> dict:
 # ---------------------------------------------------------------------------
 
 
+def render_about() -> None:
+    """Landing copy: what the app does and the principles behind it."""
+    st.markdown(ABOUT_MARKDOWN)
+    with st.expander("Glossary (jargon → plain English)", expanded=False):
+        st.markdown(
+            """
+| Term | Plain English |
+| --- | --- |
+| **Novelty / surprisal** | How unexpected the actual finish was, given the odds. |
+| **Timewave Zero** | McKenna's mathematical calendar of historical "novelty." |
+| **Number set** | Which of four I Ching number tables drives the wave (Kelley is the usual primary). |
+| **Takeout** | The track's cut of the betting pool (often ~20–25%). |
+| **Trifecta** | Betting on the exact 1st–2nd–3rd finish order. |
+| **Permutation test** | Shuffle the timeline many times to see if the real matchup is special. |
+| **Pre-registration** | Locking the main analysis settings before peeking at real results. |
+| **Beta (pool bias)** | A dial for "are favorites overbet?" — 1.0 means fair prices. |
+| **Resonance gate** | Only bet on days the fractal echo signal ranks as "hot." |
+| **I Ching selector** | Coin-cast hexagram picks which tickets to keep when you can't buy them all. |
+"""
+        )
+
+
 def render_sidebar(prereg: dict) -> dict | None:
     with st.sidebar:
         st.header("Data source")
+        st.caption(SIDEBAR_HELP["data"])
         hk_available = HK_DIR.exists() and (HK_DIR / "races.csv").exists()
         source_options = ["Synthetic demo"]
         if hk_available:
@@ -680,26 +824,42 @@ def render_sidebar(prereg: dict) -> dict | None:
             uploaded = st.file_uploader("Runner-level CSV", type=["csv"])
 
         st.header("Pre-registration (prereg.json)")
+        st.caption(
+            "These settings define the official primary analysis. "
+            "They should stay fixed after the first real-data run."
+        )
         with st.expander("Frozen prereg settings", expanded=False):
             st.json(prereg)
 
         st.header("Run parameters")
+        st.caption(SIDEBAR_HELP["params"])
         number_set = st.selectbox(
             "Number set (primary)",
             ALL_SETS,
             index=ALL_SETS.index(prereg["primary_number_set"]),
+            help="Which I Ching number table builds the timewave. Kelley is the pre-registered default.",
         )
         threshold_pct = st.slider(
             "Timewave threshold % (low wave = bet)",
             5.0, 100.0, float(prereg["primary_threshold_pct"]), 5.0,
+            help="Bet only when the wave is in the lowest X% of values (McKenna: low wave = high novelty).",
         )
-        takeout = st.slider("Takeout", 0.10, 0.35, float(prereg["takeout"]), 0.01)
+        takeout = st.slider(
+            "Takeout",
+            0.10, 0.35, float(prereg["takeout"]), 0.01,
+            help="Track commission on the pool. Expected ROI with no edge ≈ −takeout.",
+        )
         metric = st.selectbox(
             "Novelty metric",
             ["trifecta_novelty", "win_novelty"],
             index=0 if prereg["metric"] == "trifecta_novelty" else 1,
+            help="Trifecta novelty uses the exact 1-2-3 order; win novelty uses only the winner.",
         )
-        engine_seed = st.number_input("Random seed (I Ching)", 1, 99999, 1904)
+        engine_seed = st.number_input(
+            "Random seed (I Ching)",
+            1, 99999, 1904,
+            help="Makes I Ching ticket picks reproducible across runs.",
+        )
 
         if source == "Synthetic demo":
             col1, col2 = st.columns(2)
@@ -710,17 +870,35 @@ def render_sidebar(prereg: dict) -> dict | None:
         else:
             start = end = None
 
-        do_sweep = st.checkbox("Threshold sweep (exploratory)", value=True)
-        max_lag = st.number_input("Lead-lag window (days, 0=off)", 0, 60, 10)
+        do_sweep = st.checkbox(
+            "Threshold sweep (exploratory)",
+            value=True,
+            help="Try many thresholds and plot ROI — labeled exploratory, not primary.",
+        )
+        max_lag = st.number_input(
+            "Lead-lag window (days, 0=off)",
+            0, 60, 10,
+            help="Check whether novelty leads or lags the timewave by a few days.",
+        )
 
         st.header("McKenna Engine")
+        st.caption(SIDEBAR_HELP["engine"])
         run_engine = st.checkbox("Run McKenna Engine", value=True)
         engine_beta = st.slider(
             "Pool bias beta (ASSUMPTION; 1.0 = fair pool)",
             0.80, 1.50, 1.00, 0.05,
+            help="1.0 = fair pool (selective bets should find no edge). >1 assumes favorites are overbet.",
         )
-        engine_gate_pct = st.slider("Resonance gate (top % of days)", 5.0, 100.0, 20.0, 5.0)
-        engine_k_max = st.number_input("Max tickets per race (I Ching cap)", 1, 500, 50)
+        engine_gate_pct = st.slider(
+            "Resonance gate (top % of days)",
+            5.0, 100.0, 20.0, 5.0,
+            help="Only bet on days in the top X% of the fractal resonance signal.",
+        )
+        engine_k_max = st.number_input(
+            "Max tickets per race (I Ching cap)",
+            1, 500, 50,
+            help="When more combos look +EV than this cap, I Ching casting chooses which to keep.",
+        )
 
         run = st.button("Run Analysis", type="primary")
 
@@ -777,12 +955,17 @@ def render_overview(state: dict) -> None:
     tw = result["timewave"]
 
     st.subheader("Overview")
+    st.caption(TAB_INTROS["overview"])
     c1, c2, c3, c4, c5 = st.columns(5)
     c1.metric("Races", f"{runners['race_id'].nunique():,}")
     c2.metric("Runners", f"{len(runners):,}")
     c3.metric("Permutation p", f"{primary['permutation_p']:.4f}")
     c4.metric("Spearman r", f"{primary['spearman_r']:+.4f}")
     c5.metric("Days", f"{primary['n_days']:,}")
+    st.caption(
+        "Permutation p is the main honesty check for the correlation. "
+        "Spearman r is the rank correlation (McKenna predicts negative)."
+    )
 
     with st.expander("All run settings & data summary", expanded=True):
         sc1, sc2, sc3 = st.columns(3)
@@ -810,6 +993,10 @@ def render_overview(state: dict) -> None:
     st.caption("Use **Play** or drag the slider to scrub through the timeline.")
 
     st.markdown("**Backtest at a glance**")
+    st.caption(
+        "Timewave-filtered = bet only on low-wave days. "
+        "Bet every race = no timing filter (expect roughly −takeout ROI)."
+    )
     bc1, bc2 = st.columns(2)
     s = res["strategy"]
     bc1.metric("Timewave-filtered", f"ROI {s['roi_pct']:+.2f}%", f"P&L ${s['total_pnl']:+,.0f}")
@@ -826,6 +1013,7 @@ def render_novelty_timewave(state: dict) -> None:
     scores = result["scores"]
 
     st.subheader("Primary correlation (pre-registered)")
+    st.caption(TAB_INTROS["novelty"])
     c1, c2, c3, c4 = st.columns(4)
     c1.metric("Permutation p", f"{primary['permutation_p']:.4f}")
     c2.metric("Spearman r", f"{primary['spearman_r']:+.4f}")
@@ -839,9 +1027,14 @@ def render_novelty_timewave(state: dict) -> None:
     st.info(primary["interpretation"])
 
     st.subheader("Exploratory: all number sets (Bonferroni ×4)")
+    st.caption(
+        "Same test on all four I Ching tables. Bonferroni ×4 means we treat "
+        "p-values more strictly because we looked at four versions."
+    )
     st.dataframe(result["exploratory"], use_container_width=True, hide_index=True)
 
     st.subheader("Daily novelty statistics")
+    st.caption("How surprising race outcomes were, day by day (higher = weirder finishes).")
     dstat = series_stats(daily)
     dc1, dc2, dc3, dc4, dc5 = st.columns(5)
     dc1.metric("Mean", f"{dstat['mean']:.4f}")
@@ -851,6 +1044,10 @@ def render_novelty_timewave(state: dict) -> None:
     dc5.metric("Current", f"{dstat['current']:.4f}")
 
     st.subheader("Timewave statistics (same dates)")
+    st.caption(
+        "McKenna's wave on the same calendar. Low values are the \"high novelty\" "
+        "zone in his convention."
+    )
     tstat = series_stats(tw)
     tc1, tc2, tc3, tc4 = st.columns(4)
     tc1.metric("Mean", f"{tstat['mean']:.4f}")
@@ -861,6 +1058,10 @@ def render_novelty_timewave(state: dict) -> None:
     resonance = result["resonance"]
     if not resonance.empty:
         st.subheader("RollingTimewave resonance statistics")
+        st.caption(
+            "A causal echo of past racing novelty at fractal lags (1, 64, 64² days) — "
+            "used by the McKenna Engine to pick days, not by the primary correlation."
+        )
         rstat = series_stats(resonance)
         rc1, rc2, rc3, rc4, rc5 = st.columns(5)
         rc1.metric("Mean", f"{rstat['mean']:.4f}")
@@ -884,6 +1085,10 @@ def render_novelty_timewave(state: dict) -> None:
         lag = result["lag"]
         best = lag.loc[lag["spearman_r"].abs().idxmax()]
         st.subheader("Lead-lag (exploratory)")
+        st.caption(
+            "Does novelty tend to lead or lag the timewave by a few days? "
+            "This is exploratory — not part of the primary claim."
+        )
         st.write(
             f"Strongest |r| at lag **{int(best['lag_days'])}** days "
             f"(r = {best['spearman_r']:+.4f})"
@@ -906,9 +1111,14 @@ def render_backtest(state: dict) -> None:
     mckenna_daily = state.get("mckenna_daily_pnl")
 
     st.subheader("Backtest summary")
+    st.caption(TAB_INTROS["backtest"])
     for label, key in [("Timewave-filtered", "strategy"), ("Bet every race", "bet_every_race")]:
         s = res[key]
         st.markdown(f"**{label}**")
+        if key == "strategy":
+            st.caption("Only races on days when the timewave is below the threshold.")
+        else:
+            st.caption("Same buy-all-trifectas idea with no day filter — the baseline.")
         bc1, bc2, bc3, bc4, bc5, bc6 = st.columns(6)
         bc1.metric("Races", f"{s['races']:,}")
         bc2.metric("Cost", f"${s['total_cost']:,.0f}")
@@ -930,6 +1140,10 @@ def render_backtest(state: dict) -> None:
 
     if result["sweep"] is not None:
         st.subheader("Threshold sweep (exploratory)")
+        st.caption(
+            "ROI across many wave thresholds. Useful for intuition; not a substitute "
+            "for the pre-registered primary threshold."
+        )
         st.plotly_chart(plot_sweep(result["sweep"]), use_container_width=True, key="sweep")
         with st.expander("Sweep table"):
             st.dataframe(result["sweep"], use_container_width=True, hide_index=True)
@@ -946,10 +1160,12 @@ def render_mckenna_engine(state: dict) -> None:
     hexagram = state.get("hexagram")
 
     st.subheader("McKenna Engine")
-    st.caption(
-        "Selective trifecta betting: Harville-priced combos, beta-distorted pool "
-        "payouts, fractal resonance gate, I Ching ticket selection. "
-        "**beta is an assumption** — beta = 1.0 is the fair-pool null."
+    st.caption(TAB_INTROS["engine"])
+    st.info(
+        "**beta is an assumption** about whether the trifecta pool overbets "
+        "favorites. At beta = 1.0 (fair pool), selective betting should find "
+        "no edge — that is the honest null. Positive ROI at other beta values "
+        "only means \"if the pool were biased that way.\""
     )
 
     ec1, ec2, ec3, ec4 = st.columns(4)
@@ -1013,6 +1229,7 @@ def render_raw_data(state: dict) -> None:
     daily = result["daily"]
 
     st.subheader("Raw data preview")
+    st.caption(TAB_INTROS["raw"])
     st.write(f"First 100 rows of runner-level data ({len(runners):,} total rows)")
     st.dataframe(runners.head(100), use_container_width=True, hide_index=True)
 
@@ -1047,38 +1264,62 @@ def render_raw_data(state: dict) -> None:
 def main() -> None:
     st.set_page_config(page_title="McKenna Derby", layout="wide")
     require_auth()
-    st.title("McKenna Derby Dashboard")
+    st.title("McKenna Derby")
     st.caption(
-        "Horse-racing novelty vs Terence McKenna's Timewave Zero — "
-        "full data transparency with animated Plotly charts"
+        "A plain-English research dashboard: does horse-racing surprise "
+        "line up with Terence McKenna's Timewave Zero — and would timing "
+        "bets on that wave have beaten betting every day?"
     )
 
     prereg = load_prereg()
     opts = render_sidebar(prereg)
 
+    def _render_result_tabs(state: dict) -> None:
+        tab_about, tab_over, tab_nt, tab_bt, tab_eng, tab_raw = st.tabs(
+            [
+                "About",
+                "Overview",
+                "Novelty & Timewave",
+                "Backtest",
+                "McKenna Engine",
+                "Raw Data",
+            ]
+        )
+        with tab_about:
+            render_about()
+        with tab_over:
+            render_overview(state)
+        with tab_nt:
+            render_novelty_timewave(state)
+        with tab_bt:
+            render_backtest(state)
+        with tab_eng:
+            render_mckenna_engine(state)
+        with tab_raw:
+            render_raw_data(state)
+
     if opts is None:
-        st.info("Configure options in the sidebar and click **Run Analysis**.")
         if st.session_state.get("analysis"):
-            st.markdown("---")
-            st.markdown("Showing previous run — click **Run Analysis** to refresh.")
-            state = st.session_state["analysis"]
-            tab_over, tab_nt, tab_bt, tab_eng, tab_raw = st.tabs(
-                ["Overview", "Novelty & Timewave", "Backtest", "McKenna Engine", "Raw Data"]
+            st.info(
+                "Showing the previous run. Change options in the sidebar and "
+                "click **Run Analysis** to refresh."
             )
-            with tab_over:
-                render_overview(state)
-            with tab_nt:
-                render_novelty_timewave(state)
-            with tab_bt:
-                render_backtest(state)
-            with tab_eng:
-                render_mckenna_engine(state)
-            with tab_raw:
-                render_raw_data(state)
+            _render_result_tabs(st.session_state["analysis"])
         else:
+            render_about()
+            st.markdown("---")
             st.markdown(
-                "**Quick start:** defaults run one year of synthetic demo data "
-                "(2010, market-calibrated null fixture). Use Play on charts to animate."
+                """
+### Try it in 30 seconds
+
+1. Leave the sidebar on **Synthetic demo** (a market-calibrated null fixture).
+2. Click **Run Analysis**.
+3. Read **Overview** first, then skim **Novelty & Timewave** and **Backtest**.
+
+On demo data you should see **little or no timewave signal** and ROI near
+**−takeout** — that is the pipeline working correctly, not a failed app.
+Charts have **Play** buttons so you can scrub the timelines.
+"""
             )
         return
 
@@ -1142,19 +1383,7 @@ def main() -> None:
     }
     st.session_state["analysis"] = state
 
-    tab_over, tab_nt, tab_bt, tab_eng, tab_raw = st.tabs(
-        ["Overview", "Novelty & Timewave", "Backtest", "McKenna Engine", "Raw Data"]
-    )
-    with tab_over:
-        render_overview(state)
-    with tab_nt:
-        render_novelty_timewave(state)
-    with tab_bt:
-        render_backtest(state)
-    with tab_eng:
-        render_mckenna_engine(state)
-    with tab_raw:
-        render_raw_data(state)
+    _render_result_tabs(state)
 
 
 if __name__ == "__main__":

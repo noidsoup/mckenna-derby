@@ -35,3 +35,13 @@ def test_dashboard_does_not_double_zscore_novelty():
     """animate_novelty_timewave should plot daily novelty as-is."""
     assert "Novelty z-score" not in DASHBOARD_SOURCE
     assert "Daily novelty" in DASHBOARD_SOURCE
+
+
+def test_dashboard_has_plain_english_about_copy():
+    """Landing / About tab should explain the app in plain English."""
+    assert "ABOUT_MARKDOWN" in DASHBOARD_SOURCE
+    assert "render_about" in DASHBOARD_SOURCE
+    assert "What is this?" in DASHBOARD_SOURCE
+    assert "Principles we stick to" in DASHBOARD_SOURCE
+    assert "TAB_INTROS" in DASHBOARD_SOURCE
+    assert '"About"' in DASHBOARD_SOURCE
