@@ -522,15 +522,6 @@ def ensure_clipart_seed(*, reshuffle: bool = False) -> int:
     return int(st.session_state[CLIPART_SEED_KEY])
 
 
-def render_shuffle_stickers_button(*, key: str = "shuffle_stickers") -> bool:
-    """Sidebar/header control to re-roll sticker seed. Returns True if clicked."""
-    clicked = st.button("🎲 Shuffle stickers", key=key, help="Re-roll which cheesy clipart shows up")
-    if clicked:
-        ensure_clipart_seed(reshuffle=True)
-        st.rerun()
-    return clicked
-
-
 def render_clipart_row(
     names: tuple[str, ...] | list[str] | None = None,
     *,
@@ -2855,7 +2846,6 @@ def render_sidebar(prereg: dict) -> dict:
         st.markdown("##### 🐴 What this software does")
         st.caption(SIDEBAR_INTRO)
         render_clipart_row(n=3, slot="sidebar", bobble=True)
-        render_shuffle_stickers_button(key="shuffle_stickers_sidebar")
 
         with st.expander("🍄 Who is Terence McKenna?", expanded=False):
             st.markdown(WHO_IS_MCKENNA)

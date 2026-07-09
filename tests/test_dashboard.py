@@ -57,7 +57,8 @@ def test_dashboard_clipart_and_extra_animations():
     assert "def pick_random_assets" in DASHBOARD_SOURCE or "pick_random_assets" in DASHBOARD_SOURCE
     assert "clipart_seed" in DASHBOARD_SOURCE
     assert "ensure_clipart_seed" in DASHBOARD_SOURCE
-    assert "Shuffle stickers" in DASHBOARD_SOURCE
+    assert "Shuffle stickers" not in DASHBOARD_SOURCE
+    assert "render_shuffle_stickers_button" not in DASHBOARD_SOURCE
     assert "mckenna-sticker" in DASHBOARD_SOURCE
     assert "inject_sticker_click_js" in DASHBOARD_SOURCE
     assert "inject_scroll_autoplay_js" in DASHBOARD_SOURCE
