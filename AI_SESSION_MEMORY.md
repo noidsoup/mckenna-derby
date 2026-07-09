@@ -64,3 +64,23 @@ Append-only log for AI assistants. Summarize completed work, decisions, and next
 
 **Next steps:**
 - Optional: surface the same About blurb in README hero if desired
+
+---
+
+## 2026-07-09 — First-visit guided tour mode
+
+**Branch:** `cursor/dashboard-tour-mode-1590`
+
+**Completed:**
+- Added `mckenna_derby/tour.py`: Driver.js popover tour injected into the parent Streamlit page
+- Auto-starts on first visit (localStorage `mckenna_derby_tour_v1`); sidebar **Replay guided tour** to restart
+- Anchored steps to header, About panel, data source, run params, engine params, and Run Analysis
+- Keyed Streamlit containers/widgets for `.st-key-*` anchors; bumped `streamlit>=1.40`
+- Tests: `tests/test_tour.py` + dashboard wiring assertion; 49 passed
+
+**Key decisions:**
+- Self-contained Driver.js via CDN instead of `streamlit-tour` (needs Python 3.10+ / Streamlit 1.51+)
+- Missing anchors fall back to floating info steps so the tour still completes
+
+**Next steps:**
+- Manual click-through of tour on Streamlit Community Cloud (CDN + sidebar layout)
