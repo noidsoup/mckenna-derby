@@ -22,5 +22,16 @@
     },
     "namespace": "my-project",
     "timestamp": 1783593085.593359
+  },
+  {
+    "id": "local_1783614658811",
+    "text": "2026-07-09 real-data run: downloaded gdaley/hkracing (6157 races, 1997-2005) plus UK and secondary HK dumps. Primary pre-registered Kelley analysis: Spearman r=+0.0080, permutation p=0.936 \u2014 null. Timewave-filtered ROI -5.87% vs bet-every +1.95% (all modeled payouts). McKenna engine beta=1.0 places zero selective tickets; beta=1.15 is modeled-only. Results in output/REAL_DATA_RESULTS.md. Auth used KAGGLE_API_TOKEN via kagglehub (Python 3.9 cannot use kaggle CLI 1.8+).",
+    "metadata": {
+      "source": "real-data-run",
+      "date": "2026-07-09",
+      "branch": "main"
+    },
+    "namespace": "mckenna-derby",
+    "timestamp": 1783614658.8118222
   }
 ]
