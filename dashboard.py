@@ -203,16 +203,17 @@ def inject_app_css() -> None:
     width: 64px;
     height: 64px;
   }}
-  .md-clipart-anim-bobble {{
+  /* Idle sticker motion starts only when scrolled into view (.in-view) */
+  .mckenna-sticker.in-view.md-clipart-anim-bobble {{
     animation: md-bobble 3.2s ease-in-out infinite;
   }}
-  .md-clipart-anim-spin {{
+  .mckenna-sticker.in-view.md-clipart-anim-spin {{
     animation: md-spin 6s linear infinite;
   }}
-  .md-clipart-anim-pulse {{
+  .mckenna-sticker.in-view.md-clipart-anim-pulse {{
     animation: md-pulse 2.4s ease-in-out infinite;
   }}
-  .md-clipart-anim-wiggle {{
+  .mckenna-sticker.in-view.md-clipart-anim-wiggle {{
     animation: md-wiggle 2.8s ease-in-out infinite;
   }}
   .mckenna-sticker {{
@@ -298,6 +299,10 @@ def inject_app_css() -> None:
       animation-iteration-count: 1 !important;
       transition-duration: 0.01ms !important;
     }}
+    .mckenna-sticker.in-view.md-clipart-anim-bobble,
+    .mckenna-sticker.in-view.md-clipart-anim-spin,
+    .mckenna-sticker.in-view.md-clipart-anim-pulse,
+    .mckenna-sticker.in-view.md-clipart-anim-wiggle,
     .md-clipart-anim-bobble,
     .md-clipart-anim-spin,
     .md-clipart-anim-pulse,
@@ -319,6 +324,7 @@ def inject_app_css() -> None:
         unsafe_allow_html=True,
     )
     inject_sticker_click_js()
+    inject_scroll_autoplay_js()
 
 
 _STICKER_CLICK_JS = """
@@ -383,12 +389,130 @@ _STICKER_CLICK_JS = """
 </script>
 """
 
+_SCROLL_AUTOPLAY_JS = """
+<script>
+(function () {
+  if (window.__mdScrollAutoplayInstalled) return;
+  window.__mdScrollAutoplayInstalled = true;
+
+  const reduce = window.matchMedia &&
+    window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (reduce) return;
+
+  const docs = [];
+  try { if (window.parent && window.parent.document) docs.push(window.parent.document); } catch (e) {}
+  docs.push(document);
+
+  function plotlyWin(doc) {
+    try {
+      if (doc.defaultView && doc.defaultView.Plotly) return doc.defaultView;
+    } catch (e) {}
+    try {
+      if (window.parent && window.parent.Plotly) return window.parent;
+    } catch (e) {}
+    return window.Plotly ? window : null;
+  }
+
+  function clickPlay(gd) {
+    if (!gd || gd.dataset.autoplayed === "1") return;
+    const texts = gd.querySelectorAll(".updatemenu-button text, g.updatemenu-button text, text");
+    for (let i = 0; i < texts.length; i++) {
+      const t = texts[i];
+      const label = (t.textContent || "").replace(/\\s+/g, " ").trim();
+      if (!/Play/i.test(label) || /Pause/i.test(label)) continue;
+      const btn = t.closest(".updatemenu-button") || t.parentElement;
+      if (!btn) continue;
+      try { btn.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true, view: gd.ownerDocument.defaultView })); }
+      catch (e) { try { btn.click(); } catch (e2) {} }
+      gd.dataset.autoplayed = "1";
+      return;
+    }
+    const win = plotlyWin(gd.ownerDocument);
+    if (win && win.Plotly && typeof win.Plotly.animate === "function" && gd.data) {
+      try {
+        win.Plotly.animate(gd, null, {
+          frame: { duration: 80, redraw: true },
+          fromcurrent: true,
+          transition: { duration: 100, easing: "cubic-in-out" },
+        });
+        gd.dataset.autoplayed = "1";
+      } catch (e) {}
+    }
+  }
+
+  function onIntersect(entries) {
+    entries.forEach((entry) => {
+      const el = entry.target;
+      if (entry.isIntersecting) {
+        el.classList.add("in-view");
+        if (el.classList && el.classList.contains("js-plotly-plot")) {
+          // Charts may still be wiring updatemenus; retry briefly.
+          clickPlay(el);
+          setTimeout(() => clickPlay(el), 250);
+          setTimeout(() => clickPlay(el), 700);
+        }
+      } else {
+        el.classList.remove("in-view");
+        // Allow replay when the chart scrolls back into view.
+        if (el.dataset) el.dataset.autoplayed = "0";
+      }
+    });
+  }
+
+  function install(doc) {
+    if (!doc || doc.__mdScrollIo) return;
+    const root = doc.body || doc.documentElement;
+    if (!root) return;
+    const io = new IntersectionObserver(onIntersect, {
+      root: null,
+      rootMargin: "0px 0px -8% 0px",
+      threshold: 0.28,
+    });
+    doc.__mdScrollIo = io;
+
+    function scan() {
+      root.querySelectorAll(".js-plotly-plot").forEach((el) => {
+        if (el.dataset.mdScrollObs === "1") return;
+        el.dataset.mdScrollObs = "1";
+        io.observe(el);
+      });
+      root.querySelectorAll("img.mckenna-sticker").forEach((el) => {
+        if (el.dataset.mdScrollObs === "1") return;
+        el.dataset.mdScrollObs = "1";
+        io.observe(el);
+      });
+      // Animated GIFs are data-URIs (eager); mark visible ones in-view for CSS parity.
+      root.querySelectorAll('img[src^="data:image/gif"]').forEach((el) => {
+        if (el.dataset.mdScrollObs === "1") return;
+        el.dataset.mdScrollObs = "1";
+        io.observe(el);
+      });
+    }
+
+    scan();
+    const mo = new MutationObserver(() => scan());
+    mo.observe(root, { childList: true, subtree: true });
+    doc.__mdScrollMo = mo;
+  }
+
+  docs.forEach(install);
+})();
+</script>
+"""
+
 
 def inject_sticker_click_js() -> None:
     """Bind click-to-dismiss exit animations on ``.mckenna-sticker`` images."""
     import streamlit.components.v1 as components
 
     components.html(_STICKER_CLICK_JS, height=0, width=0)
+
+
+def inject_scroll_autoplay_js() -> None:
+    """Autoplay Plotly frames + start sticker CSS when scrolled into view."""
+    import streamlit.components.v1 as components
+
+    components.html(_SCROLL_AUTOPLAY_JS, height=0, width=0)
 
 
 def ensure_clipart_seed(*, reshuffle: bool = False) -> int:

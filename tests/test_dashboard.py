@@ -60,6 +60,11 @@ def test_dashboard_clipart_and_extra_animations():
     assert "Shuffle stickers" in DASHBOARD_SOURCE
     assert "mckenna-sticker" in DASHBOARD_SOURCE
     assert "inject_sticker_click_js" in DASHBOARD_SOURCE
+    assert "inject_scroll_autoplay_js" in DASHBOARD_SOURCE
+    assert "IntersectionObserver" in DASHBOARD_SOURCE
+    assert 'dataset.autoplayed' in DASHBOARD_SOURCE or 'data-autoplayed' in DASHBOARD_SOURCE or "autoplayed" in DASHBOARD_SOURCE
+    assert "in-view" in DASHBOARD_SOURCE
+    assert "_SCROLL_AUTOPLAY_JS" in DASHBOARD_SOURCE
     assert "md-exit-fly-left" in DASHBOARD_SOURCE
     assert "md-exit-spin-out" in DASHBOARD_SOURCE
     assert "md-exit-shatter" in DASHBOARD_SOURCE
