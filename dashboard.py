@@ -381,31 +381,31 @@ TAB_LABELS = [
 
 
 def _interpret_match(primary: dict) -> str:
-    """Plain-English read of the main wave-vs-surprise result."""
+    """Plain-English read of the main wave-vs-surprise result (friendly hippie voice)."""
     p = float(primary["permutation_p"])
     r = float(primary["spearman_r"])
     if p >= 0.05:
         return (
             f"**So what?** 🎱 Chance score {p:.4f} is not small, and the rank link "
-            f"is {r:+.4f} (near 0 = little match). That is a **null** result ☯️: "
-            "these race days do not clearly line up with McKenna's 🌊 wave. "
-            "On Hong Kong history that is the usual honest answer."
+            f"is {r:+.4f} (near 0 = little match). Sorry man! ☯️ That's a **null** "
+            "result — these race days just don't line up with McKenna's 🌊 wave. "
+            "On Hong Kong history that is the usual honest answer, far out as that sounds."
         )
     if r < 0:
         return (
             f"**So what?** 🔮 Chance score {p:.4f} is small and the rank link is "
-            f"{r:+.4f} (negative). That is the direction McKenna guessed "
+            f"{r:+.4f} (negative). Far out dude! That's the direction McKenna guessed "
             "(low wave ↔ high surprise) ☯️ — interesting 🍄, but still not betting advice."
         )
     return (
         f"**So what?** 🎱 Chance score {p:.4f} is small, but the rank link is "
         f"{r:+.4f} (positive) — the **opposite** of McKenna's guess 🌀. "
-        "Treat as curious, not a tip."
+        "Whoa, curious vibes only — not a tip, man."
     )
 
 
 def _interpret_timing(strategy: dict, baseline: dict, takeout: float) -> str:
-    """Plain-English read of wave-day betting vs bet-every-day."""
+    """Plain-English read of wave-day betting vs bet-every-day (friendly hippie voice)."""
     s_roi = float(strategy["roi_pct"])
     b_roi = float(baseline["roi_pct"])
     cut_pct = -100.0 * float(takeout)
@@ -414,39 +414,41 @@ def _interpret_timing(strategy: dict, baseline: dict, takeout: float) -> str:
         return (
             f"**So what?** 🏁 Wave-picked return {s_roi:+.2f}% vs every-day "
             f"{b_roi:+.2f}%. Both sit near the track's cut (~{cut_pct:.0f}%). "
-            "That is the **boring baseline**: timing did not help."
+            "Sorry man — that's the **boring baseline**: timing did not help. "
+            "Peace and love, but no edge here ☯️."
         )
     if delta > 2:
         return (
             f"**So what?** ✨ Wave-picked return {s_roi:+.2f}% beats every-day "
-            f"{b_roi:+.2f}% by about {delta:+.2f} points. That is **interesting** "
-            "on this sample — still not a promise it will keep working 🔮."
+            f"{b_roi:+.2f}% by about {delta:+.2f} points. Far out — **interesting** "
+            "on this sample 🔮, but don't count on the cosmos keeping that groove."
         )
     if delta < -2:
         return (
             f"**So what?** 🎱 Wave-picked return {s_roi:+.2f}% is worse than every-day "
-            f"{b_roi:+.2f}%. Filtering by the wave hurt here — a null/negative "
-            "for the timing idea ☯️."
+            f"{b_roi:+.2f}%. Sorry man! Filtering by the wave hurt here — a null/negative "
+            "for the timing idea ☯️. Bummer vibes, but that's the honest trip."
         )
     return (
         f"**So what?** 🏇 Wave-picked {s_roi:+.2f}% vs every-day {b_roi:+.2f}% "
-        f"(difference {delta:+.2f} points). Too close to call — treat as "
+        f"(difference {delta:+.2f} points). Too close to call, dude — treat as "
         f"no clear timing edge. Expect ~{cut_pct:.0f}% with no edge."
     )
 
 
 def _interpret_engine(opts: dict, engine_summary: pd.DataFrame | None) -> str:
-    """Plain-English read of picky-betting results."""
+    """Plain-English read of picky-betting results (friendly hippie voice)."""
     beta = float(opts["engine_beta"])
     if engine_summary is None or engine_summary.empty:
         return (
-            "**So what?** 🎲 Picky betting was not run. Turn it on in the sidebar "
+            "**So what?** 🎲 Picky betting was not run, man. Turn it on in the sidebar "
             "and click 🏇 Run Analysis again."
         )
     best = engine_summary.dropna(subset=["roi_pct"])
     if best.empty:
         return (
-            "**So what?** 🎱 No usable returns in the picky-betting table for this run."
+            "**So what?** 🎱 No usable returns in the picky-betting table for this run. "
+            "Sorry man — nothing to groove on here."
         )
     top = best.loc[best["roi_pct"].idxmax()]
     roi = float(top["roi_pct"])
@@ -455,18 +457,18 @@ def _interpret_engine(opts: dict, engine_summary: pd.DataFrame | None) -> str:
         if roi > 2:
             return (
                 f"**So what?** 🔮 Bias is 1.0 (fair prices ☯️). Best rule **{name}** "
-                f"shows {roi:+.2f}% — surprising under a fair-pool assumption. "
-                "Double-check; do not treat as a free lunch."
+                f"shows {roi:+.2f}% — far out under a fair-pool assumption. "
+                "Double-check, dude; do not treat as a free lunch."
             )
         return (
             f"**So what?** 🎱 Bias is 1.0 (fair prices ☯️). Best rule **{name}** "
-            f"returns {roi:+.2f}%. Near zero or negative is the **expected null** — "
-            "no free lunch when the pool is fair."
+            f"returns {roi:+.2f}%. Sorry man — near zero or negative is the "
+            "**expected null** — no free lunch when the pool is fair. Keep the peace ☮️."
         )
     return (
         f"**So what?** 🃏 Bias guess is {beta:.2f} (not fair). Best rule **{name}** "
         f"returns {roi:+.2f}%. That only means \"if favorites were overbet that "
-        "way\" — a guess, not proof the track is biased."
+        "way\" — a guess, not proof the track is biased. Stay groovy, stay skeptical."
     )
 
 

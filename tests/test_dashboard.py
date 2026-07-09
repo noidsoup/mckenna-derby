@@ -196,12 +196,14 @@ def test_dashboard_blurbs_under_main_views():
         "no free lunch",
         "usual honest answer",
         "fair-price case",
+        "Sorry man",
+        "Far out",
     ):
         assert needle in DASHBOARD_SOURCE, f"missing blurb: {needle}"
 
 
 def test_interpret_helpers_plain_english():
-    """Interpretation helpers should label null vs interesting without jargon dumps."""
+    """Interpretation helpers should label null vs interesting in hippie plain English."""
     assert "def _interpret_match" in DASHBOARD_SOURCE
     assert "def _interpret_timing" in DASHBOARD_SOURCE
     assert "def _interpret_engine" in DASHBOARD_SOURCE
@@ -218,17 +220,28 @@ def test_interpret_helpers_plain_english():
     null_txt = ns["_interpret_match"]({"permutation_p": 0.42, "spearman_r": -0.01})
     assert "null" in null_txt.lower()
     assert "So what?" in null_txt
+    assert "sorry man" in null_txt.lower()
 
     hit_txt = ns["_interpret_match"]({"permutation_p": 0.01, "spearman_r": -0.3})
     assert "interesting" in hit_txt.lower() or "McKenna" in hit_txt
+    assert "far out" in hit_txt.lower()
 
     timing = ns["_interpret_timing"](
         {"roi_pct": -18.0}, {"roi_pct": -17.5}, 0.18
     )
     assert "baseline" in timing.lower() or "timing" in timing.lower()
+    assert "sorry man" in timing.lower()
+
+    timing_hurt = ns["_interpret_timing"](
+        {"roi_pct": -5.87}, {"roi_pct": 1.95}, 0.18
+    )
+    assert "sorry man" in timing_hurt.lower()
+    assert "null/negative" in timing_hurt.lower()
+    assert "-5.87%" in timing_hurt and "+1.95%" in timing_hurt
 
     engine = ns["_interpret_engine"](
         {"engine_beta": 1.0},
         ns["pd"].DataFrame([{"strategy": "demo", "roi_pct": -5.0}]),
     )
     assert "null" in engine.lower() or "free lunch" in engine.lower()
+    assert "sorry man" in engine.lower()
