@@ -31,7 +31,6 @@ from mckenna_derby.mckenna_engine import (
     RollingTimewave,
     selective_backtest,
 )
-from mckenna_derby.tour import maybe_start_tour, render_tour_sidebar_controls
 
 ROOT = Path(__file__).parent
 PREREG_PATH = ROOT / "prereg.json"
@@ -204,7 +203,7 @@ def inject_app_css() -> None:
     100% {{ background-position: 80% 10%, 20% 40%, 55% 20%, 100% 50%; }}
   }}
   /* Empty-state intro — neon frame */
-  div[class*="st-key-tour_empty_intro"] {{
+  div[class*="st-key-intro_panel"] {{
     border: 1px solid rgba(167, 139, 250, 0.55);
     border-radius: 12px;
     padding: 0.75rem 1rem;
@@ -468,7 +467,7 @@ def inject_app_css() -> None:
       width: 100% !important;
     }}
     /* Empty-state neon frame — less padding, no overflow from glow */
-    div[class*="st-key-tour_empty_intro"] {{
+    div[class*="st-key-intro_panel"] {{
       padding: 0.55rem 0.7rem;
       box-shadow:
         0 0 14px rgba(167, 139, 250, 0.28),
@@ -578,7 +577,7 @@ def inject_app_css() -> None:
     }}
     div[data-testid="stMetric"],
     section.main > div,
-    div[class*="st-key-tour_empty_intro"],
+    div[class*="st-key-intro_panel"],
     .stButton > button[kind="primary"],
     button[data-testid="baseButton-primary"],
     button[data-baseweb="tab"][aria-selected="true"],
@@ -3169,7 +3168,7 @@ def series_stats(s: pd.Series) -> dict:
 def render_sidebar(prereg: dict) -> dict:
     """Render sidebar controls and always return the current opts dict.
 
-    The primary **Run Analysis** button lives on the main page (``tour_run_button``).
+    The primary **Run Analysis** button lives on the main page.
     """
     with st.sidebar:
         st.markdown("##### 🐴 What this software does")
@@ -3179,9 +3178,8 @@ def render_sidebar(prereg: dict) -> dict:
         with st.expander("🍄 Who is Terence McKenna?", expanded=False):
             st.markdown(WHO_IS_MCKENNA)
 
-        render_tour_sidebar_controls()
 
-        with st.container(key="tour_data_source"):
+        with st.container(key="data_source_section"):
             st.header("📁 Your data")
             st.markdown(SIDEBAR_HELP["data"])
             st.caption(
@@ -3208,7 +3206,7 @@ def render_sidebar(prereg: dict) -> dict:
                         "Upload CSV",
                     ],
                     index=0,
-                    key="tour_source_radio",
+                    key="source_radio",
                 )
                 if advanced == "UK/Ireland (free, exploratory)":
                     source = "UK/Ireland (bundled)"
@@ -3222,11 +3220,11 @@ def render_sidebar(prereg: dict) -> dict:
                     col1, col2 = st.columns(2)
                     with col1:
                         start = st.date_input(
-                            "Start", dt.date(2010, 1, 1), key="tour_start"
+                            "Start", dt.date(2010, 1, 1), key="synthetic_start"
                         )
                     with col2:
                         end = st.date_input(
-                            "End", dt.date(2010, 12, 31), key="tour_end"
+                            "End", dt.date(2010, 12, 31), key="synthetic_end"
                         )
                 elif advanced == "Upload CSV":
                     source = "Upload CSV"
@@ -3250,26 +3248,26 @@ def render_sidebar(prereg: dict) -> dict:
             "Only the locked combo counts as the official main answer."
         )
 
-        with st.container(key="tour_run_params"):
+        with st.container(key="run_params_section"):
             st.header("🏇 Run settings")
             st.caption(SIDEBAR_HELP["params"])
             number_set = st.selectbox(
                 "Wave number table",
                 ALL_SETS,
                 index=ALL_SETS.index(prereg["primary_number_set"]),
-                key="tour_number_set",
+                key="number_set_select",
             )
             st.caption(SIDEBAR_CONTROL_CAPTIONS["number_set"])
             threshold_pct = st.slider(
                 "Wave cutoff % (low = bet)",
                 5.0, 100.0, float(prereg["primary_threshold_pct"]), 5.0,
-                key="tour_threshold_pct",
+                key="threshold_pct_slider",
             )
             st.caption(SIDEBAR_CONTROL_CAPTIONS["threshold_pct"])
             takeout = st.slider(
                 "Track's cut",
                 0.10, 0.35, float(prereg["takeout"]), 0.01,
-                key="tour_takeout",
+                key="takeout_slider",
             )
             st.caption(SIDEBAR_CONTROL_CAPTIONS["takeout"])
             metric = st.selectbox(
@@ -3277,13 +3275,13 @@ def render_sidebar(prereg: dict) -> dict:
                 ["trifecta_novelty", "win_novelty"],
                 index=0 if prereg["metric"] == "trifecta_novelty" else 1,
                 format_func=lambda m: METRIC_LABELS.get(m, m),
-                key="tour_metric",
+                key="metric_select",
             )
             st.caption(SIDEBAR_CONTROL_CAPTIONS["metric"])
             engine_seed = st.number_input(
                 "Random seed",
                 1, 99999, 1904,
-                key="tour_engine_seed",
+                key="engine_seed_input",
             )
             st.caption(SIDEBAR_CONTROL_CAPTIONS["engine_seed"])
 
@@ -3295,41 +3293,41 @@ def render_sidebar(prereg: dict) -> dict:
             do_sweep = st.checkbox(
                 "Try many wave cutoffs",
                 value=True,
-                key="tour_do_sweep",
+                key="do_sweep_checkbox",
             )
             st.caption(SIDEBAR_CONTROL_CAPTIONS["do_sweep"])
             max_lag = st.number_input(
                 "Lead/lag window (days)",
                 0, 60, 10,
-                key="tour_max_lag",
+                key="max_lag_input",
             )
             st.caption(SIDEBAR_CONTROL_CAPTIONS["max_lag"])
 
-        with st.container(key="tour_engine_params"):
+        with st.container(key="engine_params_section"):
             st.header("🎲 Picky betting")
             st.caption(SIDEBAR_HELP["engine"])
             run_engine = st.checkbox(
                 "Run picky betting",
                 value=True,
-                key="tour_run_engine",
+                key="run_engine_checkbox",
             )
             st.caption(SIDEBAR_CONTROL_CAPTIONS["run_engine"])
             engine_beta = st.slider(
                 "Pool bias guess (1.0 = fair)",
                 0.80, 1.50, 1.00, 0.05,
-                key="tour_engine_beta",
+                key="engine_beta_slider",
             )
             st.caption(SIDEBAR_CONTROL_CAPTIONS["engine_beta"])
             engine_gate_pct = st.slider(
                 "Hottest days to bet (%)",
                 5.0, 100.0, 20.0, 5.0,
-                key="tour_engine_gate_pct",
+                key="engine_gate_pct_slider",
             )
             st.caption(SIDEBAR_CONTROL_CAPTIONS["engine_gate_pct"])
             engine_k_max = st.number_input(
                 "Max tickets per race",
                 1, 500, 50,
-                key="tour_engine_k_max",
+                key="engine_k_max_input",
             )
             st.caption(SIDEBAR_CONTROL_CAPTIONS["engine_k_max"])
 
@@ -4063,7 +4061,7 @@ def main() -> None:
     )
     inject_app_css()
     require_auth()
-    with st.container(key="tour_app_header"):
+    with st.container(key="app_header"):
         st.title("🐴 McKenna Derby")
         st.caption(
             "Do weird 🐎 horse-race days line up with Terence McKenna's 🌊 "
@@ -4093,13 +4091,13 @@ def main() -> None:
         return st.button(
             "🏇 Run Analysis",
             type="primary",
-            key="tour_run_button",
+            key="run_analysis_button",
             use_container_width=True,
         )
 
     run_clicked = False
     if st.session_state.get("analysis"):
-        with st.container(key="tour_empty_intro"):
+        with st.container(key="intro_panel"):
             st.caption(
                 "Weird 🐎 race days vs McKenna's 🌊 calendar wave. "
                 "Change the sidebar, then click **🏇 Run Analysis** below to refresh."
@@ -4111,15 +4109,13 @@ def main() -> None:
                 "**🏇 Run Analysis** above to refresh ✨."
             )
             _render_result_tabs(st.session_state["analysis"])
-            maybe_start_tour(has_results=True)
             return
     else:
-        with st.container(key="tour_empty_intro"):
+        with st.container(key="intro_panel"):
             st.markdown(EMPTY_STATE_MARKDOWN)
             render_clipart_row(hero=True, n=6, slot="empty_state")
             run_clicked = _main_run_button()
         if not run_clicked:
-            maybe_start_tour(has_results=False)
             return
 
     # Fresh sticker layout each analysis run
@@ -4187,7 +4183,6 @@ def main() -> None:
     st.session_state["analysis"] = state
 
     _render_result_tabs(state)
-    maybe_start_tour(has_results=True)
 
 
 if __name__ == "__main__":

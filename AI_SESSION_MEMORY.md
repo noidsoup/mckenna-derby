@@ -127,3 +127,19 @@ Append-only log for AI assistants. Summarize completed work, decisions, and next
 **Next steps:**
 - Optional: rebuild wider UK window locally via `build_bundled_uk.py --start …`
 - Still blocked on free ordered exotic dividends for HK trifecta cash settlement
+
+---
+
+## 2026-07-09 — Removed dashboard tour mode
+
+**Branch:** `cursor/remove-dashboard-tour-f875`
+
+**Completed:**
+- Removed the first-visit guided tour module (`mckenna_derby/tour.py`) and deleted its tests
+- Removed dashboard auto-start/replay hooks and renamed Streamlit keys from tour anchors to semantic names
+- Updated dashboard regression tests to assert guided-tour wiring stays absent
+- Verified `pytest -q` passes (59 tests)
+
+**Key decisions:**
+- Kept the plain-English intro/sidebar copy and main-page Run Analysis flow intact
+- Removed tour-specific Driver.js/localStorage behavior entirely rather than hiding the replay button
