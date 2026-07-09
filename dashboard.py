@@ -119,7 +119,7 @@ def apply_plotly_theme(fig: go.Figure) -> go.Figure:
 
 
 def inject_app_css() -> None:
-    """Loud CSS polish: neon chrome, bouncing metrics, null sparkles, sticker flair."""
+    """Loud CSS polish: neon chrome, bouncing metrics, sticker flair."""
     st.markdown(
         f"""
 <style>
@@ -261,58 +261,6 @@ def inject_app_css() -> None:
       0 0 16px rgba(167, 139, 250, 0.22),
       0 0 32px rgba(56, 189, 248, 0.1);
   }}
-  /* Null “So what?” sparkle / confetti rain */
-  div[class*="st-key-md_null_"],
-  .md-null-sparkle {{
-    position: relative;
-    overflow: hidden;
-    border-radius: 12px;
-    border: 1px solid rgba(251, 191, 36, 0.45);
-    box-shadow:
-      0 0 20px rgba(251, 191, 36, 0.25),
-      0 0 40px rgba(167, 139, 250, 0.2);
-    animation: md-null-glow 2.6s ease-in-out infinite;
-  }}
-  div[class*="st-key-md_null_"]::before,
-  .md-null-sparkle::before {{
-    content: "✨ ⭐ 💫 ✨ 🌟 ✨ ⭐ 💫 ✨ 🌟 ✨ ⭐ 💫 ✨ 🌟";
-    position: absolute;
-    inset: 0;
-    z-index: 2;
-    pointer-events: none;
-    font-size: 1.05rem;
-    letter-spacing: 0.55em;
-    line-height: 2.2;
-    white-space: pre-wrap;
-    word-break: break-all;
-    opacity: 0.55;
-    animation: md-confetti-rain 4.5s linear infinite;
-    text-shadow: 0 0 8px rgba(251, 191, 36, 0.8);
-  }}
-  div[class*="st-key-md_null_"]::after,
-  .md-null-sparkle::after {{
-    content: "💫 ✨ ⭐ 🌟 ✨ 💫 ⭐ ✨ 🌟 💫 ✨ ⭐";
-    position: absolute;
-    inset: 0;
-    z-index: 2;
-    pointer-events: none;
-    font-size: 0.9rem;
-    letter-spacing: 0.7em;
-    line-height: 2.6;
-    white-space: pre-wrap;
-    word-break: break-all;
-    opacity: 0.4;
-    animation: md-confetti-rain 6s linear infinite reverse;
-    animation-delay: -1.5s;
-  }}
-  @keyframes md-confetti-rain {{
-    0% {{ transform: translateY(-40%) translateX(0); }}
-    100% {{ transform: translateY(40%) translateX(4%); }}
-  }}
-  @keyframes md-null-glow {{
-    0%, 100% {{ box-shadow: 0 0 16px rgba(251, 191, 36, 0.2), 0 0 28px rgba(167, 139, 250, 0.15); }}
-    50% {{ box-shadow: 0 0 28px rgba(251, 191, 36, 0.45), 0 0 48px rgba(244, 114, 182, 0.25); }}
-  }}
   /* Local clipart flair (flat SVGs + tiny GIFs — no web hotlinks) */
   .md-clipart-row {{
     display: flex;
@@ -444,16 +392,7 @@ def inject_app_css() -> None:
     button[data-testid="baseButton-primary"],
     button[data-baseweb="tab"][aria-selected="true"],
     div[data-testid="stTabContent"],
-    div[data-baseweb="tab-panel"],
-    div[class*="st-key-md_null_"],
-    .md-null-sparkle {{
-      animation: none !important;
-    }}
-    div[class*="st-key-md_null_"]::before,
-    div[class*="st-key-md_null_"]::after,
-    .md-null-sparkle::before,
-    .md-null-sparkle::after {{
-      content: none !important;
+    div[data-baseweb="tab-panel"] {{
       animation: none !important;
     }}
     .mckenna-sticker.in-view.md-clipart-anim-bobble,
@@ -483,7 +422,6 @@ def inject_app_css() -> None:
     )
     inject_sticker_click_js()
     inject_scroll_autoplay_js()
-    inject_null_sparkle_js()
 
 
 _STICKER_CLICK_JS = """
@@ -575,49 +513,6 @@ _STICKER_CLICK_JS = """
     const obs = new MutationObserver(() => bind(doc));
     obs.observe(doc.body || doc.documentElement, { childList: true, subtree: true });
     doc.__mdStickerObs = obs;
-  });
-})();
-</script>
-"""
-
-_NULL_SPARKLE_JS = """
-<script>
-(function () {
-  const reduce = window.matchMedia &&
-    window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  if (reduce) return;
-
-  const docs = [];
-  try { if (window.parent && window.parent.document) docs.push(window.parent.document); } catch (e) {}
-  docs.push(document);
-
-  function markNullAlerts(root) {
-    if (!root || !root.querySelectorAll) return;
-    root.querySelectorAll('[data-testid="stAlert"]').forEach((el) => {
-      if (el.dataset.mdNullChecked === "1") return;
-      el.dataset.mdNullChecked = "1";
-      const text = (el.textContent || "").toLowerCase();
-      const isNull =
-        text.indexOf("so what?") !== -1 &&
-        (text.indexOf("null") !== -1 ||
-          text.indexOf("bummer") !== -1 ||
-          text.indexOf("bummed") !== -1 ||
-          text.indexOf("broke") !== -1 ||
-          text.indexOf("sorry man") !== -1 ||
-          text.indexOf("expected null") !== -1 ||
-          text.indexOf("no free lunch") !== -1);
-      if (isNull) el.classList.add("md-null-sparkle");
-    });
-  }
-
-  docs.forEach((doc) => {
-    const root = doc.body || doc.documentElement;
-    if (!root) return;
-    markNullAlerts(root);
-    if (doc.__mdNullSparkleObs) return;
-    const obs = new MutationObserver(() => markNullAlerts(root));
-    obs.observe(root, { childList: true, subtree: true });
-    doc.__mdNullSparkleObs = obs;
   });
 })();
 </script>
@@ -749,39 +644,10 @@ def inject_scroll_autoplay_js() -> None:
     components.html(_SCROLL_AUTOPLAY_JS, height=0, width=0)
 
 
-def inject_null_sparkle_js() -> None:
-    """Tag null/bummer ``st.info`` alerts with sparkle/confetti CSS class."""
-    import streamlit.components.v1 as components
-
-    components.html(_NULL_SPARKLE_JS, height=0, width=0)
-
-
-def _is_null_interpret_blurb(text: str) -> bool:
-    """True when an interpret blurb is a null / bummer “So what?” reveal."""
-    low = (text or "").lower()
-    if "so what?" not in low:
-        return False
-    markers = (
-        "null",
-        "bummer",
-        "bummed",
-        "broke",
-        "sorry man",
-        "no free lunch",
-        "expected null",
-        "null/negative",
-        "boring baseline",
-    )
-    return any(m in low for m in markers)
-
-
 def render_interpret_info(text: str, *, key: str) -> None:
-    """Show an interpret blurb; wrap null/bummer reveals for sparkle CSS."""
-    if _is_null_interpret_blurb(text):
-        with st.container(key=f"md_null_{key}"):
-            st.info(text)
-    else:
-        st.info(text)
+    """Show a hippie “So what?” interpret blurb (plain info box — no sparkle)."""
+    del key  # kept for call-site stability
+    st.info(text)
 
 
 def ensure_clipart_seed(*, reshuffle: bool = False) -> int:

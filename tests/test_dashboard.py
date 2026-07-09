@@ -62,15 +62,16 @@ def test_dashboard_clipart_and_extra_animations():
     assert "mckenna-sticker" in DASHBOARD_SOURCE
     assert "inject_sticker_click_js" in DASHBOARD_SOURCE
     assert "inject_scroll_autoplay_js" in DASHBOARD_SOURCE
-    assert "inject_null_sparkle_js" in DASHBOARD_SOURCE
+    assert "inject_null_sparkle_js" not in DASHBOARD_SOURCE
     assert "render_interpret_info" in DASHBOARD_SOURCE
-    assert "_is_null_interpret_blurb" in DASHBOARD_SOURCE
-    assert "md-null-sparkle" in DASHBOARD_SOURCE
+    assert "_is_null_interpret_blurb" not in DASHBOARD_SOURCE
+    assert "md-null-sparkle" not in DASHBOARD_SOURCE
+    assert "md-confetti-rain" not in DASHBOARD_SOURCE
+    assert "_NULL_SPARKLE_JS" not in DASHBOARD_SOURCE
     assert "md-metric-bounce" in DASHBOARD_SOURCE
     assert "md-bg-shift" in DASHBOARD_SOURCE
     assert "md-btn-glow" in DASHBOARD_SOURCE
     assert "md-tab-fade" in DASHBOARD_SOURCE
-    assert "md-confetti-rain" in DASHBOARD_SOURCE
     assert "md-sticker-pop-in" in DASHBOARD_SOURCE
     assert "RESPAWN_MS" in DASHBOARD_SOURCE
     assert "respawn(el)" in DASHBOARD_SOURCE
@@ -78,7 +79,6 @@ def test_dashboard_clipart_and_extra_animations():
     assert 'dataset.autoplayed' in DASHBOARD_SOURCE or 'data-autoplayed' in DASHBOARD_SOURCE or "autoplayed" in DASHBOARD_SOURCE
     assert "in-view" in DASHBOARD_SOURCE
     assert "_SCROLL_AUTOPLAY_JS" in DASHBOARD_SOURCE
-    assert "_NULL_SPARKLE_JS" in DASHBOARD_SOURCE
     assert "md-exit-fly-left" in DASHBOARD_SOURCE
     assert "md-exit-spin-out" in DASHBOARD_SOURCE
     assert "md-exit-shatter" in DASHBOARD_SOURCE
@@ -142,26 +142,6 @@ def test_dashboard_clipart_and_extra_animations():
     assert [x["name"] for x in a] != [x["name"] for x in c]
     assert all(x["anim"] in {"bobble", "spin", "pulse", "wiggle"} for x in a)
     assert all(44 <= x["size"] <= 64 for x in a)
-
-
-def test_null_interpret_sparkle_helpers():
-    """Null blurbs get sparkle wrappers; interesting hits stay plain."""
-    ns: dict = {}
-    src = DASHBOARD_SOURCE
-    start = src.index("def _is_null_interpret_blurb")
-    end = src.index("\ndef ensure_clipart_seed")
-    code = "from __future__ import annotations\n" + src[start:end]
-    # Strip Streamlit-dependent render_interpret_info body for pure helper test.
-    helper_only = code.split("\ndef render_interpret_info")[0]
-    exec(compile(helper_only, "dashboard_null_helpers.py", "exec"), ns)
-
-    is_null = ns["_is_null_interpret_blurb"]
-    assert is_null("**So what?** 🎱 Chance score 0.42 — that's a **null** result. Sorry man.")
-    assert is_null("**So what?** expected null, no free lunch. I'm gonna be broke.")
-    assert is_null("**So what?** boring baseline near the track's cut. Bummer vibes.")
-    assert not is_null("**So what?** Far out dude! That's interesting.")
-    assert not is_null("Just a caption with null in it, no reveal header.")
-    assert not is_null("")
 
 
 def test_apply_plotly_theme_sets_dark_template():
