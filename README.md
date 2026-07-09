@@ -84,6 +84,55 @@ real trifecta dividends, add a `trifecta_payout` column (dividend per $1
 winning ticket, repeated on each row of the race) to a CSV and load it with
 `--csv`; the backtest will prefer actual dividends over the modeled payout.
 
+## McKenna Engine
+
+`mckenna_derby/mckenna_engine.py` layers a selective betting engine on top of
+the novelty pipeline, with three components:
+
+1. **Fractal resonance signal** (`RollingTimewave`) — McKenna's fractal
+   self-similarity idea applied to racing's own history instead of a fixed
+   2012 zero date. Each day's resonance is a weighted echo of past novelty at
+   lags 1, 64, and 64² days (the wave-factor-64 hierarchy from Timewave
+   Zero), with weights decaying by 1/64 per level. Strictly causal — only
+   past data — and tested for it.
+2. **I Ching ticket selector** (`IChingSelector`) — hexagram casting via the
+   classical three-coin method (six lines of three coins each; parity gives
+   yin/yang) decides *which* trifecta combinations to buy when more combos
+   qualify than the per-race ticket cap. The hexagram number seeds the
+   sampling RNG, so everything is reproducible. (The hexagram-number mapping
+   is a simplification of the King Wen sequence.)
+3. **Selective backtest** (`selective_backtest`) — prices every trifecta
+   permutation with Harville probabilities from the odds, models pool
+   payouts as `ticket · (1 − takeout) / pool_prob` where
+   `pool_prob ∝ harville_prob^beta`, buys only positive-EV combos, gates
+   races by the resonance signal, and compares four strategies: buy-all,
+   selective+gated, selective ungated, and a random-ticket control with the
+   same ticket counts.
+
+```bash
+python run_mckenna.py --beta 1.0            # fair pool: expect zero selective bets
+python run_mckenna.py --beta 1.15           # assumed favorites-overbet bias
+# options: --beta --k-max --gate-pct --takeout --seed --hk DIR --csv FILE
+```
+
+The dashboard has a matching **McKenna Engine** section with sidebar
+controls for beta, gate percentile, and ticket cap.
+
+### The beta assumption (read this before believing any ROI)
+
+`beta` describes how the pool distorts fair (Harville) prices:
+`beta = 1.0` means the pool is fair — every combination then has expected
+value exactly −takeout, and the selective strategy correctly places **zero
+bets**. `beta > 1` means favorites are overbet, so longshot combinations are
+underpriced and become +EV; `beta < 1` is the reverse. Any positive ROI at
+`beta ≠ 1` is a *modeled* result conditional on that bias existing at that
+magnitude in the real pool. The honest interpretation: **beta = 1 → no
+edge**. The engine is a framework for exploiting pool bias *if it exists* —
+estimate beta from real trifecta dividends first — with McKenna-flavored
+timing (resonance gate) and selection (I Ching) layered on top. On synthetic
+data the resonance gate carries no real information (the data is
+market-calibrated), so gated-vs-ungated ROI differences there are noise.
+
 ## Honest expectations
 
 - The synthetic demo is calibrated to the market by construction, so it

@@ -18,6 +18,7 @@ import streamlit as st
 
 from mckenna_derby import backtest as bt
 from mckenna_derby import compare, data, novelty
+from mckenna_derby.mckenna_engine import selective_backtest
 
 ROOT = Path(__file__).parent
 PREREG_PATH = ROOT / "prereg.json"
@@ -226,6 +227,19 @@ def main() -> None:
         do_sweep = st.checkbox("Threshold sweep (exploratory)", value=True)
         max_lag = st.number_input("Lead-lag window (days, 0=off)", 0, 60, 10)
 
+        st.header("McKenna Engine")
+        run_engine = st.checkbox("Run McKenna Engine", value=True)
+        engine_beta = st.slider(
+            "Pool bias beta (ASSUMPTION; 1.0 = fair pool)",
+            0.80, 1.50, 1.00, 0.05,
+        )
+        engine_gate_pct = st.slider(
+            "Resonance gate (top % of days)", 5.0, 100.0, 20.0, 5.0,
+        )
+        engine_k_max = st.number_input(
+            "Max tickets per race (I Ching cap)", 1, 500, 50,
+        )
+
         run = st.button("Run analysis", type="primary")
 
     if not run:
@@ -312,6 +326,47 @@ def main() -> None:
         st.plotly_chart(plot_sweep(result["sweep"]), use_container_width=True)
         with st.expander("Sweep table"):
             st.dataframe(result["sweep"], use_container_width=True, hide_index=True)
+
+    if run_engine:
+        st.subheader("McKenna Engine")
+        st.caption(
+            "Selective trifecta betting: Harville-priced combos, "
+            "beta-distorted pool payouts, fractal resonance gate, "
+            "I Ching ticket selection. **beta is an assumption about pool "
+            "bias, not a measurement** — beta = 1.0 is the fair-pool null "
+            "case and should find no edge."
+        )
+        with st.spinner("Running four-strategy comparison ..."):
+            engine_summary = selective_backtest(
+                runners,
+                beta=float(engine_beta),
+                gate_pct=float(engine_gate_pct),
+                k_max=int(engine_k_max),
+                takeout=takeout,
+            )
+        st.dataframe(engine_summary, use_container_width=True, hide_index=True)
+        roi = engine_summary.dropna(subset=["roi_pct"])
+        if not roi.empty:
+            bar = go.Figure(
+                go.Bar(
+                    x=roi["strategy"], y=roi["roi_pct"],
+                    marker_color=[
+                        "rgb(214,39,40)" if v < 0 else "rgb(44,160,44)"
+                        for v in roi["roi_pct"]
+                    ],
+                )
+            )
+            bar.update_layout(
+                title=f"ROI by strategy (beta = {engine_beta:.2f})",
+                yaxis_title="ROI %", height=400,
+            )
+            st.plotly_chart(bar, use_container_width=True)
+        else:
+            st.info(
+                "No strategy placed any bets — with a fair pool "
+                "(beta = 1.0) every combination has EV = -takeout, "
+                "so the selective strategies correctly sit out."
+            )
 
     if result["lag"] is not None:
         lag = result["lag"]
