@@ -55,6 +55,17 @@ PALETTE = {
 
 def apply_plotly_theme(fig: go.Figure) -> go.Figure:
     """Unify all charts on the observatory dark template."""
+    # Preserve chart-specific margins when already set; animated figures need
+    # extra top/bottom room for Play/Pause + the frame slider.
+    cur_m = fig.layout.margin
+    has_anim = bool(fig.layout.updatemenus)
+
+    def _edge(name: str, default: int) -> int:
+        val = getattr(cur_m, name, None) if cur_m is not None else None
+        return default if val is None else int(val)
+
+    default_t = 100 if has_anim else 64
+    default_b = 72 if has_anim else 48
     fig.update_layout(
         template="plotly_dark",
         paper_bgcolor=PALETTE["paper"],
@@ -68,7 +79,12 @@ def apply_plotly_theme(fig: go.Figure) -> go.Figure:
             PALETTE["gate"],
             PALETTE["trend"],
         ],
-        margin=dict(l=56, r=36, t=64, b=48),
+        margin=dict(
+            l=_edge("l", 56),
+            r=_edge("r", 36),
+            t=_edge("t", default_t),
+            b=_edge("b", default_b),
+        ),
         legend=dict(
             bgcolor="rgba(20, 23, 34, 0.65)",
             bordercolor="rgba(167, 139, 250, 0.35)",
@@ -176,16 +192,16 @@ def inject_app_css() -> None:
 # ---------------------------------------------------------------------------
 
 EMPTY_STATE_MARKDOWN = """
-### What is this?
+### 🐴 What is this?
 
 **Question:** Do weird race days line up with McKenna's calendar wave
 (his map of when the world should feel more chaotic)?
 
 **Data:** Real Hong Kong races (1997–2005) are already loaded.
 
-**What to do:** Click **Run Analysis** in the sidebar.
+**What to do:** Click **🏇 Run Analysis** in the sidebar.
 
-Then open **Overview**. On this data the main answer is usually "no match."
+Then open **📊 Overview**. On this data the main answer is usually "no match."
 That is an honest finding, not a tip sheet.
 """
 
@@ -194,24 +210,84 @@ SIDEBAR_INTRO = (
     "McKenna's calendar wave (his map of when the world should feel more "
     "chaotic)? And does betting only on those \"wave\" days help — or do you "
     "still lose the track's cut?\n\n"
-    "Hong Kong races (1997–2005) are already loaded. Read the controls below "
-    "top to bottom, then click **Run Analysis**."
+    "Read the controls below top to bottom, then click **Run Analysis**."
 )
 
 SIDEBAR_HELP = {
     "data": (
-        "Real Hong Kong races (1997–2005) are already loaded — no upload needed. "
-        "Open Advanced options only for a fake null demo (should show no signal) "
-        "or your own CSV."
+        "**What is the Hong Kong data?** Real horse races from the Hong Kong "
+        "Jockey Club, years **1997–2005** — about 6,000 races with odds and "
+        "finish order. They ship inside this app (from a public Kaggle set), "
+        "so you do not need to upload anything.\n\n"
+        "That history is the default for the main test. Open **Advanced options** "
+        "only for a fake null demo (should show no signal) or your own CSV."
+    ),
+    "locked": (
+        "**What is this section?** Before looking at results, we wrote down the "
+        "recipe for the *main* claim (which wave table, cutoff, track cut, and "
+        "surprise score). That recipe is locked so nobody can tweak knobs until "
+        "the answer looks nicer.\n\n"
+        "The run knobs below start on that recipe. You can change them to explore "
+        "— just don't treat a new combo as the official locked answer."
     ),
     "params": (
-        "Knobs for this run of the main test. Changing them is fine for "
-        "exploration — just don't treat a new combo as the official result."
+        "Knobs for this run of the main test. Defaults match the locked recipe "
+        "above. Changing them is fine for curiosity — not a new official result."
     ),
     "engine": (
         "A stricter side experiment: fewer days, fewer tickets, and an optional "
         "pool-bias guess. **Bias guess = 1.0** means fair prices (no free lunch). "
         "Higher values pretend favorites are overbet — a guess, not a fact."
+    ),
+}
+
+# Visible captions under each sidebar control (no hover tooltips).
+SIDEBAR_CONTROL_CAPTIONS = {
+    "number_set": (
+        "McKenna's wave is built from a number table (Kelley, Watkins, and others). "
+        "Different tables draw slightly different waves. **Kelley** is the locked default."
+    ),
+    "threshold_pct": (
+        "Only treat days in the lowest X% of the wave as \"bet days.\" "
+        "Lower cutoff = fewer, more extreme days. In McKenna's idea, low wave = high chaos."
+    ),
+    "takeout": (
+        "The share the track keeps from every bet pool (the house edge). "
+        "With no real edge, expect to lose about this fraction over time."
+    ),
+    "metric": (
+        "How we measure \"weird\" finishes given the odds. "
+        "Top-3 finish surprise looks at 1st–2nd–3rd together; "
+        "Winner-only looks at just the winner."
+    ),
+    "engine_seed": (
+        "A fixed starting number for any random ticket picks. "
+        "Same seed → same choices every run, so results are repeatable."
+    ),
+    "do_sweep": (
+        "Also try many cutoff values and plot returns. "
+        "Useful curiosity — not the locked main test."
+    ),
+    "max_lag": (
+        "Check whether weird finishes lead or lag the wave by a few days "
+        "(timing offset). Set to 0 to skip this check."
+    ),
+    "run_engine": (
+        "Turn on the stricter side experiment (fewer days / tickets). "
+        "Off = skip it and only run the main wave test."
+    ),
+    "engine_beta": (
+        "1.0 assumes fair odds (no free lunch expected). "
+        "Above 1.0 pretends favorites are overbet — a guess you can explore, "
+        "not a fact about the track."
+    ),
+    "engine_gate_pct": (
+        "Only bet on the hottest X% of days by the echo signal "
+        "(how strongly the day matches the wave idea). Lower % = pickier."
+    ),
+    "engine_k_max": (
+        "Cap how many tickets we buy in one race. "
+        "If too many look good, a coin-cast pick keeps this many."
     ),
 }
 
@@ -252,11 +328,11 @@ METRIC_LABELS = {
 }
 
 TAB_LABELS = [
-    "Overview",
-    "Surprise vs the wave",
-    "Did timing help?",
-    "Picky betting",
-    "Race data",
+    "📊 Overview",
+    "🌊 Surprise vs the wave",
+    "🏁 Did timing help?",
+    "🎲 Picky betting",
+    "📁 Race data",
 ]
 
 
@@ -373,7 +449,7 @@ def require_auth() -> None:
     if st.session_state.get("authenticated"):
         return
 
-    st.title("McKenna Derby")
+    st.title("🐴 McKenna Derby")
     st.caption("Enter the shared password to open the dashboard.")
     entered = st.text_input("Password", type="password", key="auth_password")
     if st.button("Log in", type="primary"):
@@ -422,15 +498,17 @@ def _play_slider_menus(
         }
         for label in frame_labels
     ]
+    # Top-right so Play/Pause does not sit on the centered figure title.
     updatemenus = [
         {
             "type": "buttons",
             "showactive": False,
-            "x": 0.0,
-            "y": 1.16,
-            "xanchor": "left",
+            "x": 1.0,
+            "y": 1.12,
+            "xanchor": "right",
+            "yanchor": "bottom",
             "direction": "left",
-            "pad": {"r": 10, "t": 0},
+            "pad": {"r": 0, "t": 0, "l": 10},
             "buttons": [
                 {
                     "label": "▶ Play",
@@ -521,7 +599,8 @@ def animate_novelty_timewave(
         ),
         secondary_y=True,
     )
-    # Static chaos-band guide on secondary y (flipped wave high-chaos zone)
+    # Static chaos-band guide on secondary y (flipped wave high-chaos zone).
+    # Annotation sits bottom-left inside the band so it clears the title / Play row.
     y0_band = float(np.nanmin(tw_inv)) if len(tw_inv) else 0.0
     fig.add_hrect(
         y0=y0_band,
@@ -531,7 +610,7 @@ def animate_novelty_timewave(
         layer="below",
         yref="y2",
         annotation_text="Chaos band (wave)",
-        annotation_position="top left",
+        annotation_position="bottom left",
         annotation_font_color=PALETTE["muted"],
         annotation_font_size=11,
     )
@@ -572,8 +651,10 @@ def animate_novelty_timewave(
     menus, sliders = _play_slider_menus(labels)
     fig.update_layout(
         title="Surprise score and McKenna's wave over time",
-        height=500,
+        height=520,
         hovermode="x unified",
+        # Extra top room: centered title + top-right Play/Pause.
+        margin=dict(l=56, r=48, t=100, b=72),
         updatemenus=menus,
         sliders=sliders,
     )
@@ -948,22 +1029,27 @@ def animate_roi_by_beta(
 
 
 def plot_verdict_gauge(permutation_p: float, spearman_r: float) -> go.Figure:
-    """Radial gauge: chance score with null vs interesting zones."""
+    """Radial gauge: chance score with null vs interesting zones.
+
+    One title only: the big dial number is the chance score. Rank link sits as a
+    small subtitle under the number. Green-zone meaning lives in the Streamlit
+    caption under the chart (not a competing Plotly layout title).
+    """
     p = float(permutation_p)
-    # Map chance score so low p (interesting) sits toward the right of the dial.
-    # Dial shows chance score directly; color zones reinforce honesty.
     fig = go.Figure(
         go.Indicator(
             mode="gauge+number",
             value=p,
-            number={"valueformat": ".4f", "font": {"size": 28, "color": PALETTE["text"]}},
-            title={
-                "text": (
-                    f"Chance score<br><span style='font-size:0.7em;color:{PALETTE['muted']}'>"
+            number={
+                "valueformat": ".4f",
+                "font": {"size": 36, "color": PALETTE["text"]},
+                # Subtitle under the value — avoids stacking with a layout title.
+                "suffix": (
+                    f"<br><span style='font-size:0.45em;color:{PALETTE['muted']}'>"
                     f"rank link {spearman_r:+.4f}</span>"
                 ),
-                "font": {"size": 14, "color": PALETTE["text"]},
             },
+            # No indicator title — layout title also omitted (caption explains dial).
             gauge={
                 "axis": {
                     "range": [0, 1],
@@ -989,9 +1075,8 @@ def plot_verdict_gauge(permutation_p: float, spearman_r: float) -> go.Figure:
         )
     )
     fig.update_layout(
-        title="Verdict dial (green zone = unlikely by chance)",
-        height=280,
-        margin=dict(l=40, r=40, t=70, b=20),
+        height=340,
+        margin=dict(l=28, r=28, t=36, b=24),
     )
     return apply_plotly_theme(fig)
 
@@ -1029,7 +1114,12 @@ def animate_scatter_reveal(
                 colorscale="Tealrose",
                 cmin=float(day_num.min()) if len(day_num) else 0,
                 cmax=float(day_num.max()) if len(day_num) else 1,
-                colorbar=dict(title="Days since start"),
+                colorbar=dict(
+                    title="Days since start",
+                    y=0.42,
+                    len=0.72,
+                    x=1.02,
+                ),
                 opacity=0.8,
                 line=dict(width=0.5, color=PALETTE["muted"]),
             ),
@@ -1087,7 +1177,9 @@ def animate_scatter_reveal(
         xaxis_title="McKenna's wave (flipped)",
         yaxis_title="Daily surprise score",
         height=460,
-        legend=dict(orientation="h", yanchor="bottom", y=1.02, x=0),
+        # Legend left; Play is top-right — keep them on separate sides.
+        legend=dict(orientation="h", yanchor="bottom", y=1.02, x=0, xanchor="left"),
+        margin=dict(l=56, r=72, t=100, b=72),
         updatemenus=menus,
         sliders=sliders,
     )
@@ -1232,7 +1324,12 @@ def plot_novelty_vs_timewave_scatter(daily: pd.Series, tw: pd.Series) -> go.Figu
                 size=7,
                 color=day_num,
                 colorscale="Tealrose",
-                colorbar=dict(title="Days since start"),
+                colorbar=dict(
+                    title="Days since start",
+                    y=0.42,
+                    len=0.72,
+                    x=1.02,
+                ),
                 opacity=0.75,
                 line=dict(width=0.5, color=PALETTE["muted"]),
             ),
@@ -1260,8 +1357,9 @@ def plot_novelty_vs_timewave_scatter(daily: pd.Series, tw: pd.Series) -> go.Figu
         xaxis_title="McKenna's wave (flipped)",
         yaxis_title="Daily surprise score",
         height=460,
-        # Horizontal legend on top so it doesn't collide with the colorbar.
-        legend=dict(orientation="h", yanchor="bottom", y=1.02, x=0),
+        # Horizontal legend on top-left; colorbar sits mid-right (no overlap).
+        legend=dict(orientation="h", yanchor="bottom", y=1.02, x=0, xanchor="left"),
+        margin=dict(l=56, r=72, t=80, b=48),
     )
     return apply_plotly_theme(fig)
 
@@ -1677,14 +1775,18 @@ def series_stats(s: pd.Series) -> dict:
 
 def render_sidebar(prereg: dict) -> dict | None:
     with st.sidebar:
-        st.markdown("##### What this software does")
+        st.markdown("##### 🐴 What this software does")
         st.caption(SIDEBAR_INTRO)
 
         render_tour_sidebar_controls()
 
         with st.container(key="tour_data_source"):
-            st.header("Your data")
-            st.caption(SIDEBAR_HELP["data"])
+            st.header("📁 Your data")
+            st.markdown(SIDEBAR_HELP["data"])
+            st.caption(
+                f"Using: **Hong Kong races (bundled)** · "
+                f"{prereg.get('declared_on', 'locked')} recipe below."
+            )
             source = "Hong Kong (bundled)"
             uploaded = None
             start = end = None
@@ -1722,73 +1824,58 @@ def render_sidebar(prereg: dict) -> dict | None:
                         "Your race CSV", type=["csv"]
                     )
 
-        st.header("Official test settings")
-        st.caption(
-            "These are the locked settings for the main claim (saved before "
-            "looking at results). Keep them fixed after the first real-data run "
-            "so you don't shop for a prettier answer."
+        st.header("🏁 Locked main-test recipe")
+        st.markdown(SIDEBAR_HELP["locked"])
+        metric_label = METRIC_LABELS.get(prereg["metric"], prereg["metric"])
+        st.markdown(
+            f"- **Wave table:** `{prereg['primary_number_set']}`\n"
+            f"- **Wave cutoff:** lowest **{prereg['primary_threshold_pct']:.0f}%** "
+            f"of days (bet zone)\n"
+            f"- **Track's cut:** **{100 * float(prereg['takeout']):.0f}%**\n"
+            f"- **Surprise score:** {metric_label}\n"
+            f"- **Written down:** {prereg.get('declared_on', 'see prereg.json')}"
         )
-        with st.expander("View locked settings", expanded=False):
-            st.caption(
-                "The pre-registered values for the official test. "
-                "Changing run settings below does not rewrite this file."
-            )
-            st.json(prereg)
+        st.caption(
+            "Changing the knobs below does **not** rewrite this locked recipe. "
+            "Only the locked combo counts as the official main answer."
+        )
 
         with st.container(key="tour_run_params"):
-            st.header("Run settings")
+            st.header("🏇 Run settings")
             st.caption(SIDEBAR_HELP["params"])
             number_set = st.selectbox(
                 "Wave number table",
                 ALL_SETS,
                 index=ALL_SETS.index(prereg["primary_number_set"]),
-                help=(
-                    "McKenna's wave is built from a number table (Kelley, Watkins, "
-                    "and others). Different tables draw slightly different waves. "
-                    "Kelley is the default for the official test."
-                ),
                 key="tour_number_set",
             )
+            st.caption(SIDEBAR_CONTROL_CAPTIONS["number_set"])
             threshold_pct = st.slider(
                 "Wave cutoff % (low = bet)",
                 5.0, 100.0, float(prereg["primary_threshold_pct"]), 5.0,
-                help=(
-                    "Only treat days in the lowest X% of the wave as \"bet days.\" "
-                    "Lower cutoff = fewer, more extreme days. In McKenna's idea, "
-                    "low wave = high chaos."
-                ),
                 key="tour_threshold_pct",
             )
+            st.caption(SIDEBAR_CONTROL_CAPTIONS["threshold_pct"])
             takeout = st.slider(
                 "Track's cut",
                 0.10, 0.35, float(prereg["takeout"]), 0.01,
-                help=(
-                    "The share the track keeps from every bet pool (the house edge). "
-                    "With no real edge, expect to lose about this fraction over time."
-                ),
                 key="tour_takeout",
             )
+            st.caption(SIDEBAR_CONTROL_CAPTIONS["takeout"])
             metric = st.selectbox(
                 "Surprise score type",
                 ["trifecta_novelty", "win_novelty"],
                 index=0 if prereg["metric"] == "trifecta_novelty" else 1,
                 format_func=lambda m: METRIC_LABELS.get(m, m),
-                help=(
-                    "How we measure \"weird\" finishes given the odds. "
-                    "Top-3 finish surprise looks at 1st–2nd–3rd together; "
-                    "Winner-only looks at just the winner."
-                ),
                 key="tour_metric",
             )
+            st.caption(SIDEBAR_CONTROL_CAPTIONS["metric"])
             engine_seed = st.number_input(
                 "Random seed",
                 1, 99999, 1904,
-                help=(
-                    "A fixed starting number for any random ticket picks. "
-                    "Same seed → same choices every run, so results are repeatable."
-                ),
                 key="tour_engine_seed",
             )
+            st.caption(SIDEBAR_CONTROL_CAPTIONS["engine_seed"])
 
             if source == "Synthetic demo" and start is None:
                 # Defensive: dates only set inside Advanced expander.
@@ -1798,69 +1885,49 @@ def render_sidebar(prereg: dict) -> dict | None:
             do_sweep = st.checkbox(
                 "Try many wave cutoffs",
                 value=True,
-                help=(
-                    "Also try many cutoff values and plot returns. "
-                    "Useful curiosity — not the official locked test."
-                ),
                 key="tour_do_sweep",
             )
+            st.caption(SIDEBAR_CONTROL_CAPTIONS["do_sweep"])
             max_lag = st.number_input(
                 "Lead/lag window (days)",
                 0, 60, 10,
-                help=(
-                    "Check whether weird finishes lead or lag the wave by a few "
-                    "days (timing offset). Set to 0 to skip this check."
-                ),
                 key="tour_max_lag",
             )
+            st.caption(SIDEBAR_CONTROL_CAPTIONS["max_lag"])
 
         with st.container(key="tour_engine_params"):
-            st.header("Picky betting")
+            st.header("🎲 Picky betting")
             st.caption(SIDEBAR_HELP["engine"])
             run_engine = st.checkbox(
                 "Run picky betting",
                 value=True,
-                help=(
-                    "Turn on the stricter side experiment (fewer days / tickets). "
-                    "Off = skip it and only run the main wave test."
-                ),
                 key="tour_run_engine",
             )
+            st.caption(SIDEBAR_CONTROL_CAPTIONS["run_engine"])
             engine_beta = st.slider(
                 "Pool bias guess (1.0 = fair)",
                 0.80, 1.50, 1.00, 0.05,
-                help=(
-                    "1.0 assumes fair odds (no free lunch expected). "
-                    "Above 1.0 pretends favorites are overbet — a guess you can "
-                    "explore, not a fact about the track."
-                ),
                 key="tour_engine_beta",
             )
+            st.caption(SIDEBAR_CONTROL_CAPTIONS["engine_beta"])
             engine_gate_pct = st.slider(
                 "Hottest days to bet (%)",
                 5.0, 100.0, 20.0, 5.0,
-                help=(
-                    "Only bet on the hottest X% of days by the echo signal "
-                    "(how strongly the day matches the wave idea). "
-                    "Lower % = pickier."
-                ),
                 key="tour_engine_gate_pct",
             )
+            st.caption(SIDEBAR_CONTROL_CAPTIONS["engine_gate_pct"])
             engine_k_max = st.number_input(
                 "Max tickets per race",
                 1, 500, 50,
-                help=(
-                    "Cap how many tickets we buy in one race. "
-                    "If too many look good, a coin-cast pick keeps this many."
-                ),
                 key="tour_engine_k_max",
             )
+            st.caption(SIDEBAR_CONTROL_CAPTIONS["engine_k_max"])
 
         st.caption(
             "Runs the wave match test and (if enabled) picky betting on the "
             "data above. Then open **Overview** for the plain-English answer."
         )
-        run = st.button("Run Analysis", type="primary", key="tour_run_button")
+        run = st.button("🏇 Run Analysis", type="primary", key="tour_run_button")
 
     if not run:
         return None
@@ -1914,7 +1981,7 @@ def render_overview(state: dict) -> None:
     daily = result["daily"]
     tw = result["timewave"]
 
-    st.subheader("Overview")
+    st.subheader("📊 Overview")
     st.caption(TAB_INTROS["overview"])
     c1, c2, c3, c4, c5 = st.columns(5)
     c1.metric("Races", f"{runners['race_id'].nunique():,}")
@@ -1955,7 +2022,8 @@ def render_overview(state: dict) -> None:
                     "return would be surprising; near zero or negative is the null."
                 )
 
-    gc1, gc2 = st.columns([1, 2])
+    # Wider gauge column so the dial number/subtitle are not cramped.
+    gc1, gc2 = st.columns([1.2, 1.8])
     with gc1:
         st.plotly_chart(
             plot_verdict_gauge(primary["permutation_p"], primary["spearman_r"]),
@@ -1963,8 +2031,8 @@ def render_overview(state: dict) -> None:
             key="overview_verdict_gauge",
         )
         st.caption(
-            "Green zone (under ~0.05) = unlikely by chance. "
-            "Gray zone = the usual null. The dial shows the chance score, not a tip."
+            "Verdict dial — green zone (under ~0.05) = unlikely by chance. "
+            "Gray zone = the usual null. The big number is the chance score, not a tip."
         )
     with gc2:
         st.plotly_chart(
@@ -2029,7 +2097,7 @@ def render_novelty_timewave(state: dict) -> None:
     tw = result["timewave"]
     scores = result["scores"]
 
-    st.subheader("Main match test")
+    st.subheader("🌊 Main match test")
     st.caption(TAB_INTROS["novelty"])
     c1, c2, c3, c4 = st.columns(4)
     c1.metric("Chance score", f"{primary['permutation_p']:.4f}",
@@ -2080,7 +2148,7 @@ def render_novelty_timewave(state: dict) -> None:
         "much weirder than others — expected in racing, not proof of a wave."
     )
 
-    st.subheader("McKenna's wave (same days)")
+    st.subheader("🌊 McKenna's wave (same days)")
     st.caption(
         "The calendar wave on the same days. In his story, low values = "
         "\"high chaos\" zone — where surprise should pile up if the idea worked."
@@ -2248,7 +2316,7 @@ def render_backtest(state: dict) -> None:
     res = result["backtest"]
     mckenna_daily = state.get("mckenna_daily_pnl")
 
-    st.subheader("Did timing help?")
+    st.subheader("🏁 Did timing help?")
     st.caption(TAB_INTROS["backtest"])
     for label, key in [("Wave-picked days", "strategy"), ("Bet every race", "bet_every_race")]:
         s = res[key]
@@ -2367,7 +2435,7 @@ def render_mckenna_engine(state: dict) -> None:
     engine_summary = state.get("engine_summary")
     hexagram = state.get("hexagram")
 
-    st.subheader("Picky betting")
+    st.subheader("🎲 Picky betting")
     st.caption(TAB_INTROS["engine"])
     st.info(
         "**Pool bias guess** is an assumption about whether the pool overbets favorites. "
@@ -2465,7 +2533,7 @@ def render_raw_data(state: dict) -> None:
     scores = result["scores"]
     daily = result["daily"]
 
-    st.subheader("Race data")
+    st.subheader("📁 Race data")
     st.caption(TAB_INTROS["raw"])
     st.write(f"First 100 rows ({len(runners):,} total)")
     st.dataframe(runners.head(100), use_container_width=True, hide_index=True)
@@ -2474,7 +2542,7 @@ def render_raw_data(state: dict) -> None:
         "If something looks wrong here, the charts above are wrong too."
     )
 
-    st.subheader("Downloads")
+    st.subheader("📥 Downloads")
     st.caption(
         "Save the scored races, daily surprise line, or picky-betting summary. "
         "Useful for checking our work or plotting elsewhere — not a tip feed."
@@ -2512,17 +2580,17 @@ def render_raw_data(state: dict) -> None:
 
 def main() -> None:
     st.set_page_config(
-        page_title="McKenna Derby",
+        page_title="🐴 McKenna Derby",
         layout="wide",
         initial_sidebar_state="expanded",
     )
     inject_app_css()
     require_auth()
     with st.container(key="tour_app_header"):
-        st.title("McKenna Derby")
+        st.title("🐴 McKenna Derby")
         st.caption(
             "Do weird horse-race days line up with McKenna's calendar wave? "
-            "Click **Run Analysis** to find out."
+            "Click **🏇 Run Analysis** to find out."
         )
 
     prereg = load_prereg()

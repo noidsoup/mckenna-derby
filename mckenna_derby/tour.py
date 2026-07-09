@@ -22,7 +22,7 @@ TOUR_STEPS: list[dict[str, Any]] = [
     {
         "element": None,
         "popover": {
-            "title": "Welcome to McKenna Derby",
+            "title": "🐴 Welcome to McKenna Derby",
             "description": (
                 "Two questions: do surprising race days line up with McKenna's "
                 "calendar wave (his map of when the world should feel more "
@@ -51,7 +51,7 @@ TOUR_STEPS: list[dict[str, Any]] = [
             "title": "Start here",
             "description": (
                 "Short plain-English intro. Real Hong Kong races (1997–2005) "
-                "are already loaded. Next: click <b>Run Analysis</b> in the sidebar."
+                "are already loaded. Next: click <b>🏇 Run Analysis</b> in the sidebar."
             ),
             "side": "left",
             "align": "start",
@@ -60,7 +60,7 @@ TOUR_STEPS: list[dict[str, Any]] = [
     {
         "element": "tour_data_source",
         "popover": {
-            "title": "Your data (sidebar)",
+            "title": "📁 Your data (sidebar)",
             "description": (
                 "Default is <b>real Hong Kong races</b> — no upload needed. "
                 "Open Advanced options only for a fake null demo (should show "
@@ -73,7 +73,7 @@ TOUR_STEPS: list[dict[str, Any]] = [
     {
         "element": "tour_run_params",
         "popover": {
-            "title": "Run settings",
+            "title": "🏇 Run settings",
             "description": (
                 "Knobs for this run of the main test (wave table, cutoff, "
                 "track's cut, surprise score). Change them to explore — don't "
@@ -86,7 +86,7 @@ TOUR_STEPS: list[dict[str, Any]] = [
     {
         "element": "tour_engine_params",
         "popover": {
-            "title": "Picky betting (optional)",
+            "title": "🎲 Picky betting (optional)",
             "description": (
                 "A stricter side experiment: fewer days, fewer tickets. "
                 "<b>Bias guess = 1.0</b> means fair prices (no free lunch). "
@@ -99,7 +99,7 @@ TOUR_STEPS: list[dict[str, Any]] = [
     {
         "element": "tour_run_button",
         "popover": {
-            "title": "Run Analysis",
+            "title": "🏇 Run Analysis",
             "description": (
                 "Click this, then open <b>Overview</b> for the plain-English "
                 "answer. On this data the main finding is often \"no match\" — "
@@ -112,7 +112,7 @@ TOUR_STEPS: list[dict[str, Any]] = [
     {
         "element": None,
         "popover": {
-            "title": "You're set",
+            "title": "🏁 You're set",
             "description": (
                 "Replay anytime from the sidebar (<b>Replay guided tour</b>). "
                 "Reading the sidebar top→bottom explains each control. "

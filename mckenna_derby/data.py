@@ -3,16 +3,27 @@
 All loaders return a runner-level dataframe with columns:
     date, race_id, horse, decimal_odds, finish_position
 and optionally:
-    trifecta_payout  -- actual dividend paid per $1 winning trifecta ticket,
-                        one value repeated on every row of the race. When
-                        present, the backtest uses it instead of the modeled
-                        parimutuel payout.
+    win_payout       -- actual win dividend per $1 stake (winner row only)
+    place_payout     -- actual place dividend per $1 stake (placed rows)
+    trifecta_payout  -- actual dividend paid per $1 winning trifecta/tierce
+                        ticket, one value repeated on every row of the race.
+                        When present, the backtest uses it instead of the
+                        modeled parimutuel payout.
 
 Default data
 ------------
 ``load_bundled_hk`` reads the committed processed CSV under
 ``mckenna_derby/datasets/hk_runners.csv`` (Hong Kong races 1997–2005 from
 Kaggle ``gdaley/hkracing``). This is the default for the dashboard and CLI.
+
+The Kaggle dump includes **win/place** dividends (joined into the bundled
+CSV) but **not** trifecta/trio/tierce. To attach real exotic settlement when
+you obtain them::
+
+    python scripts/build_bundled_data.py --exotics path/to/exotic_dividends.csv
+
+See ``mckenna_derby/datasets/README.md`` and
+``exotic_dividends.example.csv`` for the join schema.
 
 Rebuild from a local Kaggle download::
 
@@ -36,6 +47,12 @@ import numpy as np
 import pandas as pd
 
 REQUIRED_COLUMNS = {"date", "race_id", "horse", "decimal_odds", "finish_position"}
+
+# HKJC published dividends in gdaley/hkracing are per $10 stake.
+HKJC_DIVIDEND_UNIT = 10.0
+
+# Optional companion CSV for exotic settlement (see datasets README).
+EXOTIC_PAYOUT_COLUMNS = ("trifecta_payout", "tierce_payout", "trio_payout")
 
 
 def validate_runners(df: pd.DataFrame) -> pd.DataFrame:
@@ -92,15 +109,172 @@ def load_bundled_hk() -> pd.DataFrame:
     return load_generic_csv(path)
 
 
-def load_hk_racing(rawdata_dir: str | Path) -> pd.DataFrame:
-    """Load the gdaley/hkracing Kaggle dataset (races.csv + runs.csv)."""
+def _per_dollar(dividend: pd.Series, unit: float = HKJC_DIVIDEND_UNIT) -> pd.Series:
+    """Convert published HKJC dividends (usually per $10) to per-$1 payouts."""
+    return dividend.astype(float) / float(unit)
+
+
+def _attach_win_place_dividends(
+    runners: pd.DataFrame, races: pd.DataFrame
+) -> pd.DataFrame:
+    """Map race-level win/place dividend columns onto runner rows.
+
+    ``races`` must include ``race_id`` plus the gdaley/hkracing combination
+    and dividend columns. Output adds ``win_payout`` / ``place_payout``
+    (per $1 stake); non-winning / non-placed runners get NaN.
+    """
+    out = runners.copy()
+    out["win_payout"] = np.nan
+    out["place_payout"] = np.nan
+
+    race_cols = set(races.columns)
+    if not {"race_id", "win_combination1", "win_dividend1"}.issubset(race_cols):
+        return out
+
+    win_parts = []
+    for comb_col, div_col in (
+        ("win_combination1", "win_dividend1"),
+        ("win_combination2", "win_dividend2"),
+    ):
+        if comb_col not in race_cols or div_col not in race_cols:
+            continue
+        part = races[["race_id", comb_col, div_col]].dropna()
+        if part.empty:
+            continue
+        part = part.rename(columns={comb_col: "horse", div_col: "win_payout"})
+        part["horse"] = part["horse"].astype(int)
+        part["win_payout"] = _per_dollar(part["win_payout"])
+        win_parts.append(part[["race_id", "horse", "win_payout"]])
+    if win_parts:
+        win_map = pd.concat(win_parts, ignore_index=True).drop_duplicates(
+            subset=["race_id", "horse"], keep="first"
+        )
+        out = out.drop(columns=["win_payout"]).merge(
+            win_map, on=["race_id", "horse"], how="left"
+        )
+
+    place_parts = []
+    for i in range(1, 5):
+        comb_col, div_col = f"place_combination{i}", f"place_dividend{i}"
+        if comb_col not in race_cols or div_col not in race_cols:
+            continue
+        part = races[["race_id", comb_col, div_col]].dropna()
+        if part.empty:
+            continue
+        part = part.rename(columns={comb_col: "horse", div_col: "place_payout"})
+        part["horse"] = part["horse"].astype(int)
+        part["place_payout"] = _per_dollar(part["place_payout"])
+        place_parts.append(part[["race_id", "horse", "place_payout"]])
+    if place_parts:
+        place_map = pd.concat(place_parts, ignore_index=True).drop_duplicates(
+            subset=["race_id", "horse"], keep="first"
+        )
+        out = out.drop(columns=["place_payout"]).merge(
+            place_map, on=["race_id", "horse"], how="left"
+        )
+
+    return out
+
+
+def load_exotic_dividends(path: str | Path) -> pd.DataFrame:
+    """Load a race-level exotic-dividend companion CSV.
+
+    Required columns: ``race_id`` and at least one of
+    ``trifecta_payout``, ``tierce_payout``, ``trio_payout``.
+
+    All payout columns must already be **per $1 stake** (convert from the
+    published unit before writing the companion file). ``tierce_payout`` is
+    treated as an alias for ordered 1-2-3 settlement and is copied onto
+    ``trifecta_payout`` when the latter is missing.
+    """
+    path = Path(path)
+    df = pd.read_csv(path)
+    if "race_id" not in df.columns:
+        raise ValueError(f"{path}: missing race_id column")
+    present = [c for c in EXOTIC_PAYOUT_COLUMNS if c in df.columns]
+    if not present:
+        raise ValueError(
+            f"{path}: need one of {EXOTIC_PAYOUT_COLUMNS}; found {list(df.columns)}"
+        )
+    keep = ["race_id"] + present
+    if "date" in df.columns:
+        keep.append("date")
+    out = df[keep].copy()
+    out["race_id"] = out["race_id"].astype(out["race_id"].dtype)
+    # One row per race_id (last wins if duplicates).
+    out = out.drop_duplicates(subset=["race_id"], keep="last")
+    if "trifecta_payout" not in out.columns and "tierce_payout" in out.columns:
+        out["trifecta_payout"] = out["tierce_payout"]
+    return out.reset_index(drop=True)
+
+
+def merge_exotic_dividends(
+    runners: pd.DataFrame, exotics: pd.DataFrame
+) -> pd.DataFrame:
+    """Left-join race-level exotic payouts onto every runner row of a race.
+
+    Prefer ``trifecta_payout`` (ordered 1-2-3). ``trio_payout`` (any-order)
+    is carried through for diagnostics but is **not** used by the trifecta
+    backtest settlement path.
+    """
+    if exotics.empty:
+        return runners
+    cols = ["race_id"] + [
+        c for c in ("trifecta_payout", "tierce_payout", "trio_payout") if c in exotics.columns
+    ]
+    pay = exotics[cols].drop_duplicates(subset=["race_id"], keep="last")
+    if "trifecta_payout" not in pay.columns and "tierce_payout" in pay.columns:
+        pay = pay.copy()
+        pay["trifecta_payout"] = pay["tierce_payout"]
+    out = runners.merge(pay, on="race_id", how="left", suffixes=("", "_exotic"))
+    # If runners already had trifecta_payout, prefer non-null existing values.
+    if "trifecta_payout_exotic" in out.columns:
+        if "trifecta_payout" in runners.columns:
+            out["trifecta_payout"] = out["trifecta_payout"].where(
+                out["trifecta_payout"].notna(), out["trifecta_payout_exotic"]
+            )
+        else:
+            out["trifecta_payout"] = out["trifecta_payout_exotic"]
+        out = out.drop(columns=["trifecta_payout_exotic"])
+    return out
+
+
+def load_hk_racing(
+    rawdata_dir: str | Path,
+    *,
+    exotics_path: str | Path | None = None,
+    include_win_place: bool = True,
+) -> pd.DataFrame:
+    """Load the gdaley/hkracing Kaggle dataset (races.csv + runs.csv).
+
+    When ``include_win_place`` is True (default), attaches real ``win_payout``
+    and ``place_payout`` columns (per $1) from the race-level dividend fields.
+    Optional ``exotics_path`` merges a companion exotic-dividends CSV (see
+    ``load_exotic_dividends``).
+    """
     rawdata_dir = Path(rawdata_dir)
-    races = pd.read_csv(rawdata_dir / "races.csv", usecols=["race_id", "date"])
+    race_usecols = ["race_id", "date"]
+    if include_win_place:
+        race_usecols += [
+            "place_combination1",
+            "place_combination2",
+            "place_combination3",
+            "place_combination4",
+            "place_dividend1",
+            "place_dividend2",
+            "place_dividend3",
+            "place_dividend4",
+            "win_combination1",
+            "win_dividend1",
+            "win_combination2",
+            "win_dividend2",
+        ]
+    races = pd.read_csv(rawdata_dir / "races.csv", usecols=race_usecols)
     runs = pd.read_csv(
         rawdata_dir / "runs.csv",
         usecols=["race_id", "horse_no", "result", "win_odds"],
     )
-    df = runs.merge(races, on="race_id")
+    df = runs.merge(races[["race_id", "date"]], on="race_id")
     df = df.rename(
         columns={
             "horse_no": "horse",
@@ -109,7 +283,12 @@ def load_hk_racing(rawdata_dir: str | Path) -> pd.DataFrame:
         }
     )
     df = df.dropna(subset=["finish_position"])
-    return validate_runners(df)
+    df = validate_runners(df)
+    if include_win_place:
+        df = _attach_win_place_dividends(df, races)
+    if exotics_path is not None:
+        df = merge_exotic_dividends(df, load_exotic_dividends(exotics_path))
+    return df
 
 
 def load_uk_racing(

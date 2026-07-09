@@ -75,6 +75,37 @@ def test_apply_plotly_theme_sets_dark_template():
     assert themed.layout.font.color == ns["PALETTE"]["text"]
 
 
+def test_plot_verdict_gauge_no_competing_titles():
+    """Gauge must not stack layout title + indicator title (screenshot bug)."""
+    import plotly.graph_objects as go
+
+    ns: dict = {"go": go}
+    src = DASHBOARD_SOURCE
+    start = src.index("PALETTE = {")
+    theme_end = src.index("\ndef inject_app_css")
+    g_start = src.index("def plot_verdict_gauge")
+    g_end = src.index("\ndef animate_scatter_reveal")
+    code = (
+        "from __future__ import annotations\n"
+        + src[start:theme_end]
+        + "\n"
+        + src[g_start:g_end]
+    )
+    exec(compile(code, "dashboard_gauge.py", "exec"), ns)
+
+    fig = ns["plot_verdict_gauge"](0.4120, 0.0080)
+    layout_title = getattr(fig.layout.title, "text", None)
+    ind_title = fig.data[0].title
+    ind_title_text = getattr(ind_title, "text", None) if ind_title is not None else None
+    assert not layout_title, f"layout title should be empty, got {layout_title!r}"
+    assert not ind_title_text, f"indicator title should be empty, got {ind_title_text!r}"
+    assert "rank link" in (fig.data[0].number.suffix or "")
+    assert abs(float(fig.data[0].value) - 0.4120) < 1e-9
+    # Theme must preserve the gauge's tighter top margin (not overwrite to 64).
+    assert fig.layout.margin.t == 36
+    assert fig.layout.height == 340
+
+
 def test_dashboard_has_plain_english_empty_state_copy():
     """Empty state should explain the app in plain English (no About tab)."""
     assert "EMPTY_STATE_MARKDOWN" in DASHBOARD_SOURCE
@@ -96,9 +127,13 @@ def test_dashboard_has_plain_english_empty_state_copy():
 def test_dashboard_sidebar_teaches_the_experiment():
     """Sidebar copy should explain the point and each control in plain English."""
     assert "SIDEBAR_INTRO" in DASHBOARD_SOURCE
+    assert "SIDEBAR_CONTROL_CAPTIONS" in DASHBOARD_SOURCE
     assert "What this software does" in DASHBOARD_SOURCE
     assert "surprising race days line up" in DASHBOARD_SOURCE
     assert "calendar wave" in DASHBOARD_SOURCE
+    assert "What is the Hong Kong data?" in DASHBOARD_SOURCE
+    assert "Jockey Club" in DASHBOARD_SOURCE
+    assert "about 6,000 races" in DASHBOARD_SOURCE
     assert "Wave cutoff % (low = bet)" in DASHBOARD_SOURCE
     assert "Track's cut" in DASHBOARD_SOURCE
     assert "Surprise score type" in DASHBOARD_SOURCE
@@ -107,9 +142,17 @@ def test_dashboard_sidebar_teaches_the_experiment():
     assert "Lead/lag window" in DASHBOARD_SOURCE
     assert "Hottest days to bet" in DASHBOARD_SOURCE
     assert "Max tickets per race" in DASHBOARD_SOURCE
-    assert "Official test settings" in DASHBOARD_SOURCE
-    assert "View locked settings" in DASHBOARD_SOURCE
+    assert "Locked main-test recipe" in DASHBOARD_SOURCE
+    assert "What is this section?" in DASHBOARD_SOURCE
+    assert "Official test settings" not in DASHBOARD_SOURCE
+    assert "View locked settings" not in DASHBOARD_SOURCE
     assert "open **Overview**" in DASHBOARD_SOURCE
+    # Sidebar controls should use visible captions, not hover help=
+    sidebar_start = DASHBOARD_SOURCE.index("def render_sidebar")
+    sidebar_end = DASHBOARD_SOURCE.index("\ndef load_runners")
+    sidebar_src = DASHBOARD_SOURCE[sidebar_start:sidebar_end]
+    assert "help=" not in sidebar_src
+    assert 'st.caption(SIDEBAR_CONTROL_CAPTIONS["number_set"])' in sidebar_src
 
 
 def test_dashboard_wires_first_visit_tour():
