@@ -45,3 +45,22 @@ Append-only log for AI assistants. Summarize completed work, decisions, and next
 **Next steps:**
 - Run Hong Kong real-data experiment when Kaggle credentials are available (`python run_analysis.py --hk rawdata/`)
 - Source historical trifecta dividends for credible backtest conclusions
+
+---
+
+## 2026-07-09 — Plain-English dashboard copy
+
+**Branch:** `cursor/dashboard-plain-english-copy-1590`
+
+**Completed:**
+- Added an **About** landing section in `dashboard.py` explaining what the app does, the Timewave/novelty idea, principles (pre-registration, honest nulls, transparent math), and a jargon glossary
+- Added plain-English captions on every results tab and sidebar control help text
+- First visit shows About + a 30-second try-it guide; after a run, About is the first tab
+- Regression test `test_dashboard_has_plain_english_about_copy`; full suite 44 passed
+
+**Key decisions:**
+- Copy lives as constants in `dashboard.py` (ABOUT_MARKDOWN, TAB_INTROS, SIDEBAR_HELP) so the Streamlit app is self-explanatory without requiring README reading
+- Kept technical metrics intact; layered captions rather than renaming stats
+
+**Next steps:**
+- Optional: surface the same About blurb in README hero if desired
