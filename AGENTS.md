@@ -28,7 +28,7 @@ Primary always-on context for AI assistants. Read **AI_RUNBOOK.md** for operatio
 - **Pre-registration:** Primary analysis params live in `prereg.json`; exploratory runs need Bonferroni labels
 - **Honest nulls:** Synthetic data (`--synthetic`) is market-calibrated — expect no timewave signal and ROI ≈ −takeout
 - **Default data:** Bundled Hong Kong races in `mckenna_derby/datasets/hk_runners.csv` (no Kaggle/upload required)
-- **Payouts:** Prefer real `trifecta_payout` dividends over modeled parimutuel when available
+- **Payouts:** Bundled CSV includes real `win_payout` / `place_payout` (per $1). Prefer real `trifecta_payout` over modeled parimutuel when present — Kaggle `gdaley/hkracing` has **no** trifecta/tierce; merge via `scripts/build_bundled_data.py --exotics` (see `mckenna_derby/datasets/README.md`)
 - **Timewave after 2012-12-21:** Mirrored extension is flagged; usable historical window ends at zero date
 
 ## Repo skills (`.agents/skills/`)

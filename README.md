@@ -87,11 +87,21 @@ kaggle datasets download -d gdaley/hkracing -p rawdata --unzip
 python scripts/build_bundled_data.py
 ```
 
+The bundled CSV includes real **win/place** dividends (`win_payout` /
+`place_payout`, per $1). Kaggle `gdaley/hkracing` does **not** include
+trifecta/tierce dividends. When you obtain them, merge with:
+
+```bash
+python scripts/build_bundled_data.py --exotics path/to/exotic_dividends.csv
+```
+
+(see `mckenna_derby/datasets/README.md`). Or add a `trifecta_payout` column
+(dividend per $1 winning ticket, repeated on each row of the race) to a CSV
+and load it with `--csv`; the backtest prefers actual dividends over the
+modeled payout.
+
 The primary analysis (number set, threshold, takeout) is fixed in
-`prereg.json` and must not be edited after the first real-data run. To use
-real trifecta dividends, add a `trifecta_payout` column (dividend per $1
-winning ticket, repeated on each row of the race) to a CSV and load it with
-`--csv`; the backtest will prefer actual dividends over the modeled payout.
+`prereg.json` and must not be edited after the first real-data run.
 
 ## McKenna Engine
 

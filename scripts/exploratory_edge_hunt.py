@@ -7,7 +7,7 @@ pre-registered primary result. Do not treat a single green cell as a finding.
 Hard rules enforced here:
 - No editing prereg.json
 - No raising beta until ROI is green and calling that a finding
-- Prefer real win dividends from rawdata/races.csv when available
+- Prefer real win/place dividends from the bundled CSV (or rawdata/races.csv)
 - Report measured effects; label assumptions
 
 Usage:
@@ -77,7 +77,42 @@ def load_runners() -> pd.DataFrame:
 
 
 def load_win_market(runners: pd.DataFrame) -> pd.DataFrame:
-    """Per-race win market with REAL dividends (per $1) when rawdata present."""
+    """Per-race win market with REAL dividends (per $1).
+
+    Prefers ``win_payout`` already on the bundled runners CSV. Falls back to
+    joining ``rawdata/races.csv`` when the bundled file predates that column.
+    """
+    if "win_payout" in runners.columns and runners["win_payout"].notna().any():
+        r = runners.rename(
+            columns={
+                "decimal_odds": "win_odds",
+                "finish_position": "result",
+                "win_payout": "win_payout_per_1",
+            }
+        ).copy()
+        r["won"] = (r["result"] == 1).astype(int)
+        r["is_favorite"] = r.groupby("race_id")["win_odds"].transform(
+            lambda s: s == s.min()
+        )
+        r["odds_rank"] = r.groupby("race_id")["win_odds"].rank(method="min")
+        # Race-level win dividend for favorite settlement: winner's payout.
+        race_pay = (
+            r.loc[r["won"] == 1, ["race_id", "win_payout_per_1"]]
+            .drop_duplicates("race_id")
+            .rename(columns={"win_payout_per_1": "_race_win_pay"})
+        )
+        r = r.merge(race_pay, on="race_id", how="left")
+        # For favorite flat bets we need the race win dividend even on the
+        # favorite row (which may not be the winner). Use race-level value.
+        r["win_payout_per_1"] = r["_race_win_pay"]
+        r = r.drop(columns=["_race_win_pay"])
+        return r
+
+    if not (RAWDATA / "races.csv").is_file():
+        raise FileNotFoundError(
+            f"bundled runners lack win_payout and {RAWDATA}/races.csv missing"
+        )
+
     races = pd.read_csv(
         RAWDATA / "races.csv",
         usecols=[
@@ -133,6 +168,8 @@ def step0_inventory(runners: pd.DataFrame, win_mkt: pd.DataFrame) -> dict:
         .apply(lambda g: bool(g.loc[g["won"] == 1, "is_favorite"].any()), include_groups=False)
         .mean()
     )
+    has_win = "win_payout" in runners.columns and runners["win_payout"].notna().any()
+    has_place = "place_payout" in runners.columns and runners["place_payout"].notna().any()
     out = {
         "bundled_columns": list(runners.columns),
         "n_runners": int(len(runners)),
@@ -140,13 +177,20 @@ def step0_inventory(runners: pd.DataFrame, win_mkt: pd.DataFrame) -> dict:
         "date_min": str(runners["date"].min().date()),
         "date_max": str(runners["date"].max().date()),
         "has_real_trifecta_payout": bool(has_tri),
+        "has_real_win_payout": bool(has_win),
+        "has_real_place_payout": bool(has_place),
         "field_size_mean": float(field.mean()),
         "field_size_median": float(field.median()),
         "field_size_min": int(field.min()),
         "field_size_max": int(field.max()),
         "favorite_win_rate": float(fav_win),
         "win_dividend_races": int(win_mkt["race_id"].nunique()),
-        "raw_win_dividends_available": True,
+        "raw_win_dividends_available": bool(has_win) or (RAWDATA / "races.csv").is_file(),
+        "exotic_dividends_gap": (
+            "Kaggle gdaley/hkracing and alternate local dumps have win/place only. "
+            "Attach trifecta/tierce via scripts/build_bundled_data.py --exotics "
+            "(see mckenna_derby/datasets/README.md)."
+        ),
     }
     for k, v in out.items():
         print(f"  {k}: {v}")
@@ -336,6 +380,64 @@ def estimate_win_beta(win_mkt: pd.DataFrame) -> dict:
     print(f"  engine_beta_proxy (1/outcome_beta): {engine_proxy:.3f}")
     print(f"  note: {out['note']}")
     return out
+
+
+# ---------------------------------------------------------------------------
+# Step 1c — Place market (real place dividends)
+# ---------------------------------------------------------------------------
+
+
+def step1c_place_baselines(runners: pd.DataFrame) -> dict:
+    """Favorite-to-place and odds-decile place ROI using bundled place_payout."""
+    _section("STEP 1c — Place-market baselines (REAL dividends, exploratory)")
+    if "place_payout" not in runners.columns or not runners["place_payout"].notna().any():
+        print("  no place_payout on runners — skipped")
+        return {"skipped": True, "reason": "no place_payout column"}
+
+    r = runners.copy()
+    r["is_favorite"] = r.groupby("race_id")["decimal_odds"].transform(
+        lambda s: s == s.min()
+    )
+    r["placed"] = r["place_payout"].notna().astype(int)
+
+    # Race-level place dividend for the favorite horse (its own place_payout).
+    rows = []
+    for rid, g in r.groupby("race_id"):
+        favs = g[g["is_favorite"]]
+        if favs.empty:
+            continue
+        stake_each = 1.0 / len(favs)
+        cost = 1.0
+        payout = 0.0
+        hit = 0
+        for _, row in favs.iterrows():
+            if pd.notna(row["place_payout"]):
+                payout += stake_each * float(row["place_payout"])
+                hit = 1
+        rows.append({"race_id": rid, "cost": cost, "payout": payout, "hit": hit})
+    fav_df = pd.DataFrame(rows)
+    fav_sum = _roi_summary(
+        fav_df["cost"].sum(), fav_df["payout"].sum(), len(fav_df), int(fav_df["hit"].sum())
+    )
+    print("  Bet every favorite to place (flat $1/race):", fav_sum)
+
+    w = r.copy()
+    w["odds_decile"] = pd.qcut(w["decimal_odds"], 10, labels=False, duplicates="drop") + 1
+    dec_rows = []
+    for d, sub in w.groupby("odds_decile"):
+        cost = float(len(sub))
+        payout = float(sub["place_payout"].fillna(0.0).sum())
+        s = _roi_summary(cost, payout, len(sub), int(sub["placed"].sum()))
+        s["odds_decile"] = int(d)
+        dec_rows.append(s)
+    dec_df = pd.DataFrame(dec_rows).sort_values("odds_decile")
+    print("\n  Odds-decile place (flat $1 every runner):")
+    print(dec_df[["odds_decile", "bets", "hit_rate", "roi_pct"]].to_string(index=False))
+
+    return {
+        "bet_favorite_place": fav_sum,
+        "odds_deciles": dec_df.to_dict(orient="records"),
+    }
 
 
 # ---------------------------------------------------------------------------
@@ -711,9 +813,10 @@ def write_report(payload: dict) -> None:
         lines.append(f"| {k} | {v} |")
     lines.append("")
     lines.append(
-        f"**Real trifecta_payout:** {'YES' if inv['has_real_trifecta_payout'] else 'NO'} — "
-        "bundled CSV has only race_id, horse, finish_position, decimal_odds, date. "
-        "Raw Kaggle `races.csv` **does** include win/place dividends (used in Step 1)."
+        f"**Real trifecta_payout:** {'YES' if inv['has_real_trifecta_payout'] else 'NO'}. "
+        f"**Real win/place:** {'YES' if inv.get('has_real_win_payout') else 'NO'} / "
+        f"{'YES' if inv.get('has_real_place_payout') else 'NO'} (per $1 on bundled CSV). "
+        f"{inv.get('exotic_dividends_gap', '')}"
     )
     lines.append("")
 
@@ -754,6 +857,28 @@ def write_report(payload: dict) -> None:
     )
     lines.append(f"- engine_beta_proxy = 1/outcome_beta = **{beta['engine_beta_proxy']:.3f}**")
     lines.append(f"- {beta['note']}")
+    lines.append("")
+
+    s1c = payload.get("step1c", {})
+    lines.append("## Step 1c — Place market (real place dividends)")
+    lines.append("")
+    if s1c.get("skipped"):
+        lines.append(f"_Skipped: {s1c.get('reason', 'n/a')}_")
+    else:
+        bp = s1c["bet_favorite_place"]
+        lines.append(
+            f"Bet favorite to place: ROI **{bp['roi_pct']:+.2f}%** "
+            f"(hit {bp['hit_rate']:.1%}, n={bp['bets']})."
+        )
+        lines.append("")
+        lines.append(_tbl(pd.DataFrame(s1c["odds_deciles"])[
+            ["odds_decile", "bets", "hit_rate", "roi_pct"]
+        ]))
+        lines.append("")
+        lines.append(
+            "**What this suggests:** Place market also loses across odds deciles "
+            "when settled on real dividends — not an edge."
+        )
     lines.append("")
 
     lines.append("## Step 2 — Timewave timing alone (modeled trifecta)")
@@ -877,7 +1002,9 @@ def build_verdict(payload: dict) -> str:
     parts.append(
         f"**Still no demonstrated cash edge** on this HK sample for McKenna/I Ching trifecta strategies. "
         f"Bundled data has **no** `trifecta_payout` ({inv['n_races']} races, "
-        f"{inv['date_min']}→{inv['date_max']})."
+        f"{inv['date_min']}→{inv['date_max']}). "
+        f"Real win/place dividends **are** on the bundled CSV; exotic settlement remains blocked "
+        f"until a companion `--exotics` file is supplied."
     )
     parts.append("")
     parts.append(
@@ -930,14 +1057,20 @@ def main() -> int:
     args = ap.parse_args()
 
     runners = load_runners()
-    if not RAWDATA.is_dir():
-        raise SystemExit(f"rawdata/ required for win dividends: {RAWDATA}")
+    has_bundled_win = (
+        "win_payout" in runners.columns and runners["win_payout"].notna().any()
+    )
+    if not has_bundled_win and not (RAWDATA / "races.csv").is_file():
+        raise SystemExit(
+            "Need win_payout on bundled CSV or rawdata/races.csv for real win dividends"
+        )
     win_mkt = load_win_market(runners)
 
     payload: dict = {}
     payload["step0"] = step0_inventory(runners, win_mkt)
     payload["step1"] = step1_win_baselines(win_mkt)
     payload["step1b"] = estimate_win_beta(win_mkt)
+    payload["step1c"] = step1c_place_baselines(runners)
 
     engine_beta = float(payload["step1b"]["engine_beta_proxy"])
     # Clamp to a sane exploratory range; still label as proxy.

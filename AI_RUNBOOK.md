@@ -88,7 +88,8 @@ streamlit run dashboard.py
 - Use `.venv/bin/python` and `.venv/bin/pytest` (not system Python)
 - **Frozen core:** `timewave.py`, `novelty.py`, `compare.py` — only change with explicit approval + golden test updates
 - Exploratory analyses (all number sets, threshold sweep, lead-lag) must be labeled exploratory; apply Bonferroni where noted
-- Modeled trifecta payouts imply ROI ≈ −takeout; real dividends need `trifecta_payout` column on CSV rows
+- Modeled trifecta payouts imply ROI ≈ −takeout; real dividends need `trifecta_payout` on CSV rows
+- Bundled HK includes real **win/place** payouts; **trifecta/tierce are not in Kaggle** — attach with `python scripts/build_bundled_data.py --exotics path.csv` (schema in `mckenna_derby/datasets/README.md`)
 
 ## Commands reference
 

@@ -84,3 +84,23 @@ Append-only log for AI assistants. Summarize completed work, decisions, and next
 
 **Next steps:**
 - Manual click-through of tour on Streamlit Community Cloud (CDN + sidebar layout)
+
+---
+
+## 2026-07-09 — Exotic dividends upgrade (partial)
+
+**Branch:** `main` (uncommitted working tree)
+
+**Completed:**
+- Inventoried all local raw dumps + re-confirmed Kaggle `gdaley/hkracing` has only `races.csv`/`runs.csv` with **win/place** dividends — **no** trifecta/tierce/trio
+- Rebuilt bundled `hk_runners.csv` with real `win_payout` / `place_payout` (per $1)
+- Loader + rebuild plumbing for companion exotic CSV (`--exotics`); schema in `mckenna_derby/datasets/README.md`
+- Tests for win/place attach, exotic merge, backtest actual settlement; 59 pytest passed
+- Re-ran exploratory edge hunt; wrote `output/EXOTIC_DIVIDENDS_UPGRADE.md` + refreshed `output/EXPLORATORY_EDGE_HUNT.md`
+
+**Key decisions / honesty:**
+- Upgrade status = **partial / blocked** on exotic source data — do not claim trifecta cash settlement
+- Real win favorite ROI ≈ −15%; place ≈ −16%; modeled trifecta unchanged; no edge claimed
+
+**Next steps:**
+- Obtain race-matched trifecta/tierce dividends (paid archive or remapped IDs), then `build_bundled_data.py --exotics …` and re-run edge hunt for actual `payout_source`
