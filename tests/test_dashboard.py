@@ -51,10 +51,19 @@ def test_dashboard_observatory_dark_theme():
 
 
 def test_dashboard_clipart_and_extra_animations():
-    """Local SVG clipart + new animated charts should be present and wired."""
+    """Local SVG/GIF clipart + randomized rows + click-dismiss + animated charts."""
     assert "from mckenna_derby.assets" in DASHBOARD_SOURCE
     assert "def render_clipart_row" in DASHBOARD_SOURCE
-    assert "md-clipart-bobble" in DASHBOARD_SOURCE
+    assert "def pick_random_assets" in DASHBOARD_SOURCE or "pick_random_assets" in DASHBOARD_SOURCE
+    assert "clipart_seed" in DASHBOARD_SOURCE
+    assert "ensure_clipart_seed" in DASHBOARD_SOURCE
+    assert "Shuffle stickers" in DASHBOARD_SOURCE
+    assert "mckenna-sticker" in DASHBOARD_SOURCE
+    assert "inject_sticker_click_js" in DASHBOARD_SOURCE
+    assert "md-exit-fly-left" in DASHBOARD_SOURCE
+    assert "md-exit-spin-out" in DASHBOARD_SOURCE
+    assert "md-exit-shatter" in DASHBOARD_SOURCE
+    assert "md-clipart-anim-bobble" in DASHBOARD_SOURCE
     assert "prefers-reduced-motion" in DASHBOARD_SOURCE
     assert "def animate_odds_decile_roi" in DASHBOARD_SOURCE
     assert "def animate_hexagram_slots" in DASHBOARD_SOURCE
@@ -63,12 +72,26 @@ def test_dashboard_clipart_and_extra_animations():
     assert "def animate_monthly_pnl_heatmap" in DASHBOARD_SOURCE
     assert "MAX_ANIM_FRAMES" in DASHBOARD_SOURCE
     assert "render_clipart_row(" in DASHBOARD_SOURCE
+    assert 'slot="header"' in DASHBOARD_SOURCE
+    assert 'slot="empty_state"' in DASHBOARD_SOURCE
+    assert "ensure_clipart_seed(reshuffle=True)" in DASHBOARD_SOURCE
     assert "overview_vibe_meter" in DASHBOARD_SOURCE
     assert "animate_odds_decile_roi(runners)" in DASHBOARD_SOURCE
     assert "animate_rolling_correlation(daily, tw)" in DASHBOARD_SOURCE
     assert "animate_monthly_pnl_heatmap" in DASHBOARD_SOURCE
 
-    from mckenna_derby.assets import CLIPART, clipart_path
+    from mckenna_derby.assets import (
+        CLIPART,
+        CLIPART_GIF,
+        CLIPART_SVG,
+        clipart_path,
+        list_clipart_names,
+        pick_random_assets,
+    )
+
+    assert len(CLIPART_SVG) >= 10
+    assert len(CLIPART_GIF) >= 4
+    assert len(list_clipart_names()) >= 14
 
     for name in (
         "horse",
@@ -77,13 +100,29 @@ def test_dashboard_clipart_and_extra_animations():
         "crystal_ball",
         "eight_ball",
         "finish_flag",
+        "peace",
+        "vw_bus",
+        "rainbow",
+        "star",
+        "bounce_mushroom",
+        "spin_yinyang",
     ):
         assert name in CLIPART
         p = clipart_path(name)
         assert p.exists(), name
-        assert p.suffix == ".svg"
+        assert p.suffix in {".svg", ".gif"}
         assert p.stat().st_size > 50
+        if p.suffix == ".gif":
+            assert p.stat().st_size < 50_000
 
+    a = pick_random_assets(4, seed=42)
+    b = pick_random_assets(4, seed=42)
+    c = pick_random_assets(4, seed=99)
+    assert len(a) == 4
+    assert [x["name"] for x in a] == [x["name"] for x in b]
+    assert [x["name"] for x in a] != [x["name"] for x in c]
+    assert all(x["anim"] in {"bobble", "spin", "pulse", "wiggle"} for x in a)
+    assert all(44 <= x["size"] <= 64 for x in a)
 
 def test_apply_plotly_theme_sets_dark_template():
     """Runtime check: apply_plotly_theme stamps plotly_dark on a figure."""

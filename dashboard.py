@@ -11,6 +11,7 @@ import base64
 import datetime as dt
 import hashlib
 import json
+import secrets
 from pathlib import Path
 
 import numpy as np
@@ -21,7 +22,10 @@ import streamlit as st
 
 from mckenna_derby import backtest as bt
 from mckenna_derby import compare, data, novelty
-from mckenna_derby.assets import clipart_path
+from mckenna_derby.assets import (
+    CLIPART,
+    pick_random_assets,
+)
 from mckenna_derby.mckenna_engine import (
     IChingSelector,
     RollingTimewave,
@@ -35,6 +39,7 @@ ALL_SETS = ["kelley", "watkins", "sheliak", "huangti"]
 BETA_FRAMES = [1.0, 1.05, 1.10, 1.15, 1.20]
 MAX_ANIM_FRAMES = 80
 CLIPART_HERO = ("horse", "yin_yang", "mushroom", "crystal_ball", "eight_ball", "finish_flag")
+CLIPART_SEED_KEY = "clipart_seed"
 
 # Observatory dark palette (Plotly + CSS share these accents)
 PALETTE = {
@@ -178,7 +183,7 @@ def inject_app_css() -> None:
     border: 0;
     box-shadow: 0 0 20px rgba(167, 139, 250, 0.35);
   }}
-  /* Local clipart flair (flat SVGs — no web hotlinks) */
+  /* Local clipart flair (flat SVGs + tiny GIFs — no web hotlinks) */
   .md-clipart-row {{
     display: flex;
     flex-wrap: wrap;
@@ -192,22 +197,92 @@ def inject_app_css() -> None:
     height: 52px;
     border-radius: 12px;
     box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+    object-fit: contain;
   }}
   .md-clipart-row.md-clipart-hero img {{
     width: 64px;
     height: 64px;
   }}
-  .md-clipart-bobble img {{
+  .md-clipart-anim-bobble {{
     animation: md-bobble 3.2s ease-in-out infinite;
   }}
-  .md-clipart-bobble img:nth-child(2) {{ animation-delay: 0.35s; }}
-  .md-clipart-bobble img:nth-child(3) {{ animation-delay: 0.7s; }}
-  .md-clipart-bobble img:nth-child(4) {{ animation-delay: 1.05s; }}
-  .md-clipart-bobble img:nth-child(5) {{ animation-delay: 1.4s; }}
-  .md-clipart-bobble img:nth-child(6) {{ animation-delay: 1.75s; }}
+  .md-clipart-anim-spin {{
+    animation: md-spin 6s linear infinite;
+  }}
+  .md-clipart-anim-pulse {{
+    animation: md-pulse 2.4s ease-in-out infinite;
+  }}
+  .md-clipart-anim-wiggle {{
+    animation: md-wiggle 2.8s ease-in-out infinite;
+  }}
+  .mckenna-sticker {{
+    cursor: pointer;
+    user-select: none;
+    will-change: transform, opacity;
+  }}
+  .mckenna-sticker.md-exit-fly-left {{
+    animation: md-exit-fly-left 0.7s ease-in forwards !important;
+  }}
+  .mckenna-sticker.md-exit-fly-right {{
+    animation: md-exit-fly-right 0.7s ease-in forwards !important;
+  }}
+  .mckenna-sticker.md-exit-fly-up {{
+    animation: md-exit-fly-up 0.65s ease-in forwards !important;
+  }}
+  .mckenna-sticker.md-exit-spin-out {{
+    animation: md-exit-spin-out 0.75s ease-in forwards !important;
+  }}
+  .mckenna-sticker.md-exit-fade-out {{
+    animation: md-exit-fade-out 0.55s ease-out forwards !important;
+  }}
+  .mckenna-sticker.md-exit-shatter {{
+    animation: md-exit-shatter 0.6s ease-in forwards !important;
+  }}
+  .mckenna-sticker.md-exit-done {{
+    display: none !important;
+  }}
+  .md-clipart-row img:nth-child(2) {{ animation-delay: 0.35s; }}
+  .md-clipart-row img:nth-child(3) {{ animation-delay: 0.7s; }}
+  .md-clipart-row img:nth-child(4) {{ animation-delay: 1.05s; }}
+  .md-clipart-row img:nth-child(5) {{ animation-delay: 1.4s; }}
+  .md-clipart-row img:nth-child(6) {{ animation-delay: 1.75s; }}
+  .md-clipart-row img:nth-child(7) {{ animation-delay: 2.1s; }}
+  .md-clipart-row img:nth-child(8) {{ animation-delay: 2.45s; }}
   @keyframes md-bobble {{
     0%, 100% {{ transform: translateY(0); }}
     50% {{ transform: translateY(-5px); }}
+  }}
+  @keyframes md-spin {{
+    from {{ transform: rotate(0deg); }}
+    to {{ transform: rotate(360deg); }}
+  }}
+  @keyframes md-pulse {{
+    0%, 100% {{ transform: scale(1); opacity: 1; }}
+    50% {{ transform: scale(1.08); opacity: 0.88; }}
+  }}
+  @keyframes md-wiggle {{
+    0%, 100% {{ transform: rotate(-4deg); }}
+    50% {{ transform: rotate(4deg); }}
+  }}
+  @keyframes md-exit-fly-left {{
+    to {{ transform: translateX(-120vw) rotate(-25deg); opacity: 0; }}
+  }}
+  @keyframes md-exit-fly-right {{
+    to {{ transform: translateX(120vw) rotate(25deg); opacity: 0; }}
+  }}
+  @keyframes md-exit-fly-up {{
+    to {{ transform: translateY(-100vh) scale(0.4); opacity: 0; }}
+  }}
+  @keyframes md-exit-spin-out {{
+    to {{ transform: translate(40vw, -60vh) rotate(720deg) scale(0.2); opacity: 0; }}
+  }}
+  @keyframes md-exit-fade-out {{
+    to {{ transform: scale(0.6); opacity: 0; filter: blur(4px); }}
+  }}
+  @keyframes md-exit-shatter {{
+    0% {{ transform: scale(1) rotate(0); opacity: 1; filter: none; }}
+    40% {{ transform: scale(1.15) rotate(-8deg); opacity: 1; filter: contrast(1.4); }}
+    100% {{ transform: scale(0.1) rotate(40deg) translateY(40px); opacity: 0; filter: blur(6px); }}
   }}
   /* Soften Plotly Play/Pause against dark theme */
   .js-plotly-plot .updatemenu-button rect {{
@@ -223,35 +298,189 @@ def inject_app_css() -> None:
       animation-iteration-count: 1 !important;
       transition-duration: 0.01ms !important;
     }}
-    .md-clipart-bobble img {{
+    .md-clipart-anim-bobble,
+    .md-clipart-anim-spin,
+    .md-clipart-anim-pulse,
+    .md-clipart-anim-wiggle {{
       animation: none !important;
+    }}
+    .mckenna-sticker.md-exit-fly-left,
+    .mckenna-sticker.md-exit-fly-right,
+    .mckenna-sticker.md-exit-fly-up,
+    .mckenna-sticker.md-exit-spin-out,
+    .mckenna-sticker.md-exit-fade-out,
+    .mckenna-sticker.md-exit-shatter {{
+      animation: none !important;
+      display: none !important;
     }}
   }}
 </style>
 """,
         unsafe_allow_html=True,
     )
+    inject_sticker_click_js()
+
+
+_STICKER_CLICK_JS = """
+<script>
+(function () {
+  const EXITS = [
+    "md-exit-fly-left",
+    "md-exit-fly-right",
+    "md-exit-fly-up",
+    "md-exit-spin-out",
+    "md-exit-fade-out",
+    "md-exit-shatter",
+  ];
+  const reduce = window.matchMedia &&
+    window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  function dismiss(el) {
+    if (!el || el.dataset.mdExiting === "1") return;
+    el.dataset.mdExiting = "1";
+    if (reduce) {
+      el.classList.add("md-exit-done");
+      return;
+    }
+    const cls = EXITS[Math.floor(Math.random() * EXITS.length)];
+    el.classList.add(cls);
+    const finish = () => {
+      el.classList.add("md-exit-done");
+      el.removeEventListener("animationend", finish);
+    };
+    el.addEventListener("animationend", finish);
+    // Fallback if animationend never fires
+    setTimeout(finish, 900);
+  }
+
+  function bind(root) {
+    if (!root || !root.querySelectorAll) return;
+    root.querySelectorAll("img.mckenna-sticker").forEach((img) => {
+      if (img.dataset.mdBound === "1") return;
+      img.dataset.mdBound = "1";
+      img.title = img.title || "Click to dismiss";
+      img.addEventListener("click", (ev) => {
+        ev.preventDefault();
+        ev.stopPropagation();
+        dismiss(img);
+      });
+    });
+  }
+
+  // Streamlit may nest content in iframes; try parent doc first, then local.
+  const docs = [];
+  try { if (window.parent && window.parent.document) docs.push(window.parent.document); } catch (e) {}
+  docs.push(document);
+
+  docs.forEach((doc) => {
+    bind(doc);
+    if (doc.__mdStickerObs) return;
+    const obs = new MutationObserver(() => bind(doc));
+    obs.observe(doc.body || doc.documentElement, { childList: true, subtree: true });
+    doc.__mdStickerObs = obs;
+  });
+})();
+</script>
+"""
+
+
+def inject_sticker_click_js() -> None:
+    """Bind click-to-dismiss exit animations on ``.mckenna-sticker`` images."""
+    import streamlit.components.v1 as components
+
+    components.html(_STICKER_CLICK_JS, height=0, width=0)
+
+
+def ensure_clipart_seed(*, reshuffle: bool = False) -> int:
+    """Stable-per-session clipart seed; re-roll when asked (shuffle / Run Analysis)."""
+    if reshuffle or CLIPART_SEED_KEY not in st.session_state:
+        st.session_state[CLIPART_SEED_KEY] = secrets.randbelow(2**31 - 1) + 1
+    return int(st.session_state[CLIPART_SEED_KEY])
+
+
+def render_shuffle_stickers_button(*, key: str = "shuffle_stickers") -> bool:
+    """Sidebar/header control to re-roll sticker seed. Returns True if clicked."""
+    clicked = st.button("🎲 Shuffle stickers", key=key, help="Re-roll which cheesy clipart shows up")
+    if clicked:
+        ensure_clipart_seed(reshuffle=True)
+        st.rerun()
+    return clicked
 
 
 def render_clipart_row(
-    names: tuple[str, ...] | list[str] = CLIPART_HERO,
+    names: tuple[str, ...] | list[str] | None = None,
     *,
     hero: bool = False,
     bobble: bool = True,
+    n: int | None = None,
+    slot: str = "default",
+    include_gif: bool = True,
+    randomize: bool = True,
 ) -> None:
-    """Show a small row of local flat SVG clipart (tasteful flair, not every caption)."""
+    """Show a row of local SVG/GIF clipart.
+
+    When ``randomize`` is True (default), picks a random subset from the asset
+    pool using ``session_state['clipart_seed']`` (plus a per-slot salt so header,
+    sidebar, and tabs get different stickers). Pass ``names`` to restrict the
+    pool, or set ``randomize=False`` for a fixed ordered list.
+    """
+    seed = ensure_clipart_seed()
+    slot_salt = int(hashlib.md5(slot.encode("utf-8")).hexdigest()[:8], 16)
+    combo_seed = (seed ^ slot_salt) & 0x7FFFFFFF
+
+    if randomize:
+        count = n if n is not None else (6 if hero else 4)
+        pool = list(names) if names is not None else None
+        picks = pick_random_assets(
+            count,
+            seed=combo_seed,
+            pool=pool,
+            include_gif=include_gif,
+            with_anim=bobble,
+        )
+    else:
+        fixed = list(names) if names is not None else list(CLIPART_HERO)
+        picks = []
+        for i, name in enumerate(fixed):
+            if name not in CLIPART or not CLIPART[name].exists():
+                continue
+            path = CLIPART[name]
+            picks.append(
+                {
+                    "name": name,
+                    "path": path,
+                    "size": 64 if hero else 52,
+                    "anim": "bobble" if bobble else "none",
+                    "kind": "gif" if path.suffix.lower() == ".gif" else "svg",
+                }
+            )
+
+    if not picks:
+        return
+
     classes = ["md-clipart-row"]
     if hero:
         classes.append("md-clipart-hero")
-    if bobble:
-        classes.append("md-clipart-bobble")
     parts = [f'<div class="{" ".join(classes)}">']
-    for name in names:
-        path = clipart_path(name)
-        # Embed as data URI so CSS bobble can target the <img> tags.
-        b64 = base64.b64encode(path.read_bytes()).decode("ascii")
+    for pick in picks:
+        path = pick["path"]
+        raw = path.read_bytes()
+        b64 = base64.b64encode(raw).decode("ascii")
+        if pick["kind"] == "gif":
+            mime = "image/gif"
+        else:
+            mime = "image/svg+xml"
+        size = int(pick["size"])
+        if hero:
+            size = max(size, 60)
+        anim = pick.get("anim") or "none"
+        anim_cls = f"md-clipart-anim-{anim}" if bobble and anim != "none" else ""
+        alt = str(pick["name"]).replace("_", " ")
+        cls = " ".join(c for c in ("mckenna-sticker", anim_cls) if c)
         parts.append(
-            f'<img src="data:image/svg+xml;base64,{b64}" alt="{name.replace("_", " ")}" />'
+            f'<img class="{cls}" src="data:{mime};base64,{b64}" '
+            f'alt="{alt}" title="Click to dismiss" width="{size}" height="{size}" '
+            f'style="width:{size}px;height:{size}px;" />'
         )
     parts.append("</div>")
     st.markdown("".join(parts), unsafe_allow_html=True)
@@ -2501,7 +2730,8 @@ def render_sidebar(prereg: dict) -> dict:
     with st.sidebar:
         st.markdown("##### 🐴 What this software does")
         st.caption(SIDEBAR_INTRO)
-        render_clipart_row(("horse", "yin_yang", "mushroom"), bobble=True)
+        render_clipart_row(n=3, slot="sidebar", bobble=True)
+        render_shuffle_stickers_button(key="shuffle_stickers_sidebar")
 
         with st.expander("🍄 Who is Terence McKenna?", expanded=False):
             st.markdown(WHO_IS_MCKENNA)
@@ -2710,7 +2940,7 @@ def render_overview(state: dict) -> None:
 
     st.subheader("📊 Overview")
     st.caption(TAB_INTROS["overview"])
-    render_clipart_row(hero=True)
+    render_clipart_row(hero=True, n=6, slot="overview_hero")
     c1, c2, c3, c4, c5 = st.columns(5)
     c1.metric("Races", f"{runners['race_id'].nunique():,}")
     c2.metric("Horses entered", f"{len(runners):,}")
@@ -2843,10 +3073,7 @@ def render_overview(state: dict) -> None:
                 "cast. Theme flair for picky betting 🎲 — not a prophecy, man."
             )
         with hx2:
-            render_clipart_row(
-                ("crystal_ball", "eight_ball", "yin_yang", "finish_flag"),
-                bobble=True,
-            )
+            render_clipart_row(n=4, slot="overview_hexagram", bobble=True)
             st.caption(
                 f"Last cast pattern **{hexagram}** / 64 🔮. Same seed → same "
                 "pattern. Oracle vibes only — your old lady still wants the rent."
@@ -3255,7 +3482,7 @@ def render_mckenna_engine(state: dict) -> None:
             "64-slot ring ☯️ — amber spoke is this seed's cast. Theme flair for "
             "the ticket thinner, not a claim the oracle prints money 🎱."
         )
-        render_clipart_row(("crystal_ball", "yin_yang", "eight_ball"), bobble=True)
+        render_clipart_row(n=3, slot="engine_hexagram", bobble=True)
 
     if engine_summary is None:
         st.info("Turn on **Run picky betting** 🎲 in the sidebar, then run again 🏇.")
@@ -3392,10 +3619,7 @@ def main() -> None:
             "If the wave flops, don't say we didn't warn you, man. "
             "Click **🏇 Run Analysis** to find out 🔮."
         )
-        render_clipart_row(
-            ("horse", "yin_yang", "mushroom", "eight_ball"),
-            bobble=True,
-        )
+        render_clipart_row(n=4, slot="header", bobble=True)
 
     prereg = load_prereg()
     opts = render_sidebar(prereg)
@@ -3441,11 +3665,14 @@ def main() -> None:
     else:
         with st.container(key="tour_empty_intro"):
             st.markdown(EMPTY_STATE_MARKDOWN)
-            render_clipart_row(hero=True)
+            render_clipart_row(hero=True, n=6, slot="empty_state")
             run_clicked = _main_run_button()
         if not run_clicked:
             maybe_start_tour(has_results=False)
             return
+
+    # Fresh sticker layout each analysis run
+    ensure_clipart_seed(reshuffle=True)
 
     loaded = load_runners(opts)
     if loaded is None:

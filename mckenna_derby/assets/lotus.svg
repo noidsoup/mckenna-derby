@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Lotus">
+  <rect width="64" height="64" rx="12" fill="#1a1d27"/>
+  <ellipse cx="32" cy="40" rx="6" ry="14" fill="#fb7185" transform="rotate(-35 32 40)"/>
+  <ellipse cx="32" cy="40" rx="6" ry="14" fill="#f472b6" transform="rotate(35 32 40)"/>
+  <ellipse cx="32" cy="38" rx="7" ry="16" fill="#a78bfa"/>
+  <ellipse cx="32" cy="40" rx="5" ry="12" fill="#e8e6f0" opacity="0.85"/>
+  <path d="M20 48c4-2 8-3 12-3s8 1 12 3" fill="none" stroke="#34d399" stroke-width="2" stroke-linecap="round"/>
+</svg>

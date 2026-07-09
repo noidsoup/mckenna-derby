@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Peace sign">
+  <rect width="64" height="64" rx="12" fill="#1a1d27"/>
+  <circle cx="32" cy="32" r="20" fill="none" stroke="#a78bfa" stroke-width="3"/>
+  <path d="M32 12v40M32 32l-12 16M32 32l12 16" fill="none" stroke="#34d399" stroke-width="3" stroke-linecap="round"/>
+</svg>
