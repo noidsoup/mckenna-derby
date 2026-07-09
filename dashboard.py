@@ -119,7 +119,7 @@ def apply_plotly_theme(fig: go.Figure) -> go.Figure:
 
 
 def inject_app_css() -> None:
-    """Loud CSS polish: neon chrome, bouncing metrics, sticker flair."""
+    """Loud CSS polish: neon chrome, bouncing metrics, sticker flair + mobile layout."""
     st.markdown(
         f"""
 <style>
@@ -129,6 +129,11 @@ def inject_app_css() -> None:
     --md-paper: {PALETTE["paper"]};
     --md-neon: rgba(167, 139, 250, 0.85);
     --md-neon-cyan: rgba(56, 189, 248, 0.75);
+  }}
+  /* Guard against horizontal scroll from neon glow / stickers */
+  html, body, [data-testid="stAppViewContainer"] {{
+    overflow-x: hidden;
+    max-width: 100vw;
   }}
   /* Metric cards — neon glow + gentle bounce */
   div[data-testid="stMetric"] {{
@@ -141,9 +146,15 @@ def inject_app_css() -> None:
       0 0 28px rgba(56, 189, 248, 0.12),
       0 4px 18px rgba(0, 0, 0, 0.35);
     animation: md-metric-bounce 2.8s ease-in-out infinite;
+    min-width: 0;
+    overflow-wrap: anywhere;
   }}
   div[data-testid="stMetric"] label {{
     color: {PALETTE["muted"]} !important;
+  }}
+  div[data-testid="stMetric"] [data-testid="stMetricValue"] {{
+    overflow-wrap: anywhere;
+    word-break: break-word;
   }}
   @keyframes md-metric-bounce {{
     0%, 100% {{ transform: translateY(0) scale(1); }}
@@ -378,6 +389,186 @@ def inject_app_css() -> None:
   }}
   .js-plotly-plot .updatemenu-button text {{
     fill: {PALETTE["text"]} !important;
+  }}
+  /* So what? / alert copy — wrap long hippie lines */
+  div[data-testid="stAlert"],
+  div[data-testid="stMarkdownContainer"],
+  div[data-testid="stCaptionContainer"] {{
+    overflow-wrap: anywhere;
+    word-break: break-word;
+    max-width: 100%;
+  }}
+  /* ========== Mobile / narrow viewports ========== */
+  @media (max-width: 768px) {{
+    .block-container {{
+      padding-top: 0.85rem !important;
+      padding-left: 0.85rem !important;
+      padding-right: 0.85rem !important;
+      padding-bottom: 1.25rem !important;
+      max-width: 100% !important;
+    }}
+    /* Title + captions readable without horizontal scroll */
+    h1 {{
+      font-size: 1.55rem !important;
+      line-height: 1.25 !important;
+      overflow-wrap: anywhere;
+    }}
+    h2, h3 {{
+      font-size: 1.15rem !important;
+      line-height: 1.3 !important;
+      overflow-wrap: anywhere;
+    }}
+    /* Stack Streamlit column rows; full-width children */
+    div[data-testid="stHorizontalBlock"] {{
+      flex-wrap: wrap !important;
+      gap: 0.55rem !important;
+    }}
+    div[data-testid="stHorizontalBlock"] > div[data-testid="column"] {{
+      min-width: 100% !important;
+      flex: 1 1 100% !important;
+      width: 100% !important;
+    }}
+    /* Metric rows: 2-across instead of tiny 5–6 columns */
+    div[data-testid="stHorizontalBlock"]:has(div[data-testid="stMetric"]) > div[data-testid="column"] {{
+      min-width: calc(50% - 0.4rem) !important;
+      flex: 1 1 calc(50% - 0.4rem) !important;
+      width: auto !important;
+    }}
+    div[data-testid="stMetric"] {{
+      padding: 0.5rem 0.6rem;
+      margin-bottom: 0.15rem;
+      /* Softer bounce so glow/scale does not clip */
+      animation: md-metric-bounce-mobile 3.2s ease-in-out infinite;
+    }}
+    @keyframes md-metric-bounce-mobile {{
+      0%, 100% {{ transform: translateY(0) scale(1); }}
+      40% {{ transform: translateY(-2px) scale(1.006); }}
+      70% {{ transform: translateY(1px) scale(0.998); }}
+    }}
+    /* Sidebar: wrap captions; keep neon border from eating width */
+    section[data-testid="stSidebar"] {{
+      border-right-width: 1px;
+      box-shadow: none;
+    }}
+    section[data-testid="stSidebar"] p,
+    section[data-testid="stSidebar"] span,
+    section[data-testid="stSidebar"] label,
+    section[data-testid="stSidebar"] [data-testid="stCaptionContainer"] {{
+      overflow-wrap: anywhere;
+      word-break: break-word;
+      white-space: normal !important;
+    }}
+    /* Run Analysis — large tap target */
+    .stButton > button[kind="primary"],
+    button[data-testid="baseButton-primary"],
+    button[kind="primary"] {{
+      min-height: 48px !important;
+      font-size: 1.05rem !important;
+      padding: 0.65rem 1rem !important;
+      width: 100% !important;
+    }}
+    /* Empty-state neon frame — less padding, no overflow from glow */
+    div[class*="st-key-tour_empty_intro"] {{
+      padding: 0.55rem 0.7rem;
+      box-shadow:
+        0 0 14px rgba(167, 139, 250, 0.28),
+        0 0 28px rgba(56, 189, 248, 0.1),
+        inset 0 0 18px rgba(167, 139, 250, 0.05);
+    }}
+    /* Tabs with emoji labels — horizontal scroll, no wrap blowout */
+    div[data-baseweb="tab-list"],
+    div[role="tablist"] {{
+      display: flex !important;
+      flex-wrap: nowrap !important;
+      overflow-x: auto !important;
+      overflow-y: hidden !important;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: thin;
+      gap: 0.15rem;
+      max-width: 100%;
+    }}
+    button[data-baseweb="tab"],
+    button[role="tab"] {{
+      flex: 0 0 auto !important;
+      white-space: nowrap !important;
+      font-size: 0.85rem !important;
+      padding-left: 0.55rem !important;
+      padding-right: 0.55rem !important;
+      min-height: 44px;
+    }}
+    /* Clipart stickers — smaller + wrap (already flex-wrap) */
+    .md-clipart-row {{
+      gap: 0.4rem;
+      margin: 0.25rem 0 0.65rem 0;
+      max-width: 100%;
+      justify-content: center;
+    }}
+    .md-clipart-row img {{
+      width: 40px !important;
+      height: 40px !important;
+      border-radius: 10px;
+    }}
+    .md-clipart-row.md-clipart-hero img {{
+      width: 48px !important;
+      height: 48px !important;
+    }}
+    /* Plotly: contain Play/Pause + slightly shorter charts */
+    div[data-testid="stPlotlyChart"],
+    .stPlotlyChart {{
+      max-width: 100%;
+      overflow: hidden;
+      box-shadow:
+        0 0 10px rgba(167, 139, 250, 0.18),
+        0 0 18px rgba(56, 189, 248, 0.08);
+    }}
+    .js-plotly-plot,
+    .js-plotly-plot .plotly,
+    .js-plotly-plot .svg-container {{
+      max-width: 100% !important;
+    }}
+    .js-plotly-plot .updatemenus-container,
+    .js-plotly-plot .updatemenu-container {{
+      max-width: 100%;
+    }}
+    /* Soften page gradient wash on small screens */
+    section.main > div {{
+      background-size: 100% 100%, 100% 100%, 100% 100%, 100% 100%;
+    }}
+  }}
+  @media (max-width: 480px) {{
+    .block-container {{
+      padding-left: 0.6rem !important;
+      padding-right: 0.6rem !important;
+    }}
+    h1 {{
+      font-size: 1.35rem !important;
+    }}
+    /* Metrics still 2-across but tighter */
+    div[data-testid="stHorizontalBlock"]:has(div[data-testid="stMetric"]) > div[data-testid="column"] {{
+      min-width: calc(50% - 0.3rem) !important;
+      flex: 1 1 calc(50% - 0.3rem) !important;
+    }}
+    div[data-testid="stMetric"] {{
+      padding: 0.4rem 0.45rem;
+      border-radius: 8px;
+    }}
+    div[data-testid="stMetric"] [data-testid="stMetricValue"] {{
+      font-size: 1.05rem !important;
+    }}
+    .md-clipart-row img {{
+      width: 34px !important;
+      height: 34px !important;
+    }}
+    .md-clipart-row.md-clipart-hero img {{
+      width: 40px !important;
+      height: 40px !important;
+    }}
+    button[data-baseweb="tab"],
+    button[role="tab"] {{
+      font-size: 0.78rem !important;
+      padding-left: 0.4rem !important;
+      padding-right: 0.4rem !important;
+    }}
   }}
   @media (prefers-reduced-motion: reduce) {{
     *, *::before, *::after {{
@@ -3875,7 +4066,8 @@ def main() -> None:
     st.set_page_config(
         page_title="🐴 McKenna Derby",
         layout="wide",
-        initial_sidebar_state="expanded",
+        # auto: expanded on desktop, collapsed on narrow/mobile
+        initial_sidebar_state="auto",
     )
     inject_app_css()
     require_auth()

@@ -84,6 +84,11 @@ def test_dashboard_clipart_and_extra_animations():
     assert "md-exit-shatter" in DASHBOARD_SOURCE
     assert "md-clipart-anim-bobble" in DASHBOARD_SOURCE
     assert "prefers-reduced-motion" in DASHBOARD_SOURCE
+    assert "@media (max-width: 768px)" in DASHBOARD_SOURCE
+    assert "@media (max-width: 480px)" in DASHBOARD_SOURCE
+    assert "overflow-x: hidden" in DASHBOARD_SOURCE
+    assert "md-metric-bounce-mobile" in DASHBOARD_SOURCE
+    assert 'initial_sidebar_state="auto"' in DASHBOARD_SOURCE
     assert "def animate_odds_decile_roi" in DASHBOARD_SOURCE
     assert "def animate_hexagram_slots" in DASHBOARD_SOURCE
     assert "def plot_vibe_meter" in DASHBOARD_SOURCE
