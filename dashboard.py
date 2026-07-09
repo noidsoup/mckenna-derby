@@ -87,8 +87,8 @@ def _subsample_indices(n: int, max_frames: int = MAX_ANIM_FRAMES) -> np.ndarray:
 def _play_slider_menus(
     frame_labels: list[str],
     frame_duration: int = 80,
-    xaxis_title: str = "",
 ) -> tuple[list, dict]:
+    """Build Plotly play/pause buttons + frame slider (no invalid slider props)."""
     steps = [
         {
             "args": [
@@ -138,15 +138,15 @@ def _play_slider_menus(
             ],
         }
     ]
+    # layout.slider has no `xaxis` property — axis titles belong on the figure axes.
     sliders = [
         {
-            "active": len(frame_labels) - 1,
+            "active": max(len(frame_labels) - 1, 0),
             "currentvalue": {"prefix": "Frame: "},
             "pad": {"t": 50},
             "steps": steps,
             "x": 0.1,
             "len": 0.85,
-            "xaxis": {"title": xaxis_title} if xaxis_title else {},
         }
     ]
     return updatemenus, sliders
@@ -194,7 +194,7 @@ def animate_novelty_timewave(
     fig.update_xaxes(title_text="Date")
     fig.update_yaxes(title_text="Daily novelty", secondary_y=False)
     fig.update_yaxes(title_text="Timewave (inverted)", secondary_y=True)
-    menus, sliders = _play_slider_menus(labels, xaxis_title="Date")
+    menus, sliders = _play_slider_menus(labels)
     fig.update_layout(
         title="Animated novelty + timewave timeline",
         height=480,
@@ -254,7 +254,7 @@ def animate_cumulative_pnl(
         frames.append(go.Frame(name=label, data=frame_data, traces=list(range(len(frame_data)))))
 
     fig.frames = frames
-    menus, sliders = _play_slider_menus(labels, xaxis_title="Race date")
+    menus, sliders = _play_slider_menus(labels)
     fig.update_layout(
         title="Animated cumulative P&L (race-by-race)",
         xaxis_title="Date",
@@ -322,7 +322,7 @@ def animate_resonance(
         )
 
     fig.frames = frames
-    menus, sliders = _play_slider_menus(labels, xaxis_title="Date")
+    menus, sliders = _play_slider_menus(labels)
     fig.update_layout(
         title="Animated McKenna resonance signal",
         xaxis_title="Date",
@@ -403,7 +403,7 @@ def animate_lead_lag(lag: pd.DataFrame) -> go.Figure:
         )
 
     fig.frames = frames
-    menus, sliders = _play_slider_menus(labels, xaxis_title="Lag (days)")
+    menus, sliders = _play_slider_menus(labels)
     fig.update_layout(
         title="Lead-lag: Spearman r vs lag days",
         xaxis_title="Lag (days)",
