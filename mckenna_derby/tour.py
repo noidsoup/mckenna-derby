@@ -30,7 +30,8 @@ TOUR_STEPS: list[dict[str, Any]] = [
                 "(low wave ↔ high chaos; zero-date lore ~2012). "
                 "We ask: do surprising 🐎 race days line up with that wave? "
                 "And does betting only on \"wave\" days beat the track's cut? "
-                "Mystique in the story; honest nulls in the numbers 🎱."
+                "Mystique in the story; honest nulls in the numbers 🎱. "
+                "If the wave flops, don't say we didn't warn you, man."
             ),
             "side": "over",
             "align": "center",

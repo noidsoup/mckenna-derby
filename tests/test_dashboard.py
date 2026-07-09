@@ -198,6 +198,10 @@ def test_dashboard_blurbs_under_main_views():
         "fair-price case",
         "Sorry man",
         "Far out",
+        "old lady",
+        "bummer vibes",
+        "gonna be broke",
+        "if the wave flops",
     ):
         assert needle in DASHBOARD_SOURCE, f"missing blurb: {needle}"
 
@@ -217,10 +221,20 @@ def test_interpret_helpers_plain_english():
     code = "from __future__ import annotations\n" + src[start:end]
     exec(compile(code, "dashboard_helpers.py", "exec"), ns)
 
+    # Mild null (p under 0.40): soft bummer.
+    mild_null = ns["_interpret_match"]({"permutation_p": 0.12, "spearman_r": -0.01})
+    assert "null" in mild_null.lower()
+    assert "So what?" in mild_null
+    assert "bummer" in mild_null.lower()
+    assert "sorry man" in mild_null.lower()
+
+    # Dead null (high p): escalate to old lady / broke lament.
     null_txt = ns["_interpret_match"]({"permutation_p": 0.42, "spearman_r": -0.01})
     assert "null" in null_txt.lower()
     assert "So what?" in null_txt
-    assert "sorry man" in null_txt.lower()
+    assert "old lady" in null_txt.lower()
+    assert "broke" in null_txt.lower()
+    assert "0.4200" in null_txt and "-0.0100" in null_txt
 
     hit_txt = ns["_interpret_match"]({"permutation_p": 0.01, "spearman_r": -0.3})
     assert "interesting" in hit_txt.lower() or "McKenna" in hit_txt
@@ -230,18 +244,31 @@ def test_interpret_helpers_plain_english():
         {"roi_pct": -18.0}, {"roi_pct": -17.5}, 0.18
     )
     assert "baseline" in timing.lower() or "timing" in timing.lower()
-    assert "sorry man" in timing.lower()
+    assert "bummer" in timing.lower()
+    assert "old lady" in timing.lower()
 
     timing_hurt = ns["_interpret_timing"](
         {"roi_pct": -5.87}, {"roi_pct": 1.95}, 0.18
     )
-    assert "sorry man" in timing_hurt.lower()
     assert "null/negative" in timing_hurt.lower()
+    assert "old lady" in timing_hurt.lower()
+    assert "broke" in timing_hurt.lower()
     assert "-5.87%" in timing_hurt and "+1.95%" in timing_hurt
 
+    # Mild fair-pool null (near-zero ROI).
+    engine_mild = ns["_interpret_engine"](
+        {"engine_beta": 1.0},
+        ns["pd"].DataFrame([{"strategy": "demo", "roi_pct": -1.0, "tickets": 10}]),
+    )
+    assert "null" in engine_mild.lower() or "free lunch" in engine_mild.lower()
+    assert "bummer" in engine_mild.lower() or "sorry man" in engine_mild.lower()
+
+    # Really dead fair-pool (bad ROI): longer lament.
     engine = ns["_interpret_engine"](
         {"engine_beta": 1.0},
-        ns["pd"].DataFrame([{"strategy": "demo", "roi_pct": -5.0}]),
+        ns["pd"].DataFrame([{"strategy": "demo", "roi_pct": -5.0, "tickets": 0}]),
     )
     assert "null" in engine.lower() or "free lunch" in engine.lower()
-    assert "sorry man" in engine.lower()
+    assert "old lady" in engine.lower()
+    assert "broke" in engine.lower()
+    assert "-5.00%" in engine

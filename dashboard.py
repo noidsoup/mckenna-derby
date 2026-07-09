@@ -227,6 +227,7 @@ SIDEBAR_INTRO = (
     "raconteur — who built that wave from fractal ☯️ I Ching tables "
     "(low wave ↔ high novelty; zero-date lore ~2012). We keep the mystique in "
     "the story and the honesty in the numbers 🎱.\n\n"
+    "Dig it: if the wave flops, don't say we didn't warn you, man.\n\n"
     "Read the controls below top to bottom, then click **🏇 Run Analysis**."
 )
 
@@ -334,35 +335,38 @@ SIDEBAR_CONTROL_CAPTIONS = {
 
 TAB_INTROS = {
     "overview": (
-        "Big picture 📊 for this run: how much 🐎 data you have, whether surprising "
-        "race days lined up with McKenna's 🌊 Timewave Zero (his I Ching–built "
+        "Big picture 📊 for this run, dude: how much 🐎 data you have, whether "
+        "surprising race days lined up with McKenna's 🌊 Timewave Zero (his I Ching–built "
         "chaos calendar 🍄), and whether betting only on \"wave\" days beat betting "
         "every day. Mystique in the story; honesty in the numbers — on Hong Kong "
-        "history the answer is usually \"no support\" ☯️, not a tip sheet 🔮."
+        "history the vibes are usually \"no support\" ☯️, not a tip sheet 🔮. "
+        "If it flops, sorry man — we told you."
     ),
     "novelty": (
         "**Surprise score** ✨ = how unexpected the finishes were, given the odds. "
         "**The wave** 🌊 = McKenna's Timewave Zero calendar of 🌀 chaos, built from "
         "☯️ I Ching number tables. His idea: **low wave ↔ high surprise** ☯️ "
         "(they should move opposite ways). Near-zero link + high chance score "
-        "🎱 ≈ no support for that idea — null stays null."
+        "🎱 ≈ no support for that idea — null stays null, man. Bummer vibes ahead "
+        "if the ranks don't dance."
     ),
     "backtest": (
         "Pretend we buy every top-3 ticket on chosen days 🏇. The track keeps a cut, "
-        "so with no real edge you usually lose about that cut. Timing only helps "
-        "if wave-picked days clearly beat betting every day — ROI near −track cut "
-        "is the boring baseline 🏁. A pretty wave does not print money by itself."
+        "so with no real edge you usually lose about that cut — dig it. Timing only "
+        "helps if wave-picked days clearly beat betting every day — ROI near −track "
+        "cut is the boring baseline 🏁. A pretty wave does not print money by itself, "
+        "and your old lady will not be impressed by a flat line."
     ),
     "engine": (
         "A pickier side experiment 🎲: fewer tickets, fewer days, optional pool-bias "
         "guess, and a coin-cast **hexagram-style** ticket thinner 🃏 (same 64-pattern "
         "☯️ I Ching vibe McKenna used for the wave tables). At bias = 1.0 (fair "
-        "prices ☯️) you should not find a free lunch. Higher bias is a guess 🎱 — "
-        "not a fact, and not a claim the oracle pays."
+        "prices ☯️) you should not find a free lunch — peace, but prepare to be "
+        "bummed. Higher bias is a guess 🎱 — not a fact, and not a claim the oracle pays."
     ),
     "raw": (
         "The 🐎 race rows we scored, plus CSV downloads 📥 so you can check or reuse "
-        "the numbers. This tab is the input and exports — not a new claim."
+        "the numbers. This tab is the input and exports — not a new claim, man."
     ),
 }
 
@@ -381,31 +385,46 @@ TAB_LABELS = [
 
 
 def _interpret_match(primary: dict) -> str:
-    """Plain-English read of the main wave-vs-surprise result (friendly hippie voice)."""
+    """Plain-English read of the main wave-vs-surprise result (hippie voice; bummed on nulls)."""
     p = float(primary["permutation_p"])
     r = float(primary["spearman_r"])
     if p >= 0.05:
+        # Mild → clear null: escalate by how dead the chance score looks.
+        if p >= 0.40:
+            return (
+                f"**So what?** 🎱 Chance score {p:.4f} is *way* not small, and the "
+                f"rank link is {r:+.4f} (near 0 = little match). Man… what a drag. "
+                "That's a dead **null** — these race days just don't line up with "
+                "McKenna's 🌊 wave. Dig it: I put the rent money on the ponies for "
+                "this trip and got nothing. My old lady is gonna kill me. I'm gonna "
+                "be broke. Lost all this money chasing a fractal calendar, dude. "
+                "On Hong Kong history that is the usual honest answer — and I am "
+                "*increasingly annoyed* about it ☯️."
+            )
         return (
             f"**So what?** 🎱 Chance score {p:.4f} is not small, and the rank link "
-            f"is {r:+.4f} (near 0 = little match). Sorry man! ☯️ That's a **null** "
-            "result — these race days just don't line up with McKenna's 🌊 wave. "
-            "On Hong Kong history that is the usual honest answer, far out as that sounds."
+            f"is {r:+.4f} (near 0 = little match). Sorry man, bummer vibes ☯️ — "
+            "that's a **null** result. These race days just don't line up with "
+            "McKenna's 🌊 wave. On Hong Kong history that is the usual honest "
+            "answer, far out as that sounds. Peace… but my wallet is crying."
         )
     if r < 0:
         return (
             f"**So what?** 🔮 Chance score {p:.4f} is small and the rank link is "
             f"{r:+.4f} (negative). Far out dude! That's the direction McKenna guessed "
-            "(low wave ↔ high surprise) ☯️ — interesting 🍄, but still not betting advice."
+            "(low wave ↔ high surprise) ☯️ — interesting 🍄, but still not betting "
+            "advice. Don't spend the rent yet, man."
         )
     return (
         f"**So what?** 🎱 Chance score {p:.4f} is small, but the rank link is "
         f"{r:+.4f} (positive) — the **opposite** of McKenna's guess 🌀. "
-        "Whoa, curious vibes only — not a tip, man."
+        "Whoa, curious vibes only — not a tip, man. Kinda bummed the cosmos "
+        "went the wrong way, but dig it: honesty over hopium."
     )
 
 
 def _interpret_timing(strategy: dict, baseline: dict, takeout: float) -> str:
-    """Plain-English read of wave-day betting vs bet-every-day (friendly hippie voice)."""
+    """Plain-English read of wave-day betting vs bet-every-day (hippie; bummed when timing fails)."""
     s_roi = float(strategy["roi_pct"])
     b_roi = float(baseline["roi_pct"])
     cut_pct = -100.0 * float(takeout)
@@ -414,45 +433,57 @@ def _interpret_timing(strategy: dict, baseline: dict, takeout: float) -> str:
         return (
             f"**So what?** 🏁 Wave-picked return {s_roi:+.2f}% vs every-day "
             f"{b_roi:+.2f}%. Both sit near the track's cut (~{cut_pct:.0f}%). "
-            "Sorry man — that's the **boring baseline**: timing did not help. "
-            "Peace and love, but no edge here ☯️."
+            "Sorry man, bummer vibes — that's the **boring baseline**: timing did "
+            "not help. Peace and love, but no edge here ☯️. My old lady is gonna "
+            "ask where the grocery money went and I gotta say \"the ponies, babe.\" "
+            "What a drag."
         )
     if delta > 2:
         return (
             f"**So what?** ✨ Wave-picked return {s_roi:+.2f}% beats every-day "
-            f"{b_roi:+.2f}% by about {delta:+.2f} points. Far out — **interesting** "
-            "on this sample 🔮, but don't count on the cosmos keeping that groove."
+            f"{b_roi:+.2f}% by about {delta:+.2f} points. Far out dude — "
+            "**interesting** on this sample 🔮, but don't count on the cosmos "
+            "keeping that groove. Still not a tip sheet, man."
         )
     if delta < -2:
+        # Timing hurt: clear negative — escalate the lament.
         return (
             f"**So what?** 🎱 Wave-picked return {s_roi:+.2f}% is worse than every-day "
-            f"{b_roi:+.2f}%. Sorry man! Filtering by the wave hurt here — a null/negative "
-            "for the timing idea ☯️. Bummer vibes, but that's the honest trip."
+            f"{b_roi:+.2f}%. Oh man, filtering by the wave *hurt* here — a "
+            "null/negative for the timing idea ☯️. Bummer vibes turning into real "
+            "annoyance: I lost money on the horses chasing McKenna's calendar. "
+            "My old lady is gonna kill me. I'm gonna be broke. Rent money? Gone "
+            "on the ponies, dude. What a drag — and I'm getting *mad* about it."
         )
     return (
         f"**So what?** 🏇 Wave-picked {s_roi:+.2f}% vs every-day {b_roi:+.2f}% "
         f"(difference {delta:+.2f} points). Too close to call, dude — treat as "
-        f"no clear timing edge. Expect ~{cut_pct:.0f}% with no edge."
+        f"no clear timing edge. Expect ~{cut_pct:.0f}% with no edge. "
+        "Sorry man, mild bummer vibes — the trip didn't pay."
     )
 
 
 def _interpret_engine(opts: dict, engine_summary: pd.DataFrame | None) -> str:
-    """Plain-English read of picky-betting results (friendly hippie voice)."""
+    """Plain-English read of picky-betting results (hippie; bummed on empty/null fair-pool)."""
     beta = float(opts["engine_beta"])
     if engine_summary is None or engine_summary.empty:
         return (
             "**So what?** 🎲 Picky betting was not run, man. Turn it on in the sidebar "
-            "and click 🏇 Run Analysis again."
+            "and click 🏇 Run Analysis again — or stay blissfully ignorant of how "
+            "broke the fair-pool trip usually leaves you."
         )
     best = engine_summary.dropna(subset=["roi_pct"])
     if best.empty:
         return (
             "**So what?** 🎱 No usable returns in the picky-betting table for this run. "
-            "Sorry man — nothing to groove on here."
+            "Zero tickets worth reading, dude. Sorry man — nothing to groove on. "
+            "My old lady is gonna kill me for burning cycles on an empty engine. "
+            "I'm gonna be broke and annoyed. What a drag."
         )
     top = best.loc[best["roi_pct"].idxmax()]
     roi = float(top["roi_pct"])
     name = top["strategy"]
+    tickets = int(top["tickets"]) if "tickets" in top.index and pd.notna(top.get("tickets")) else None
     if abs(beta - 1.0) < 1e-9:
         if roi > 2:
             return (
@@ -460,15 +491,32 @@ def _interpret_engine(opts: dict, engine_summary: pd.DataFrame | None) -> str:
                 f"shows {roi:+.2f}% — far out under a fair-pool assumption. "
                 "Double-check, dude; do not treat as a free lunch."
             )
+        # Really dead: bad ROI and/or zero tickets → longer lament.
+        if roi <= -5 or tickets == 0:
+            ticket_bit = (
+                f" Tickets: {tickets}." if tickets is not None else ""
+            )
+            return (
+                f"**So what?** 🎱 Bias is 1.0 (fair prices ☯️). Best rule **{name}** "
+                f"returns {roi:+.2f}%.{ticket_bit} Man, this is *really* dead — "
+                "the **expected null**, no free lunch when the pool is fair. "
+                "I lost all this money on the ponies for a fractal hexagram trip "
+                "and got dust. My old lady is gonna kill me. I'm gonna be broke. "
+                "Rent? Gone. Peace and love? Temporarily suspended. Dig it: the "
+                "data is honest and I am *increasingly annoyed* ☮️."
+            )
         return (
             f"**So what?** 🎱 Bias is 1.0 (fair prices ☯️). Best rule **{name}** "
-            f"returns {roi:+.2f}%. Sorry man — near zero or negative is the "
-            "**expected null** — no free lunch when the pool is fair. Keep the peace ☮️."
+            f"returns {roi:+.2f}%. Sorry man, bummer vibes — near zero or negative "
+            "is the **expected null** — no free lunch when the pool is fair. "
+            "My old lady is gonna ask about the grocery money. Keep the peace ☮️, "
+            "but yeah… I'm bummed."
         )
     return (
         f"**So what?** 🃏 Bias guess is {beta:.2f} (not fair). Best rule **{name}** "
         f"returns {roi:+.2f}%. That only means \"if favorites were overbet that "
-        "way\" — a guess, not proof the track is biased. Stay groovy, stay skeptical."
+        "way\" — a guess, not proof the track is biased. Stay groovy, stay skeptical, "
+        "dude — don't tell your old lady this is a sure thing."
     )
 
 
@@ -1974,7 +2022,8 @@ def render_sidebar(prereg: dict) -> dict | None:
 
         st.caption(
             "Runs the 🌊 wave match test and (if enabled) 🎲 picky betting on the "
-            "🐎 data above. Then open **📊 Overview** for the plain-English answer."
+            "🐎 data above. Then open **📊 Overview** for the plain-English answer. "
+            "If the wave flops, don't say we didn't warn you, man."
         )
         run = st.button("🏇 Run Analysis", type="primary", key="tour_run_button")
 
@@ -2042,8 +2091,9 @@ def render_overview(state: dict) -> None:
     c5.metric("Days compared", f"{primary['n_days']:,}")
     st.caption(
         "**Chance score** 🎱 = how often a shuffled calendar looks this strong by luck. "
-        "High (e.g. 0.2–1.0) ≈ null ☯️. Small (under ~0.05) ≈ unlikely by chance. "
-        "**Rank link** near 0 = little match; McKenna guessed negative (low wave ↔ high surprise)."
+        "High (e.g. 0.2–1.0) ≈ null ☯️ — sorry man, bummer vibes. Small (under ~0.05) "
+        "≈ unlikely by chance. **Rank link** near 0 = little match; McKenna guessed "
+        "negative (low wave ↔ high surprise)."
     )
     st.info(_interpret_match(primary))
 
@@ -2068,7 +2118,8 @@ def render_overview(state: dict) -> None:
                 st.caption(
                     f"Best picky strategy in this run 🎲: **{top['strategy']}** "
                     f"(return {top['roi_pct']:+.2f}%). At bias 1.0, a big positive "
-                    "return would be surprising 🔮; near zero or negative is the null ☯️."
+                    "return would be far out 🔮; near zero or negative is the null ☯️ — "
+                    "no free lunch, dude, and yeah I'm bummed."
                 )
 
     # Wider gauge column so the dial number/subtitle are not cramped.
@@ -2081,7 +2132,8 @@ def render_overview(state: dict) -> None:
         )
         st.caption(
             "Verdict dial 🎱 — green zone (under ~0.05) = unlikely by chance. "
-            "Gray zone = the usual null ☯️. The big number is the chance score, not a tip."
+            "Gray zone = the usual null ☯️. Dig it: the big number is the chance "
+            "score, not a tip — and a gray dial is a bummer, man."
         )
     with gc2:
         st.plotly_chart(
@@ -2094,7 +2146,8 @@ def render_overview(state: dict) -> None:
             "(flipped so high means \"chaos\" 🌀 in his story). The shaded violet band "
             "is the high-chaos zone on the wave. **How to read:** if his idea worked, "
             "blue highs would tend to sit with purple highs ☯️. A messy overlap with no "
-            "clear pattern is the null. Hit **Play** or drag the slider to walk through time."
+            "clear pattern is the null — sorry man, bummer vibes. Hit **Play** or drag "
+            "the slider to walk through time."
         )
 
     oc1, oc2 = st.columns(2)
@@ -2106,8 +2159,8 @@ def render_overview(state: dict) -> None:
         )
         st.caption(
             "Each dot is one day 🐴. A clear downward slope would match McKenna "
-            "(high surprise on low wave) ☯️. A flat cloud = little match — the usual "
-            "Hong Kong read 🎱."
+            "(high surprise on low wave) ☯️ — far out if you see it. A flat cloud = "
+            "little match — the usual Hong Kong read 🎱, and yeah, what a drag."
         )
     with oc2:
         st.plotly_chart(
@@ -2132,8 +2185,9 @@ def render_overview(state: dict) -> None:
     bc2.metric("Bet every race", f"Return {s_all['roi_pct']:+.2f}%", f"Profit/loss ${s_all['total_pnl']:+,.0f}")
     st.caption(
         "Return is profit or loss as a percent of money spent. "
-        "ROI near −track cut on both sides = timing did not help ☯️. "
-        "Wave-picked clearly better than every-day would be interesting ✨ — rare on this data."
+        "ROI near −track cut on both sides = timing did not help ☯️ — boring "
+        "baseline, man, and my old lady is not gonna like that story. "
+        "Wave-picked clearly better than every-day would be far out ✨ — rare on this data."
     )
     st.info(_interpret_timing(s, s_all, opts["takeout"]))
 
@@ -2158,8 +2212,10 @@ def render_novelty_timewave(state: dict) -> None:
               help="A simpler line-fit check — not the main claim")
     st.caption(
         "We trust the **chance score** 🎱 for the main claim. "
-        "High chance score + near-zero rank link = **null** ☯️ (no support). "
-        "Small chance score + negative rank link = direction McKenna guessed 🍄. "
+        "High chance score + near-zero rank link = **null** ☯️ (no support) — "
+        "sorry man, bummer vibes. "
+        "Small chance score + negative rank link = direction McKenna guessed 🍄 "
+        "(far out dude, still not a tip). "
         f"Other checks are curiosity only "
         f"(rank-link chance {primary['spearman_p']:.4f}, "
         f"simple linear {primary['pearson_p']:.4f})."
@@ -2411,8 +2467,9 @@ def render_backtest(state: dict) -> None:
     st.caption(
         "Running profit or loss over time 🏁. Play walks race by race. "
         "**If wave timing helped**, the green (wave-picked) line should stay "
-        "clearly above the red (every-day) one. Lines that both drift down near "
-        "the track's cut = null ☯️."
+        "clearly above the red (every-day) one — far out if it does. Lines that "
+        "both drift down near the track's cut = null ☯️. Sorry man — that's when "
+        "I start worrying about the rent money on the ponies."
     )
 
     st.subheader("🌀 Risk and spread")
@@ -2488,9 +2545,10 @@ def render_mckenna_engine(state: dict) -> None:
     st.caption(TAB_INTROS["engine"])
     st.info(
         "**Pool bias guess** 🃏 is an assumption about whether the pool overbets favorites. "
-        "At 1.0 (fair prices ☯️), picky betting should find no edge — that is the honest null 🎱. "
-        "A win at other values only means \"if the pool were biased that way,\" not that "
-        "it is."
+        "At 1.0 (fair prices ☯️), picky betting should find no edge — that is the honest "
+        "null 🎱. Dig it: no free lunch, and if the table looks dead I'm gonna be "
+        "bummed. A win at other values only means \"if the pool were biased that way,\" "
+        "not that it is."
     )
 
     ec1, ec2, ec3, ec4 = st.columns(4)
@@ -2520,7 +2578,8 @@ def render_mckenna_engine(state: dict) -> None:
     st.caption(
         "Each row is a betting rule 🎲. Compare returns — at bias 1.0, none should "
         "look like a free lunch ☯️. Big positives only under bias ≠ 1.0 are "
-        "\"interesting if that guess were true,\" not proof 🎱."
+        "\"interesting if that guess were true,\" not proof 🎱. Flat red vibes = "
+        "sorry man, my old lady is gonna kill me."
     )
 
     for _, row in engine_summary.iterrows():
@@ -2535,7 +2594,8 @@ def render_mckenna_engine(state: dict) -> None:
             sc6.metric("Return %", f"{roi:+.2f}%" if pd.notna(roi) else "N/A")
             st.caption(
                 "Detail for this one rule 🃏. Return near zero or negative at bias "
-                "1.0 is the expected null ☯️; a large positive would be surprising 🔮."
+                "1.0 is the expected null ☯️ — bummer, dude; a large positive would "
+                "be far out 🔮 (still not a tip)."
             )
 
     from mckenna_derby.mckenna_engine import _compute_gated_days
@@ -2640,6 +2700,7 @@ def main() -> None:
         st.caption(
             "Do weird 🐎 horse-race days line up with Terence McKenna's 🌊 "
             "Timewave Zero? Mystique in the story — honest numbers in the charts. "
+            "If the wave flops, don't say we didn't warn you, man. "
             "Click **🏇 Run Analysis** to find out 🔮."
         )
 
