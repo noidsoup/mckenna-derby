@@ -10,5 +10,17 @@
     },
     "namespace": "mckenna-derby",
     "timestamp": 1783541646.232256
+  },
+  {
+    "id": "local_1783593085593",
+    "text": "AI Session: 2026-07-09 \u2014 Removed CrewAI subproject\n\n**Branch:** `main`\n\n**Completed:**\n- Removed the unused `crewai/` planner subproject (9 files, ~28K, separate Python 3.10+ venv, `OPENAI_API_KEY` requirement)\n- Patched `AGENTS.md` to drop the CrewAI section and the Python 3.10+ tech-stack note\n- Patched `AI_RUNBOOK.md` to drop CrewAI from the tech stack, project structure, add-feature workflow, commands reference, and the standalone \"CrewAI planner\" section\n- Verified all 32 pytest tests still pass on the main package (CrewAI was isolated \u2014 no impact on `mckenna_derby/`)\n\n**Key decisions:**\n- Subproject was documented and configured but never wired into the analysis pipeline; keeping it added a dependency on a non-default Python version and an external API key for zero benefit\n- Replaced `plan-and-implement` workflow entry in `AI_RUNBOOK.md` to point at the global `plan-and-implement` skill directly (writes `.cursor/plans/PLAN.md`), since that was the actual planning path in use\n\n**Next steps:**\n- Run Hong Kong real-data experiment when Kaggle credentials are available (`python run_analysis.py --hk rawdata/`)\n- Source historical trifecta dividends for credible backtest conclusions",
+    "metadata": {
+      "source": "ai_session_memory",
+      "date": "2026-07-09",
+      "session_title": "2026-07-09 \u2014 Removed CrewAI subproject",
+      "imported_by": "maintain_all_simplemem"
+    },
+    "namespace": "my-project",
+    "timestamp": 1783593085.593359
   }
 ]
