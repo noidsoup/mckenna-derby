@@ -48,3 +48,5 @@ def test_tour_module_exposes_replay_control_label():
     assert "sidebar top→bottom" in src
     assert "hexagram-style" in src
     assert "Who is Terence McKenna?" in src
+    assert "on the main page" in src
+    assert "not the sidebar" in src

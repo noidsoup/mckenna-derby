@@ -129,6 +129,46 @@ def test_merge_exotic_dividends_prefers_trifecta_and_aliases_tierce(tmp_path):
     assert merged2["trifecta_payout"].iloc[0] == pytest.approx(789.0)
 
 
+def test_remap_renavon_dividends_joins_on_date_venue_race_no():
+    """Renavon long-format TIERCE/TRIO → Kaggle race_id companion rows."""
+    import importlib.util
+
+    spec = importlib.util.spec_from_file_location(
+        "remap_renavon_dividends",
+        Path(__file__).resolve().parents[1] / "scripts" / "remap_renavon_dividends.py",
+    )
+    mod = importlib.util.module_from_spec(spec)
+    assert spec.loader is not None
+    spec.loader.exec_module(mod)
+
+    races = pd.DataFrame(
+        {
+            "race_id": [10, 11],
+            "date": ["2001-01-03", "2001-01-03"],
+            "venue": ["HV", "HV"],
+            "race_no": [1, 2],
+        }
+    )
+    renavon = pd.DataFrame(
+        {
+            "race_date": ["2001-01-03", "2001-01-03", "2001-01-03"],
+            "venue_code": ["HV", "HV", "HV"],
+            "race_number": [1, 1, 2],
+            "pool_type": ["TIERCE", "TRIO", "TIERCE"],
+            "return_per_dollar": [100.0, 20.0, 200.0],
+            "dividend": [1000.0, 200.0, 2000.0],
+        }
+    )
+    out = mod.remap_renavon_to_exotics(
+        renavon, races, start="2001-01-01", end="2005-08-28"
+    )
+    assert set(out["race_id"]) == {10, 11}
+    row10 = out.set_index("race_id").loc[10]
+    assert row10["trifecta_payout"] == pytest.approx(100.0)
+    assert row10["trio_payout"] == pytest.approx(20.0)
+    assert out.set_index("race_id").loc[11]["trifecta_payout"] == pytest.approx(200.0)
+
+
 def test_backtest_uses_merged_trifecta_payout_as_actual():
     """End-to-end: merged trifecta_payout → score_races → race_pnl actual."""
     runners = pd.DataFrame(

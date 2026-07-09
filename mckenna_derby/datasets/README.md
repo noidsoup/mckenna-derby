@@ -65,3 +65,25 @@ Raw `rawdata/` stays gitignored; only this processed CSV is committed.
 Commercial archives (e.g. paid HKJC dividend dumps) and HKJC result pages
 publish Tierce/Trio; this repo does **not** scrape them. Until a companion
 file is supplied, trifecta P&L remains **modeled** (expected ROI ≈ −takeout).
+
+### Renavon Full Archive → companion CSV (recommended paid path)
+
+Renavon [`hkjc_dividends`](https://renavon.com/data/hkjc/hkjc_dividends) Full
+Archive (US$99, from **Jan 2001**) is the cleanest joinable source for the
+**2001–2005** overlap with this bundle. It does **not** cover 1997–2000.
+
+Exact remap steps (date + venue + race_no → Kaggle `race_id`):
+
+See **`scripts/import_renavon_dividends.md`** and run:
+
+```bash
+python scripts/remap_renavon_dividends.py \
+  --renavon rawdata/hkjc_dividends.csv.gz \
+  --races rawdata/races.csv \
+  --out rawdata/exotic_dividends.csv \
+  --start 2001-01-01 --end 2005-08-28
+python scripts/build_bundled_data.py --exotics rawdata/exotic_dividends.csv
+```
+
+Prefer Renavon `return_per_dollar` (already per $1). Free Renavon sample is
+recent-only and will not match this date window.
