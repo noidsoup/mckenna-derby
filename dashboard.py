@@ -203,7 +203,7 @@ def animate_novelty_timewave(
         sliders=sliders,
     )
     if labels:
-        fig.data = frames[-1].data
+        fig.update(data=list(frames[-1].data))
     return fig
 
 
@@ -265,7 +265,7 @@ def animate_cumulative_pnl(
         sliders=sliders,
     )
     if frames:
-        fig.data = frames[-1].data
+        fig.update(data=list(frames[-1].data))
     return fig
 
 
@@ -332,7 +332,7 @@ def animate_resonance(
         sliders=sliders,
     )
     if frames:
-        fig.data = frames[-1].data
+        fig.update(data=list(frames[-1].data))
     return fig
 
 
@@ -376,7 +376,7 @@ def animate_novelty_distribution(
         sliders=sliders,
     )
     if frames:
-        fig.data = frames[-1].data
+        fig.update(data=list(frames[-1].data))
     return fig
 
 
@@ -413,7 +413,7 @@ def animate_lead_lag(lag: pd.DataFrame) -> go.Figure:
         sliders=sliders,
     )
     if frames:
-        fig.data = frames[-1].data
+        fig.update(data=list(frames[-1].data))
     return fig
 
 
@@ -484,7 +484,7 @@ def animate_roi_by_beta(
         sliders=sliders,
     )
     if frames:
-        fig.data = frames[-1].data
+        fig.update(data=list(frames[-1].data))
     return fig
 
 
