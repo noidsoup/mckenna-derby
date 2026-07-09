@@ -95,7 +95,7 @@ def daily_novelty(race_scores: pd.DataFrame, metric: str = "trifecta_novelty") -
     """
     s = race_scores.copy()
     z = s.groupby("n_runners")[metric].transform(
-        lambda x: (x - x.mean()) / x.std(ddof=0) if x.std(ddof=0) > 0 else x * 0.0
+        lambda x: (x - x.mean()) / x.std(ddof=0) if x.std(ddof=0) > 0 and len(x) > 1 else pd.Series(np.nan, index=x.index)
     )
     s["novelty_z"] = z
     return s.groupby(s["date"].dt.date)["novelty_z"].mean()

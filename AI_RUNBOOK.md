@@ -18,7 +18,6 @@ McKenna Derby tests whether horse-racing **novelty** (surprisal of outcomes unde
 | Tests | pytest golden tests (freeze `timewave`, `novelty`, `compare`) |
 | Pre-registration | `prereg.json` |
 | AI memory | SimpleMem local JSON |
-| Planning crew | CrewAI in `crewai/` (Python 3.10+) |
 
 ## Project structure
 
@@ -38,7 +37,6 @@ mckenna-derby/
 ├── tests/                  # Golden + integration tests
 ├── output/                 # Generated reports (gitignored)
 ├── rawdata/                # Kaggle downloads (gitignored)
-├── crewai/                 # Planner crew (separate Python 3.10+ env)
 ├── docs/simplemem/         # Committed SimpleMem store
 ├── AGENTS.md               # Agent session start
 └── AI_SESSION_MEMORY.md    # Session handoff log
@@ -70,10 +68,9 @@ streamlit run dashboard.py
 
 ### Add a feature (AI-assisted)
 
-1. For non-trivial work: run the CrewAI planner or use `plan-and-implement`
-2. Planner writes `crewai/plan_output.md` → place at `.cursor/plans/PLAN.md`
-3. Implement task-by-task; run `pytest -q` after each change to frozen modules
-4. Append **AI_SESSION_MEMORY.md**; optionally `python3 simplemem_cli.py add --text "..."`
+1. For non-trivial work: use the global `plan-and-implement` skill (writes to `.cursor/plans/PLAN.md`)
+2. Implement task-by-task; run `pytest -q` after each change to frozen modules
+3. Append **AI_SESSION_MEMORY.md**; optionally `python3 simplemem_cli.py add --text "..."`
 
 ### Real-data experiment
 
@@ -100,22 +97,6 @@ streamlit run dashboard.py
 | SimpleMem add | `python3 simplemem_cli.py add --text "..."` |
 | SimpleMem query | `python3 simplemem_cli.py query --question "..."` |
 | Import session log | `python3 simplemem_cli.py import-ai-session --path AI_SESSION_MEMORY.md` |
-| CrewAI plan | `cd crewai && crewai run` (after `crewai install` + `.env`) |
-
-## CrewAI planner
-
-The `crewai/` subproject turns a task description into a markdown implementation plan.
-
-**Requirements:** Python 3.10+ (main repo venv is 3.9 — use `crewai/.venv` or system 3.10+)
-
-```bash
-cd crewai
-cp .env.example .env    # set OPENAI_API_KEY
-crewai install          # or: pip install -e .
-crewai run              # reads task from env or prompts; writes plan_output.md
-```
-
-Copy output to `.cursor/plans/PLAN.md` for the plan-and-implement workflow.
 
 ## SimpleMem
 

@@ -11,7 +11,6 @@ Use these IDs with the Context7 MCP (`resolve-library-id` / `query-docs`) for up
 | Streamlit | `/streamlit/docs` | `dashboard.py` |
 | Plotly | `/plotly/plotly.py` | Dashboard charts |
 | pytest | `/pytest-dev/pytest` | Golden tests, fixtures |
-| CrewAI | `/websites/crewai_en` | Planner crew in `crewai/` |
 
 ## Example
 

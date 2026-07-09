@@ -1,3 +1,5 @@
+import datetime as dt
+
 import pandas as pd
 import pytest
 
@@ -58,3 +60,29 @@ def test_daily_novelty_returns_one_value_per_day():
     )
     daily = novelty.daily_novelty(novelty.score_races(df))
     assert len(daily) == 2
+
+
+def test_daily_novelty_single_race_in_field_bucket_is_nan():
+    """Single-race n_runners bucket has std=0; z-score must be NaN, not silently 0.
+
+    Regression: previously returned x * 0.0 = 0, which leaked spurious
+    novelty=0 into the daily mean for that date.
+    """
+    # 8-horse race + 6-horse race: each unique n_runners, so each bucket has 1 race.
+    df = pd.concat(
+        [
+            make_race([2.0, 3.0, 4.0, 5.0, 6.0, 8.0, 10.0, 12.0], race_id=1, date="2010-06-01"),
+            make_race([2.0, 3.0, 4.0, 5.0, 6.0, 8.0], race_id=2, date="2010-06-01"),
+        ]
+    )
+    scores = novelty.score_races(df)
+    # All z-scores in single-race buckets must be NaN
+    z = scores.assign(z=scores.groupby("n_runners")["trifecta_novelty"].transform(
+        lambda x: (x - x.mean()) / x.std(ddof=0) if x.std(ddof=0) > 0 and len(x) > 1 else pd.Series(float("nan"), index=x.index)
+    ))["z"]
+    assert z.isna().all()
+
+    # And the resulting daily series has no contribution (NaN propagates).
+    daily = novelty.daily_novelty(scores)
+    assert daily.loc[dt.date(2010, 6, 1)]  # exists
+    assert pd.isna(daily.loc[dt.date(2010, 6, 1)])
