@@ -217,7 +217,7 @@ def test_dashboard_has_plain_english_empty_state_copy():
     assert "Surprise vs the wave" in DASHBOARD_SOURCE
     assert "Did timing help?" in DASHBOARD_SOURCE
     assert '"About"' not in DASHBOARD_SOURCE
-    assert 'key="tour_empty_intro"' in DASHBOARD_SOURCE
+    assert 'key="intro_panel"' in DASHBOARD_SOURCE
     assert "Advanced options" in DASHBOARD_SOURCE
     assert "Wave number table" in DASHBOARD_SOURCE
     assert "Pool bias guess" in DASHBOARD_SOURCE
@@ -268,26 +268,27 @@ def test_dashboard_sidebar_teaches_the_experiment():
     assert "WHO_IS_MCKENNA" in sidebar_src
 
 
-def test_dashboard_wires_first_visit_tour():
-    """Dashboard should launch the guided tour and expose replay + anchors."""
-    assert "maybe_start_tour" in DASHBOARD_SOURCE
-    assert "render_tour_sidebar_controls" in DASHBOARD_SOURCE
-    assert 'key="tour_app_header"' in DASHBOARD_SOURCE
-    assert 'key="tour_empty_intro"' in DASHBOARD_SOURCE
-    assert 'key="tour_data_source"' in DASHBOARD_SOURCE
-    assert 'key="tour_run_button"' in DASHBOARD_SOURCE
-    assert "from mckenna_derby.tour import" in DASHBOARD_SOURCE
+def test_dashboard_has_no_guided_tour_wiring():
+    """Dashboard should not auto-launch the old guided tour or expose replay UI."""
+    assert "maybe_start_tour" not in DASHBOARD_SOURCE
+    assert "render_tour_sidebar_controls" not in DASHBOARD_SOURCE
+    assert "from mckenna_derby.tour import" not in DASHBOARD_SOURCE
+    assert "Replay guided tour" not in DASHBOARD_SOURCE
+    assert 'key="app_header"' in DASHBOARD_SOURCE
+    assert 'key="intro_panel"' in DASHBOARD_SOURCE
+    assert 'key="data_source_section"' in DASHBOARD_SOURCE
+    assert 'key="run_analysis_button"' in DASHBOARD_SOURCE
 
 
 def test_dashboard_main_run_button_on_intro():
     """Primary Run lives on the main intro; sidebar only collects opts."""
     assert "def render_sidebar(prereg: dict) -> dict:" in DASHBOARD_SOURCE
     assert "pending_opts" in DASHBOARD_SOURCE
-    assert 'key="tour_run_button"' in DASHBOARD_SOURCE
+    assert 'key="run_analysis_button"' in DASHBOARD_SOURCE
     # No dual-button / force_run bridge — one primary on main.
     assert "force_run" not in DASHBOARD_SOURCE
     assert "render_main_run_button" not in DASHBOARD_SOURCE
-    assert 'key="tour_run_button_main"' not in DASHBOARD_SOURCE
+    assert 'key="run_analysis_button_main"' not in DASHBOARD_SOURCE
     # Empty-state + sidebar copy point at the main-page button.
     assert "Click **🏇 Run Analysis** below (on this page)" in DASHBOARD_SOURCE
     assert "hit **🏇 Run Analysis** on the main page" in DASHBOARD_SOURCE
@@ -296,12 +297,12 @@ def test_dashboard_main_run_button_on_intro():
     sidebar_start = DASHBOARD_SOURCE.index("def render_sidebar")
     sidebar_end = DASHBOARD_SOURCE.index("\ndef load_runners")
     sidebar_src = DASHBOARD_SOURCE[sidebar_start:sidebar_end]
-    assert 'key="tour_run_button"' not in sidebar_src
+    assert 'key="run_analysis_button"' not in sidebar_src
     assert "Run Analysis" not in sidebar_src or "on the main page" in sidebar_src
-    # Main() wires the button inside tour_empty_intro.
+    # Main() wires the button inside the intro panel.
     main_start = DASHBOARD_SOURCE.index("def main()")
     main_src = DASHBOARD_SOURCE[main_start:]
-    assert 'key="tour_run_button"' in main_src
+    assert 'key="run_analysis_button"' in main_src
     assert "run_clicked" in main_src
 
 
