@@ -24,10 +24,9 @@ TOUR_STEPS: list[dict[str, Any]] = [
         "popover": {
             "title": "Welcome to McKenna Derby",
             "description": (
-                "This is a <b>research dashboard</b>, not a betting tip sheet. "
-                "It asks whether surprising horse-race results line up with "
-                "Terence McKenna's Timewave Zero — and whether timing bets on "
-                "that wave would have beaten betting every day."
+                "A <b>research toy</b> — not betting advice. "
+                "Question: do weird race days line up with McKenna's Timewave "
+                "(his chaos calendar)?"
             ),
             "side": "over",
             "align": "center",
@@ -36,25 +35,22 @@ TOUR_STEPS: list[dict[str, Any]] = [
     {
         "element": "tour_app_header",
         "popover": {
-            "title": "The question in one line",
+            "title": "The question",
             "description": (
-                "The title and subtitle state the experiment. Everything below "
-                "is evidence: novelty scores, the timewave, correlation tests, "
-                "and honest backtests."
+                "The title says what we ask. Charts and numbers below are the "
+                "evidence — not tips."
             ),
             "side": "bottom",
             "align": "start",
         },
     },
     {
-        "element": "tour_about_panel",
+        "element": "tour_empty_intro",
         "popover": {
-            "title": "Read this first",
+            "title": "Start here",
             "description": (
-                "The About section explains novelty, Timewave Zero, "
-                "pre-registration, and why the synthetic demo should show "
-                "<i>no</i> signal. Skim it once — it is the plain-English map "
-                "of the whole app."
+                "Short plain-English intro. Real Hong Kong races are already "
+                "loaded. Next step: click <b>Run Analysis</b>."
             ),
             "side": "left",
             "align": "start",
@@ -63,11 +59,10 @@ TOUR_STEPS: list[dict[str, Any]] = [
     {
         "element": "tour_data_source",
         "popover": {
-            "title": "Pick your data (sidebar)",
+            "title": "Your data (sidebar)",
             "description": (
-                "Start with <b>Synthetic demo</b> — a market-calibrated null "
-                "fixture. Use Hong Kong or an uploaded CSV when you have real "
-                "races. The demo proves the pipeline; it is not a failed result."
+                "Default is <b>real Hong Kong races</b> (1997–2005). "
+                "Open Advanced for a fake null demo or your own CSV."
             ),
             "side": "right",
             "align": "start",
@@ -78,9 +73,8 @@ TOUR_STEPS: list[dict[str, Any]] = [
         "popover": {
             "title": "Run parameters",
             "description": (
-                "Defaults come from the pre-registered experiment in "
-                "<code>prereg.json</code>. Changing them is fine for curiosity, "
-                "but those runs are <b>exploratory</b> — not the official claim."
+                "Locked settings for the official test "
+                "(<code>prereg.json</code>). Change them only to explore."
             ),
             "side": "right",
             "align": "start",
@@ -91,10 +85,8 @@ TOUR_STEPS: list[dict[str, Any]] = [
         "popover": {
             "title": "McKenna Engine (optional)",
             "description": (
-                "<b>Beta = 1.0</b> means a fair betting pool (no free lunch). "
-                "Values above 1 assume favorites are overbet — that is an "
-                "assumption, not a measurement. Treat other betas as "
-                "\"what if the pool were biased this way?\""
+                "<b>Beta = 1.0</b> = fair prices (no free lunch). "
+                "Higher beta = pretend favorites are overbet — a guess, not a fact."
             ),
             "side": "right",
             "align": "start",
@@ -105,10 +97,9 @@ TOUR_STEPS: list[dict[str, Any]] = [
         "popover": {
             "title": "Run Analysis",
             "description": (
-                "Click this when you are ready. After a run, open "
-                "<b>Overview</b> first, then Novelty &amp; Timewave and "
-                "Backtest. On demo data expect little/no timewave signal and "
-                "ROI near −takeout."
+                "Click this. Then open <b>Overview</b>. "
+                "On this data the main answer is often \"no match\" — "
+                "an honest null, not a tip."
             ),
             "side": "right",
             "align": "center",
@@ -119,10 +110,8 @@ TOUR_STEPS: list[dict[str, Any]] = [
         "popover": {
             "title": "You're set",
             "description": (
-                "Replay this tour anytime from the sidebar "
-                "(<b>Replay guided tour</b>). Charts have Play buttons so you "
-                "can scrub timelines. Have fun — and stay skeptical of pretty "
-                "p-values."
+                "Replay anytime from the sidebar (<b>Replay guided tour</b>). "
+                "Charts have Play buttons. Stay skeptical of pretty numbers."
             ),
             "side": "over",
             "align": "center",

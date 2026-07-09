@@ -27,6 +27,18 @@ def test_synthetic_data_passes_validation_unchanged():
     assert data.validate_runners(df).shape[0] == df.shape[0]
 
 
+def test_load_bundled_hk():
+    path = data.bundled_hk_path()
+    assert path.is_file(), f"missing bundled dataset at {path}"
+    out = data.load_bundled_hk()
+    assert set(out.columns) >= data.REQUIRED_COLUMNS
+    assert out["race_id"].nunique() >= 1000
+    assert out["date"].min().year == 1997
+    assert out["date"].max().year == 2005
+    # Re-validation should be a no-op on the committed file.
+    assert len(data.validate_runners(out)) == len(out)
+
+
 def test_load_uk_racing_converts_implied_probability(tmp_path):
     """hwaitt decimalPrice is an implied win probability, not decimal odds."""
     (tmp_path / "races_2010.csv").write_text(

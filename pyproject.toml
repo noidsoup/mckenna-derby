@@ -23,6 +23,7 @@ include = ["mckenna_derby*"]
 
 [tool.setuptools.package-data]
 "mckenna_derby.wavesets" = ["*.txt"]
+"mckenna_derby.datasets" = ["*.csv", "README.md"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

@@ -40,9 +40,10 @@ They open the link, enter the password once per browser session, then use the da
 
 | Feature | Cloud |
 |---------|-------|
-| Synthetic demo data | Yes |
-| Upload CSV | Yes |
-| Hong Kong `rawdata/` | No (not in repo; gitignored) |
+| Hong Kong bundled (default) | Yes (`mckenna_derby/datasets/hk_runners.csv`) |
+| Synthetic demo (Advanced) | Yes |
+| Upload CSV (Advanced) | Yes |
+| Raw Kaggle `rawdata/` | No (gitignored; not needed) |
 | Password gate | Yes (via secrets) |
 
 ## Local password testing

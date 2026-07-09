@@ -1,4 +1,4 @@
-"""Data loading: Kaggle datasets, generic CSVs, or a synthetic demo dataset.
+"""Data loading: bundled HK races, Kaggle downloads, CSVs, or synthetic demo.
 
 All loaders return a runner-level dataframe with columns:
     date, race_id, horse, decimal_odds, finish_position
@@ -8,30 +8,28 @@ and optionally:
                         present, the backtest uses it instead of the modeled
                         parimutuel payout.
 
-Real data
----------
-Good free Kaggle datasets with per-runner odds and finishing positions:
+Default data
+------------
+``load_bundled_hk`` reads the committed processed CSV under
+``mckenna_derby/datasets/hk_runners.csv`` (Hong Kong races 1997–2005 from
+Kaggle ``gdaley/hkracing``). This is the default for the dashboard and CLI.
 
-- ``gdaley/hkracing``     Hong Kong Jockey Club races (runs.csv has win_odds
-                          and result columns; races span 1997-2005, safely
-                          before the timewave zero date)
-- ``hwaitt/horse-racing`` UK/Ireland races with decimal odds
-
-Download with the Kaggle CLI (``pip install kaggle``, token in
-``~/.kaggle/kaggle.json``)::
+Rebuild from a local Kaggle download::
 
     kaggle datasets download -d gdaley/hkracing -p rawdata --unzip
+    python scripts/build_bundled_data.py
 
-Demo data
----------
-``synthetic_races`` generates race cards where the finishing order is sampled
-from odds-implied probabilities via the Harville model, so market calibration
-holds by construction: it is a null-hypothesis fixture for the pipeline.
+Other sources
+-------------
+- ``load_hk_racing`` — raw ``races.csv`` + ``runs.csv`` under a directory
+- ``hwaitt/horse-racing`` UK/Ireland via ``load_uk_racing``
+- ``synthetic_races`` — market-calibrated null fixture (Harville-sampled)
 """
 
 from __future__ import annotations
 
 import datetime as dt
+from importlib import resources
 from pathlib import Path
 
 import numpy as np
@@ -71,6 +69,27 @@ def load_generic_csv(path: str | Path, column_map: dict | None = None) -> pd.Dat
     if column_map:
         df = df.rename(columns=column_map)
     return validate_runners(df)
+
+
+def bundled_hk_path() -> Path:
+    """Filesystem path to the committed Hong Kong runners CSV."""
+    # Prefer importlib.resources so installed wheels resolve correctly.
+    try:
+        root = resources.files("mckenna_derby.datasets")
+        return Path(str(root.joinpath("hk_runners.csv")))
+    except (TypeError, FileNotFoundError, ModuleNotFoundError):
+        return Path(__file__).resolve().parent / "datasets" / "hk_runners.csv"
+
+
+def load_bundled_hk() -> pd.DataFrame:
+    """Load the packaged Hong Kong dataset (default real-data source)."""
+    path = bundled_hk_path()
+    if not path.is_file():
+        raise FileNotFoundError(
+            f"bundled HK data missing at {path}; "
+            "run: python scripts/build_bundled_data.py"
+        )
+    return load_generic_csv(path)
 
 
 def load_hk_racing(rawdata_dir: str | Path) -> pd.DataFrame:

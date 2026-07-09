@@ -37,12 +37,17 @@ only fires on days the timewave predicts high novelty.
 python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 pip install -e . pytest && pytest -q   # verify the frozen core first
-python run_analysis.py                 # synthetic demo data (null hypothesis)
+python run_analysis.py                 # bundled Hong Kong races (default)
 python run_analysis.py --sweep --max-lag 30   # with exploratory sections
+python run_analysis.py --synthetic     # market-calibrated null demo
 ```
 
 Outputs land in `output/`: `race_scores.csv`, `report.md`, and `novelty_vs_timewave.png`
 (three panels: daily novelty, the inverted timewave, cumulative backtest P&L).
+
+Real Hong Kong races (1997–2005, ~6,157 races) ship in
+`mckenna_derby/datasets/hk_runners.csv` — no Kaggle download or CSV upload
+required.
 
 ## Dashboard
 
@@ -53,33 +58,34 @@ pip install -e .
 streamlit run dashboard.py
 ```
 
-The dashboard lets you run analysis without the CLI: choose synthetic demo data,
-Hong Kong data from `rawdata/` (if downloaded), or upload a CSV. Defaults come
-from `prereg.json`; you can override number set, threshold, and takeout for
-exploratory runs. Charts include daily novelty with rolling mean, inverted
-timewave, cumulative P&L, correlation stats, all four number sets, and an
-optional threshold sweep.
+The dashboard defaults to the **bundled Hong Kong** dataset. Open **Advanced**
+in the sidebar for a synthetic null demo or a custom CSV upload. Analysis
+defaults come from `prereg.json`; you can override number set, threshold, and
+takeout for exploratory runs.
 
 ### Share on Streamlit Community Cloud
 
-Deploy from the private GitHub repo with an optional shared password for friends.
+Deploy from the GitHub repo with an optional shared password for friends.
 See **[DEPLOY_STREAMLIT.md](DEPLOY_STREAMLIT.md)** for step-by-step setup at
-[share.streamlit.io](https://share.streamlit.io/).
+[share.streamlit.io](https://share.streamlit.io/). Bundled HK data works on
+Cloud (no local `rawdata/` needed).
 
-## Using real data
+## Data sources
 
-Get a Kaggle API token (`~/.kaggle/kaggle.json`), then:
+**Default:** packaged `load_bundled_hk()` — processed from Kaggle
+[`gdaley/hkracing`](https://www.kaggle.com/datasets/gdaley/hkracing).
+
+CLI flags: `--synthetic`, `--hk DIR` (raw Kaggle layout), `--csv FILE`,
+`--sweep`, `--max-lag N`, `--start` / `--end` (synthetic range only). Primary
+analysis params (number set, threshold, takeout, metric) come from
+`prereg.json` — the CLI does not override them.
+
+To **rebuild** the bundled CSV from a fresh Kaggle download:
 
 ```bash
 kaggle datasets download -d gdaley/hkracing -p rawdata --unzip
-python run_analysis.py --hk rawdata/
+python scripts/build_bundled_data.py
 ```
-
-CLI flags for data and exploratory extras: `--hk DIR`, `--csv FILE`,
-`--sweep`, `--max-lag N`, `--start` / `--end` (synthetic range). Primary
-analysis params (number set, threshold, takeout, metric) come from
-`prereg.json` — the CLI does not override them. The Streamlit dashboard can
-override those for exploratory runs.
 
 The primary analysis (number set, threshold, takeout) is fixed in
 `prereg.json` and must not be edited after the first real-data run. To use

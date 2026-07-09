@@ -2,8 +2,9 @@
 """End-to-end pipeline: data -> novelty -> timewave comparison -> backtest -> report.
 
 Usage:
-    python run_analysis.py                          # synthetic demo data
-    python run_analysis.py --hk rawdata/            # gdaley/hkracing Kaggle data
+    python run_analysis.py                          # bundled Hong Kong races (default)
+    python run_analysis.py --synthetic              # market-calibrated null demo
+    python run_analysis.py --hk rawdata/            # raw gdaley/hkracing Kaggle layout
     python run_analysis.py --csv my_races.csv       # generic runner-level CSV
     python run_analysis.py --sweep --max-lag 30     # extra exploratory sections
 """
@@ -32,6 +33,11 @@ ALL_SETS = ["kelley", "watkins", "sheliak", "huangti"]
 
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__)
+    ap.add_argument(
+        "--synthetic",
+        action="store_true",
+        help="use market-calibrated synthetic demo instead of bundled HK data",
+    )
     ap.add_argument("--hk", metavar="DIR", help="path to gdaley/hkracing Kaggle data")
     ap.add_argument("--csv", metavar="FILE", help="generic runner-level CSV")
     ap.add_argument("--prereg", default=str(ROOT / "prereg.json"))
@@ -44,17 +50,24 @@ def main() -> None:
     OUTPUT.mkdir(exist_ok=True)
     prereg = json.loads(Path(args.prereg).read_text())
 
+    n_sources = sum(bool(x) for x in (args.synthetic, args.hk, args.csv))
+    if n_sources > 1:
+        ap.error("use only one of --synthetic, --hk, or --csv")
+
     if args.hk:
         source = f"hkracing ({args.hk})"
         runners = data.load_hk_racing(args.hk)
     elif args.csv:
         source = f"csv ({args.csv})"
         runners = data.load_generic_csv(args.csv)
-    else:
+    elif args.synthetic:
         source = "synthetic demo (market-calibrated: expect null result, ROI ~ -takeout)"
         runners = data.synthetic_races(
             dt.date.fromisoformat(args.start), dt.date.fromisoformat(args.end)
         )
+    else:
+        source = "Hong Kong bundled (gdaley/hkracing 1997–2005)"
+        runners = data.load_bundled_hk()
     print(f"Data: {source}")
     print(f"  {runners['race_id'].nunique():,} races, {len(runners):,} runners, "
           f"{runners['date'].min().date()} to {runners['date'].max().date()}")

@@ -21,9 +21,10 @@ def test_driver_payload_maps_keys_to_st_key_selectors():
         assert step["element"].startswith(".st-key-")
     keys = {s["element"] for s in anchored}
     assert ".st-key-tour_app_header" in keys
-    assert ".st-key-tour_about_panel" in keys
+    assert ".st-key-tour_empty_intro" in keys
     assert ".st-key-tour_data_source" in keys
     assert ".st-key-tour_run_button" in keys
+    assert ".st-key-tour_about_panel" not in keys
 
 
 def test_tour_storage_key_stable():

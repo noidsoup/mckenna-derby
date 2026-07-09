@@ -37,14 +37,16 @@ def test_dashboard_does_not_double_zscore_novelty():
     assert "Daily novelty" in DASHBOARD_SOURCE
 
 
-def test_dashboard_has_plain_english_about_copy():
-    """Landing / About tab should explain the app in plain English."""
-    assert "ABOUT_MARKDOWN" in DASHBOARD_SOURCE
-    assert "render_about" in DASHBOARD_SOURCE
+def test_dashboard_has_plain_english_empty_state_copy():
+    """Empty state should explain the app in plain English (no About tab)."""
+    assert "EMPTY_STATE_MARKDOWN" in DASHBOARD_SOURCE
+    assert "render_about" not in DASHBOARD_SOURCE
+    assert "ABOUT_MARKDOWN" not in DASHBOARD_SOURCE
     assert "What is this?" in DASHBOARD_SOURCE
-    assert "Principles we stick to" in DASHBOARD_SOURCE
+    assert "Run Analysis" in DASHBOARD_SOURCE
     assert "TAB_INTROS" in DASHBOARD_SOURCE
-    assert '"About"' in DASHBOARD_SOURCE
+    assert '"About"' not in DASHBOARD_SOURCE
+    assert 'key="tour_empty_intro"' in DASHBOARD_SOURCE
 
 
 def test_dashboard_wires_first_visit_tour():
@@ -52,7 +54,7 @@ def test_dashboard_wires_first_visit_tour():
     assert "maybe_start_tour" in DASHBOARD_SOURCE
     assert "render_tour_sidebar_controls" in DASHBOARD_SOURCE
     assert 'key="tour_app_header"' in DASHBOARD_SOURCE
-    assert 'key="tour_about_panel"' in DASHBOARD_SOURCE
+    assert 'key="tour_empty_intro"' in DASHBOARD_SOURCE
     assert 'key="tour_data_source"' in DASHBOARD_SOURCE
     assert 'key="tour_run_button"' in DASHBOARD_SOURCE
     assert "from mckenna_derby.tour import" in DASHBOARD_SOURCE

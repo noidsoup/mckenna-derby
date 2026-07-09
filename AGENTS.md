@@ -26,7 +26,8 @@ Primary always-on context for AI assistants. Read **AI_RUNBOOK.md** for operatio
 
 - **Frozen core:** Do not change `timewave.py`, `novelty.py`, or `compare.py` without explicit user approval and golden test updates
 - **Pre-registration:** Primary analysis params live in `prereg.json`; exploratory runs need Bonferroni labels
-- **Honest nulls:** Synthetic data is market-calibrated — expect no timewave signal and ROI ≈ −takeout
+- **Honest nulls:** Synthetic data (`--synthetic`) is market-calibrated — expect no timewave signal and ROI ≈ −takeout
+- **Default data:** Bundled Hong Kong races in `mckenna_derby/datasets/hk_runners.csv` (no Kaggle/upload required)
 - **Payouts:** Prefer real `trifecta_payout` dividends over modeled parimutuel when available
 - **Timewave after 2012-12-21:** Mirrored extension is flagged; usable historical window ends at zero date
 
@@ -54,7 +55,8 @@ Prefer library IDs in `.cursor/context7-libraries.md`. Use for Streamlit, SciPy 
 python3 -m venv .venv && source .venv/bin/activate
 pip install -e . pytest
 pytest -q
-python run_analysis.py
+python run_analysis.py                 # bundled HK (default)
+python run_analysis.py --synthetic     # null demo
 python run_analysis.py --sweep --max-lag 30
 streamlit run dashboard.py
 ./scripts/start-dashboard.sh
