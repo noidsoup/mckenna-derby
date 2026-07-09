@@ -24,6 +24,7 @@ from mckenna_derby.mckenna_engine import (
     RollingTimewave,
     selective_backtest,
 )
+from mckenna_derby.tour import maybe_start_tour, render_tour_sidebar_controls
 
 ROOT = Path(__file__).parent
 PREREG_PATH = ROOT / "prereg.json"
@@ -788,10 +789,11 @@ def series_stats(s: pd.Series) -> dict:
 
 def render_about() -> None:
     """Landing copy: what the app does and the principles behind it."""
-    st.markdown(ABOUT_MARKDOWN)
-    with st.expander("Glossary (jargon → plain English)", expanded=False):
-        st.markdown(
-            """
+    with st.container(key="tour_about_panel"):
+        st.markdown(ABOUT_MARKDOWN)
+        with st.expander("Glossary (jargon → plain English)", expanded=False):
+            st.markdown(
+                """
 | Term | Plain English |
 | --- | --- |
 | **Novelty / surprisal** | How unexpected the actual finish was, given the odds. |
@@ -805,23 +807,26 @@ def render_about() -> None:
 | **Resonance gate** | Only bet on days the fractal echo signal ranks as "hot." |
 | **I Ching selector** | Coin-cast hexagram picks which tickets to keep when you can't buy them all. |
 """
-        )
+            )
 
 
 def render_sidebar(prereg: dict) -> dict | None:
     with st.sidebar:
-        st.header("Data source")
-        st.caption(SIDEBAR_HELP["data"])
-        hk_available = HK_DIR.exists() and (HK_DIR / "races.csv").exists()
-        source_options = ["Synthetic demo"]
-        if hk_available:
-            source_options.append("Hong Kong (rawdata/)")
-        source_options.append("Upload CSV")
-        source = st.radio("Source", source_options, index=0)
+        render_tour_sidebar_controls()
 
-        uploaded = None
-        if source == "Upload CSV":
-            uploaded = st.file_uploader("Runner-level CSV", type=["csv"])
+        with st.container(key="tour_data_source"):
+            st.header("Data source")
+            st.caption(SIDEBAR_HELP["data"])
+            hk_available = HK_DIR.exists() and (HK_DIR / "races.csv").exists()
+            source_options = ["Synthetic demo"]
+            if hk_available:
+                source_options.append("Hong Kong (rawdata/)")
+            source_options.append("Upload CSV")
+            source = st.radio("Source", source_options, index=0, key="tour_source_radio")
+
+            uploaded = None
+            if source == "Upload CSV":
+                uploaded = st.file_uploader("Runner-level CSV", type=["csv"])
 
         st.header("Pre-registration (prereg.json)")
         st.caption(
@@ -831,76 +836,90 @@ def render_sidebar(prereg: dict) -> dict | None:
         with st.expander("Frozen prereg settings", expanded=False):
             st.json(prereg)
 
-        st.header("Run parameters")
-        st.caption(SIDEBAR_HELP["params"])
-        number_set = st.selectbox(
-            "Number set (primary)",
-            ALL_SETS,
-            index=ALL_SETS.index(prereg["primary_number_set"]),
-            help="Which I Ching number table builds the timewave. Kelley is the pre-registered default.",
-        )
-        threshold_pct = st.slider(
-            "Timewave threshold % (low wave = bet)",
-            5.0, 100.0, float(prereg["primary_threshold_pct"]), 5.0,
-            help="Bet only when the wave is in the lowest X% of values (McKenna: low wave = high novelty).",
-        )
-        takeout = st.slider(
-            "Takeout",
-            0.10, 0.35, float(prereg["takeout"]), 0.01,
-            help="Track commission on the pool. Expected ROI with no edge ≈ −takeout.",
-        )
-        metric = st.selectbox(
-            "Novelty metric",
-            ["trifecta_novelty", "win_novelty"],
-            index=0 if prereg["metric"] == "trifecta_novelty" else 1,
-            help="Trifecta novelty uses the exact 1-2-3 order; win novelty uses only the winner.",
-        )
-        engine_seed = st.number_input(
-            "Random seed (I Ching)",
-            1, 99999, 1904,
-            help="Makes I Ching ticket picks reproducible across runs.",
-        )
+        with st.container(key="tour_run_params"):
+            st.header("Run parameters")
+            st.caption(SIDEBAR_HELP["params"])
+            number_set = st.selectbox(
+                "Number set (primary)",
+                ALL_SETS,
+                index=ALL_SETS.index(prereg["primary_number_set"]),
+                help="Which I Ching number table builds the timewave. Kelley is the pre-registered default.",
+                key="tour_number_set",
+            )
+            threshold_pct = st.slider(
+                "Timewave threshold % (low wave = bet)",
+                5.0, 100.0, float(prereg["primary_threshold_pct"]), 5.0,
+                help="Bet only when the wave is in the lowest X% of values (McKenna: low wave = high novelty).",
+                key="tour_threshold_pct",
+            )
+            takeout = st.slider(
+                "Takeout",
+                0.10, 0.35, float(prereg["takeout"]), 0.01,
+                help="Track commission on the pool. Expected ROI with no edge ≈ −takeout.",
+                key="tour_takeout",
+            )
+            metric = st.selectbox(
+                "Novelty metric",
+                ["trifecta_novelty", "win_novelty"],
+                index=0 if prereg["metric"] == "trifecta_novelty" else 1,
+                help="Trifecta novelty uses the exact 1-2-3 order; win novelty uses only the winner.",
+                key="tour_metric",
+            )
+            engine_seed = st.number_input(
+                "Random seed (I Ching)",
+                1, 99999, 1904,
+                help="Makes I Ching ticket picks reproducible across runs.",
+                key="tour_engine_seed",
+            )
 
-        if source == "Synthetic demo":
-            col1, col2 = st.columns(2)
-            with col1:
-                start = st.date_input("Start", dt.date(2010, 1, 1))
-            with col2:
-                end = st.date_input("End", dt.date(2010, 12, 31))
-        else:
-            start = end = None
+            if source == "Synthetic demo":
+                col1, col2 = st.columns(2)
+                with col1:
+                    start = st.date_input("Start", dt.date(2010, 1, 1), key="tour_start")
+                with col2:
+                    end = st.date_input("End", dt.date(2010, 12, 31), key="tour_end")
+            else:
+                start = end = None
 
-        do_sweep = st.checkbox(
-            "Threshold sweep (exploratory)",
-            value=True,
-            help="Try many thresholds and plot ROI — labeled exploratory, not primary.",
-        )
-        max_lag = st.number_input(
-            "Lead-lag window (days, 0=off)",
-            0, 60, 10,
-            help="Check whether novelty leads or lags the timewave by a few days.",
-        )
+            do_sweep = st.checkbox(
+                "Threshold sweep (exploratory)",
+                value=True,
+                help="Try many thresholds and plot ROI — labeled exploratory, not primary.",
+                key="tour_do_sweep",
+            )
+            max_lag = st.number_input(
+                "Lead-lag window (days, 0=off)",
+                0, 60, 10,
+                help="Check whether novelty leads or lags the timewave by a few days.",
+                key="tour_max_lag",
+            )
 
-        st.header("McKenna Engine")
-        st.caption(SIDEBAR_HELP["engine"])
-        run_engine = st.checkbox("Run McKenna Engine", value=True)
-        engine_beta = st.slider(
-            "Pool bias beta (ASSUMPTION; 1.0 = fair pool)",
-            0.80, 1.50, 1.00, 0.05,
-            help="1.0 = fair pool (selective bets should find no edge). >1 assumes favorites are overbet.",
-        )
-        engine_gate_pct = st.slider(
-            "Resonance gate (top % of days)",
-            5.0, 100.0, 20.0, 5.0,
-            help="Only bet on days in the top X% of the fractal resonance signal.",
-        )
-        engine_k_max = st.number_input(
-            "Max tickets per race (I Ching cap)",
-            1, 500, 50,
-            help="When more combos look +EV than this cap, I Ching casting chooses which to keep.",
-        )
+        with st.container(key="tour_engine_params"):
+            st.header("McKenna Engine")
+            st.caption(SIDEBAR_HELP["engine"])
+            run_engine = st.checkbox(
+                "Run McKenna Engine", value=True, key="tour_run_engine"
+            )
+            engine_beta = st.slider(
+                "Pool bias beta (ASSUMPTION; 1.0 = fair pool)",
+                0.80, 1.50, 1.00, 0.05,
+                help="1.0 = fair pool (selective bets should find no edge). >1 assumes favorites are overbet.",
+                key="tour_engine_beta",
+            )
+            engine_gate_pct = st.slider(
+                "Resonance gate (top % of days)",
+                5.0, 100.0, 20.0, 5.0,
+                help="Only bet on days in the top X% of the fractal resonance signal.",
+                key="tour_engine_gate_pct",
+            )
+            engine_k_max = st.number_input(
+                "Max tickets per race (I Ching cap)",
+                1, 500, 50,
+                help="When more combos look +EV than this cap, I Ching casting chooses which to keep.",
+                key="tour_engine_k_max",
+            )
 
-        run = st.button("Run Analysis", type="primary")
+        run = st.button("Run Analysis", type="primary", key="tour_run_button")
 
     if not run:
         return None
@@ -1264,12 +1283,13 @@ def render_raw_data(state: dict) -> None:
 def main() -> None:
     st.set_page_config(page_title="McKenna Derby", layout="wide")
     require_auth()
-    st.title("McKenna Derby")
-    st.caption(
-        "A plain-English research dashboard: does horse-racing surprise "
-        "line up with Terence McKenna's Timewave Zero — and would timing "
-        "bets on that wave have beaten betting every day?"
-    )
+    with st.container(key="tour_app_header"):
+        st.title("McKenna Derby")
+        st.caption(
+            "A plain-English research dashboard: does horse-racing surprise "
+            "line up with Terence McKenna's Timewave Zero — and would timing "
+            "bets on that wave have beaten betting every day?"
+        )
 
     prereg = load_prereg()
     opts = render_sidebar(prereg)
@@ -1305,6 +1325,7 @@ def main() -> None:
                 "click **Run Analysis** to refresh."
             )
             _render_result_tabs(st.session_state["analysis"])
+            maybe_start_tour(has_results=True)
         else:
             render_about()
             st.markdown("---")
@@ -1321,6 +1342,7 @@ On demo data you should see **little or no timewave signal** and ROI near
 Charts have **Play** buttons so you can scrub the timelines.
 """
             )
+            maybe_start_tour(has_results=False)
         return
 
     loaded = load_runners(opts)
@@ -1384,6 +1406,7 @@ Charts have **Play** buttons so you can scrub the timelines.
     st.session_state["analysis"] = state
 
     _render_result_tabs(state)
+    maybe_start_tour(has_results=True)
 
 
 if __name__ == "__main__":

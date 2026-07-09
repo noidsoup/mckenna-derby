@@ -45,3 +45,14 @@ def test_dashboard_has_plain_english_about_copy():
     assert "Principles we stick to" in DASHBOARD_SOURCE
     assert "TAB_INTROS" in DASHBOARD_SOURCE
     assert '"About"' in DASHBOARD_SOURCE
+
+
+def test_dashboard_wires_first_visit_tour():
+    """Dashboard should launch the guided tour and expose replay + anchors."""
+    assert "maybe_start_tour" in DASHBOARD_SOURCE
+    assert "render_tour_sidebar_controls" in DASHBOARD_SOURCE
+    assert 'key="tour_app_header"' in DASHBOARD_SOURCE
+    assert 'key="tour_about_panel"' in DASHBOARD_SOURCE
+    assert 'key="tour_data_source"' in DASHBOARD_SOURCE
+    assert 'key="tour_run_button"' in DASHBOARD_SOURCE
+    assert "from mckenna_derby.tour import" in DASHBOARD_SOURCE
