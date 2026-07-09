@@ -253,6 +253,7 @@ def test_dashboard_blurbs_under_main_views():
         "_interpret_match",
         "_interpret_timing",
         "_interpret_engine",
+        "_hippie_pick",
         "boring baseline",
         "no free lunch",
         "usual honest answer",
@@ -260,6 +261,10 @@ def test_dashboard_blurbs_under_main_views():
         "Sorry man",
         "Far out",
         "old lady",
+        "VW bus",
+        "Burning Man",
+        "commune",
+        "ashram",
         "bummer vibes",
         "gonna be broke",
         "if the wave flops",
@@ -272,49 +277,72 @@ def test_interpret_helpers_plain_english():
     assert "def _interpret_match" in DASHBOARD_SOURCE
     assert "def _interpret_timing" in DASHBOARD_SOURCE
     assert "def _interpret_engine" in DASHBOARD_SOURCE
+    assert "def _hippie_pick" in DASHBOARD_SOURCE
 
     # Exec helpers alone (dashboard.py needs Streamlit; avoid importing the page).
-    ns: dict = {"pd": __import__("pandas")}
+    ns: dict = {
+        "pd": __import__("pandas"),
+        "hashlib": __import__("hashlib"),
+    }
     src = DASHBOARD_SOURCE
-    start = src.index("def _interpret_match")
+    start = src.index("def _hippie_pick")
     end = src.index("\n# ---------------------------------------------------------------------------\n# Auth & config")
     # Python 3.9 needs postponed annotations for ``X | None`` in the helpers.
     code = "from __future__ import annotations\n" + src[start:end]
     exec(compile(code, "dashboard_helpers.py", "exec"), ns)
 
+    personas = ("old lady", "vw bus", "burning man", "commune", "ashram", "crystal ball")
+
+    def _has_persona(text: str) -> bool:
+        low = text.lower()
+        return any(p in low for p in personas)
+
     # Mild null (p under 0.40): soft bummer.
     mild_null = ns["_interpret_match"]({"permutation_p": 0.12, "spearman_r": -0.01})
     assert "null" in mild_null.lower()
     assert "So what?" in mild_null
-    assert "bummer" in mild_null.lower()
-    assert "sorry man" in mild_null.lower()
+    assert "bummer" in mild_null.lower() or "sorry man" in mild_null.lower()
+    assert "0.1200" in mild_null and "-0.0100" in mild_null
 
-    # Dead null (high p): escalate to old lady / broke lament.
+    # Dead null (high p): escalate to a dramatic persona lament.
     null_txt = ns["_interpret_match"]({"permutation_p": 0.42, "spearman_r": -0.01})
     assert "null" in null_txt.lower()
     assert "So what?" in null_txt
-    assert "old lady" in null_txt.lower()
     assert "broke" in null_txt.lower()
+    assert _has_persona(null_txt)
     assert "0.4200" in null_txt and "-0.0100" in null_txt
+    # Same metrics → same persona (no Streamlit flicker).
+    assert null_txt == ns["_interpret_match"]({"permutation_p": 0.42, "spearman_r": -0.01})
 
     hit_txt = ns["_interpret_match"]({"permutation_p": 0.01, "spearman_r": -0.3})
     assert "interesting" in hit_txt.lower() or "McKenna" in hit_txt
     assert "far out" in hit_txt.lower()
+    assert "broke" not in hit_txt.lower()
 
     timing = ns["_interpret_timing"](
         {"roi_pct": -18.0}, {"roi_pct": -17.5}, 0.18
     )
     assert "baseline" in timing.lower() or "timing" in timing.lower()
-    assert "bummer" in timing.lower()
-    assert "old lady" in timing.lower()
+    assert "bummer" in timing.lower() or "drag" in timing.lower()
+    assert _has_persona(timing) or "sorry man" in timing.lower()
 
     timing_hurt = ns["_interpret_timing"](
         {"roi_pct": -5.87}, {"roi_pct": 1.95}, 0.18
     )
     assert "null/negative" in timing_hurt.lower()
-    assert "old lady" in timing_hurt.lower()
     assert "broke" in timing_hurt.lower()
+    assert _has_persona(timing_hurt)
     assert "-5.87%" in timing_hurt and "+1.95%" in timing_hurt
+    assert timing_hurt == ns["_interpret_timing"](
+        {"roi_pct": -5.87}, {"roi_pct": 1.95}, 0.18
+    )
+
+    # Different ROI seeds can rotate the timing-hurt persona.
+    hurt_variants = {
+        ns["_interpret_timing"]({"roi_pct": a}, {"roi_pct": b}, 0.18)
+        for a, b in ((-5.87, 1.95), (-12.0, 3.0), (-8.5, 0.5), (-20.0, 5.0))
+    }
+    assert len(hurt_variants) >= 2
 
     # Mild fair-pool null (near-zero ROI).
     engine_mild = ns["_interpret_engine"](
@@ -330,6 +358,10 @@ def test_interpret_helpers_plain_english():
         ns["pd"].DataFrame([{"strategy": "demo", "roi_pct": -5.0, "tickets": 0}]),
     )
     assert "null" in engine.lower() or "free lunch" in engine.lower()
-    assert "old lady" in engine.lower()
     assert "broke" in engine.lower()
+    assert _has_persona(engine)
     assert "-5.00%" in engine
+    assert engine == ns["_interpret_engine"](
+        {"engine_beta": 1.0},
+        ns["pd"].DataFrame([{"strategy": "demo", "roi_pct": -5.0, "tickets": 0}]),
+    )

@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import base64
 import datetime as dt
+import hashlib
 import json
 from pathlib import Path
 
@@ -454,6 +455,128 @@ TAB_LABELS = [
 ]
 
 
+def _hippie_pick(variants: tuple[str, ...], *seed_parts: object) -> str:
+    """Deterministic comic-hippie lament pick (stable across Streamlit reruns)."""
+    raw = "|".join(repr(p) for p in seed_parts)
+    digest = hashlib.md5(raw.encode("utf-8")).hexdigest()
+    return variants[int(digest[:8], 16) % len(variants)]
+
+
+# Mild nulls: short bummer. Severe nulls: full dramatic spiral.
+# Same seed → same persona; different metrics/paths can rotate the scene.
+_MATCH_MILD = (
+    "Sorry man, bummer vibes ☯️ — that's a **null** result. These race days just "
+    "don't line up with McKenna's 🌊 wave. On Hong Kong history that is the usual "
+    "honest answer, far out as that sounds. Peace… but my wallet is crying.",
+    "Sorry man, soft bummer ☯️ — **null** vibes. The ranks won't dance with the "
+    "🌊 wave. Usual honest Hong Kong answer. Dig it: I almost sold the incense "
+    "stash for trifecta tickets. Glad I didn't… yet.",
+    "Sorry man, mild drag ☯️ — **null** result. No lineup with McKenna's 🌊 wave. "
+    "Usual honest answer on this history. The commune treasurer already side-eyed "
+    "me for \"research.\" Peace.",
+    "Sorry man, bummer vibes ☯️ — **null**. Wave and surprise aren't matching. "
+    "Usual honest Hong Kong answer. My crystal ball is fogged up and slightly "
+    "annoyed, dude.",
+)
+
+_MATCH_SEVERE = (
+    "Man… what a drag. That's a dead **null** — these race days just don't line "
+    "up with McKenna's 🌊 wave. Dig it: I sold the VW bus for trifecta tickets, "
+    "sleeping in a yurt now, and my old lady is packing her incense and leaving. "
+    "I'm gonna be broke. On Hong Kong history that is the usual honest answer — "
+    "and I am *increasingly annoyed* about it ☯️.",
+    "Man… what a drag. Dead **null** — no lineup with McKenna's 🌊 wave. Missed "
+    "Burning Man *and* the Dead reunion because the ponies ate the ticket money. "
+    "Crystal ball? Pawned. I'm gonna be broke and mad. Usual honest Hong Kong "
+    "answer, and the festival burnout is *real* ☯️.",
+    "Man… what a drag. Dead **null** — race days vs McKenna's 🌊 wave = dust. "
+    "I lost the commune's mushroom-fund / grocery money chasing the calendar. "
+    "The circle is holding a meeting. I'm gonna be broke. Usual honest answer on "
+    "Hong Kong history — and I am *increasingly annoyed* ☯️.",
+    "Man… what a drag. Dead **null** — no wave match 🌊. Was gonna teach Timewave "
+    "Zero at the ashram; now I'm washing dishes and the guru revoked my sash. "
+    "I'm gonna be broke. Usual honest Hong Kong answer — disgrace vibes turning "
+    "into real annoyance ☯️.",
+)
+
+_TIMING_BASELINE = (
+    "Sorry man, bummer vibes — that's the **boring baseline**: timing did not "
+    "help. Peace and love, but no edge here ☯️. My old lady is gonna ask where "
+    "the grocery money went and I gotta say \"the ponies, babe.\" What a drag.",
+    "Sorry man, soft bummer — **boring baseline**, no timing edge ☯️. Almost "
+    "hocked the van stereo for more tickets. Peace… wallet still crying.",
+    "Sorry man, mild drag — **boring baseline** ☯️. Commune treasurer already "
+    "asked about the \"research\" line item. No edge, dude. What a drag.",
+    "Sorry man, bummer vibes — **boring baseline**, timing didn't pay ☯️. "
+    "Ashram dish duty looks likelier than a lecture tour. Peace.",
+)
+
+_TIMING_HURT = (
+    "Bummer vibes turning into real annoyance: I sold the VW bus for trifecta "
+    "tickets chasing McKenna's calendar, sleeping in a yurt, and my old lady is "
+    "packing her incense and leaving. I'm gonna be broke. Rent money? Gone on "
+    "the ponies, dude. What a drag — and I'm getting *mad* about it.",
+    "Bummer vibes turning into festival burnout: missed Burning Man and the Dead "
+    "reunion because the wave filter *ate* the bankroll. Crystal ball pawned. "
+    "I'm gonna be broke. Ponies 1, cosmos 0. What a drag — and I'm getting *mad* "
+    "about it.",
+    "Bummer vibes turning into a commune crisis: I lost the mushroom-fund / "
+    "grocery money on McKenna's wave. The circle is holding a meeting. I'm gonna "
+    "be broke. Rent? Ponies. What a drag — and I'm getting *mad* about it.",
+    "Bummer vibes turning into guru disgrace: was gonna teach Timewave Zero at "
+    "the ashram, now washing dishes while the sash gathers dust. I'm gonna be "
+    "broke. Calendar trip = dust. What a drag — and I'm getting *mad* about it.",
+)
+
+_TIMING_CLOSE = (
+    "Sorry man, mild bummer vibes — the trip didn't pay.",
+    "Sorry man, soft drag — too flat to celebrate ☯️.",
+    "Sorry man, mild bummer — commune would call this a wash.",
+    "Sorry man, mild bummer vibes — ashram still wants the rent.",
+)
+
+_ENGINE_EMPTY = (
+    "Zero tickets worth reading, dude. Sorry man — nothing to groove on. Sold "
+    "the bus vibes for an empty table; my old lady is packing incense. I'm gonna "
+    "be broke and annoyed. What a drag.",
+    "Zero tickets worth reading, dude. Sorry man — festival burnout with no "
+    "tickets to show. Crystal ball fogged. I'm gonna be broke and annoyed. "
+    "What a drag.",
+    "Zero tickets worth reading, dude. Sorry man — commune treasurer is calling "
+    "a circle over an empty engine. I'm gonna be broke and annoyed. What a drag.",
+    "Zero tickets worth reading, dude. Sorry man — guru revoked the demo slot; "
+    "dish duty it is. I'm gonna be broke and annoyed. What a drag.",
+)
+
+_ENGINE_SEVERE = (
+    "I sold the VW bus energy for a fractal hexagram trip and got dust. Sleeping "
+    "in a yurt; old lady packing incense. I'm gonna be broke. Rent? Gone. Peace "
+    "and love? Temporarily suspended. Dig it: the data is honest and I am "
+    "*increasingly annoyed* ☮️.",
+    "Missed Burning Man because this fair-pool trip ate the ticket money. Crystal "
+    "ball pawned. I'm gonna be broke. Rent? Gone. Dig it: honest null, festival "
+    "burnout, *increasingly annoyed* ☮️.",
+    "Lost the commune's mushroom-fund on a hexagram thinner. The circle is holding "
+    "a meeting. I'm gonna be broke. Rent? Gone. Dig it: expected null and I am "
+    "*increasingly annoyed* ☮️.",
+    "Was gonna teach Timewave Zero at the ashram; now washing dishes after this "
+    "dead fair-pool run. I'm gonna be broke. Rent? Gone. Dig it: honest data, "
+    "guru disgrace, *increasingly annoyed* ☮️.",
+)
+
+_ENGINE_MILD = (
+    "Sorry man, bummer vibes — near zero or negative is the **expected null** — "
+    "no free lunch when the pool is fair. My old lady is gonna ask about the "
+    "grocery money. Keep the peace ☮️, but yeah… I'm bummed.",
+    "Sorry man, soft bummer — **expected null**, no free lunch at fair prices. "
+    "Almost pawned the crystal for more tickets. Keep the peace ☮️.",
+    "Sorry man, mild drag — **expected null** under fair prices. Commune "
+    "treasurer already frowning. Keep the peace ☮️, but yeah… I'm bummed.",
+    "Sorry man, bummer vibes — **expected null**, no free lunch. Ashram dish "
+    "rotation looks busy. Keep the peace ☮️.",
+)
+
+
 def _interpret_match(primary: dict) -> str:
     """Plain-English read of the main wave-vs-surprise result (hippie voice; bummed on nulls)."""
     p = float(primary["permutation_p"])
@@ -461,22 +584,15 @@ def _interpret_match(primary: dict) -> str:
     if p >= 0.05:
         # Mild → clear null: escalate by how dead the chance score looks.
         if p >= 0.40:
+            lament = _hippie_pick(_MATCH_SEVERE, "match-severe", p, r)
             return (
                 f"**So what?** 🎱 Chance score {p:.4f} is *way* not small, and the "
-                f"rank link is {r:+.4f} (near 0 = little match). Man… what a drag. "
-                "That's a dead **null** — these race days just don't line up with "
-                "McKenna's 🌊 wave. Dig it: I put the rent money on the ponies for "
-                "this trip and got nothing. My old lady is gonna kill me. I'm gonna "
-                "be broke. Lost all this money chasing a fractal calendar, dude. "
-                "On Hong Kong history that is the usual honest answer — and I am "
-                "*increasingly annoyed* about it ☯️."
+                f"rank link is {r:+.4f} (near 0 = little match). {lament}"
             )
+        lament = _hippie_pick(_MATCH_MILD, "match-mild", p, r)
         return (
             f"**So what?** 🎱 Chance score {p:.4f} is not small, and the rank link "
-            f"is {r:+.4f} (near 0 = little match). Sorry man, bummer vibes ☯️ — "
-            "that's a **null** result. These race days just don't line up with "
-            "McKenna's 🌊 wave. On Hong Kong history that is the usual honest "
-            "answer, far out as that sounds. Peace… but my wallet is crying."
+            f"is {r:+.4f} (near 0 = little match). {lament}"
         )
     if r < 0:
         return (
@@ -500,13 +616,11 @@ def _interpret_timing(strategy: dict, baseline: dict, takeout: float) -> str:
     cut_pct = -100.0 * float(takeout)
     delta = s_roi - b_roi
     if abs(s_roi - cut_pct) < 3 and abs(b_roi - cut_pct) < 3 and abs(delta) < 3:
+        lament = _hippie_pick(_TIMING_BASELINE, "timing-baseline", s_roi, b_roi)
         return (
             f"**So what?** 🏁 Wave-picked return {s_roi:+.2f}% vs every-day "
             f"{b_roi:+.2f}%. Both sit near the track's cut (~{cut_pct:.0f}%). "
-            "Sorry man, bummer vibes — that's the **boring baseline**: timing did "
-            "not help. Peace and love, but no edge here ☯️. My old lady is gonna "
-            "ask where the grocery money went and I gotta say \"the ponies, babe.\" "
-            "What a drag."
+            f"{lament}"
         )
     if delta > 2:
         return (
@@ -516,20 +630,18 @@ def _interpret_timing(strategy: dict, baseline: dict, takeout: float) -> str:
             "keeping that groove. Still not a tip sheet, man."
         )
     if delta < -2:
-        # Timing hurt: clear negative — escalate the lament.
+        lament = _hippie_pick(_TIMING_HURT, "timing-hurt", s_roi, b_roi)
         return (
             f"**So what?** 🎱 Wave-picked return {s_roi:+.2f}% is worse than every-day "
             f"{b_roi:+.2f}%. Oh man, filtering by the wave *hurt* here — a "
-            "null/negative for the timing idea ☯️. Bummer vibes turning into real "
-            "annoyance: I lost money on the horses chasing McKenna's calendar. "
-            "My old lady is gonna kill me. I'm gonna be broke. Rent money? Gone "
-            "on the ponies, dude. What a drag — and I'm getting *mad* about it."
+            f"null/negative for the timing idea ☯️. {lament}"
         )
+    lament = _hippie_pick(_TIMING_CLOSE, "timing-close", s_roi, b_roi, delta)
     return (
         f"**So what?** 🏇 Wave-picked {s_roi:+.2f}% vs every-day {b_roi:+.2f}% "
         f"(difference {delta:+.2f} points). Too close to call, dude — treat as "
         f"no clear timing edge. Expect ~{cut_pct:.0f}% with no edge. "
-        "Sorry man, mild bummer vibes — the trip didn't pay."
+        f"{lament}"
     )
 
 
@@ -544,11 +656,10 @@ def _interpret_engine(opts: dict, engine_summary: pd.DataFrame | None) -> str:
         )
     best = engine_summary.dropna(subset=["roi_pct"])
     if best.empty:
+        lament = _hippie_pick(_ENGINE_EMPTY, "engine-empty", beta)
         return (
-            "**So what?** 🎱 No usable returns in the picky-betting table for this run. "
-            "Zero tickets worth reading, dude. Sorry man — nothing to groove on. "
-            "My old lady is gonna kill me for burning cycles on an empty engine. "
-            "I'm gonna be broke and annoyed. What a drag."
+            f"**So what?** 🎱 No usable returns in the picky-betting table for this run. "
+            f"{lament}"
         )
     top = best.loc[best["roi_pct"].idxmax()]
     roi = float(top["roi_pct"])
@@ -566,21 +677,17 @@ def _interpret_engine(opts: dict, engine_summary: pd.DataFrame | None) -> str:
             ticket_bit = (
                 f" Tickets: {tickets}." if tickets is not None else ""
             )
+            lament = _hippie_pick(_ENGINE_SEVERE, "engine-severe", roi, tickets, name)
             return (
                 f"**So what?** 🎱 Bias is 1.0 (fair prices ☯️). Best rule **{name}** "
                 f"returns {roi:+.2f}%.{ticket_bit} Man, this is *really* dead — "
-                "the **expected null**, no free lunch when the pool is fair. "
-                "I lost all this money on the ponies for a fractal hexagram trip "
-                "and got dust. My old lady is gonna kill me. I'm gonna be broke. "
-                "Rent? Gone. Peace and love? Temporarily suspended. Dig it: the "
-                "data is honest and I am *increasingly annoyed* ☮️."
+                f"the **expected null**, no free lunch when the pool is fair. "
+                f"{lament}"
             )
+        lament = _hippie_pick(_ENGINE_MILD, "engine-mild", roi, name)
         return (
             f"**So what?** 🎱 Bias is 1.0 (fair prices ☯️). Best rule **{name}** "
-            f"returns {roi:+.2f}%. Sorry man, bummer vibes — near zero or negative "
-            "is the **expected null** — no free lunch when the pool is fair. "
-            "My old lady is gonna ask about the grocery money. Keep the peace ☮️, "
-            "but yeah… I'm bummed."
+            f"returns {roi:+.2f}%. {lament}"
         )
     return (
         f"**So what?** 🃏 Bias guess is {beta:.2f} (not fair). Best rule **{name}** "
