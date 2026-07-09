@@ -24,9 +24,10 @@ TOUR_STEPS: list[dict[str, Any]] = [
         "popover": {
             "title": "Welcome to McKenna Derby",
             "description": (
-                "A <b>research toy</b> — not betting advice. "
-                "Question: do weird race days line up with McKenna's calendar wave "
-                "(his map of when the world should feel more chaotic)?"
+                "Two questions: do surprising race days line up with McKenna's "
+                "calendar wave (his map of when the world should feel more "
+                "chaotic)? And does betting only on those \"wave\" days help — "
+                "or do you still lose the track's cut?"
             ),
             "side": "over",
             "align": "center",
@@ -37,8 +38,8 @@ TOUR_STEPS: list[dict[str, Any]] = [
         "popover": {
             "title": "The question",
             "description": (
-                "The title says what we ask. Charts and numbers below are the "
-                "evidence — not tips."
+                "The title is the research question. Charts and numbers below "
+                "are the evidence — not betting tips."
             ),
             "side": "bottom",
             "align": "start",
@@ -49,8 +50,8 @@ TOUR_STEPS: list[dict[str, Any]] = [
         "popover": {
             "title": "Start here",
             "description": (
-                "Short plain-English intro. Real Hong Kong races are already "
-                "loaded. Next step: click <b>Run Analysis</b>."
+                "Short plain-English intro. Real Hong Kong races (1997–2005) "
+                "are already loaded. Next: click <b>Run Analysis</b> in the sidebar."
             ),
             "side": "left",
             "align": "start",
@@ -61,8 +62,9 @@ TOUR_STEPS: list[dict[str, Any]] = [
         "popover": {
             "title": "Your data (sidebar)",
             "description": (
-                "Default is <b>real Hong Kong races</b> (1997–2005). "
-                "Open Advanced options for a fake null demo or your own CSV."
+                "Default is <b>real Hong Kong races</b> — no upload needed. "
+                "Open Advanced options only for a fake null demo (should show "
+                "no signal) or your own CSV."
             ),
             "side": "right",
             "align": "start",
@@ -73,8 +75,9 @@ TOUR_STEPS: list[dict[str, Any]] = [
         "popover": {
             "title": "Run settings",
             "description": (
-                "Settings for the official test "
-                "(locked in <code>prereg.json</code>). Change them only to explore."
+                "Knobs for this run of the main test (wave table, cutoff, "
+                "track's cut, surprise score). Change them to explore — don't "
+                "treat a new combo as the official locked result."
             ),
             "side": "right",
             "align": "start",
@@ -85,6 +88,7 @@ TOUR_STEPS: list[dict[str, Any]] = [
         "popover": {
             "title": "Picky betting (optional)",
             "description": (
+                "A stricter side experiment: fewer days, fewer tickets. "
                 "<b>Bias guess = 1.0</b> means fair prices (no free lunch). "
                 "Higher values pretend favorites are overbet — a guess, not a fact."
             ),
@@ -97,9 +101,9 @@ TOUR_STEPS: list[dict[str, Any]] = [
         "popover": {
             "title": "Run Analysis",
             "description": (
-                "Click this. Then open <b>Overview</b>. "
-                "On this data the main answer is often \"no match\" — "
-                "an honest finding, not a tip."
+                "Click this, then open <b>Overview</b> for the plain-English "
+                "answer. On this data the main finding is often \"no match\" — "
+                "honest, not a tip sheet."
             ),
             "side": "right",
             "align": "center",
@@ -111,7 +115,8 @@ TOUR_STEPS: list[dict[str, Any]] = [
             "title": "You're set",
             "description": (
                 "Replay anytime from the sidebar (<b>Replay guided tour</b>). "
-                "Charts have Play buttons. Stay skeptical of pretty numbers."
+                "Reading the sidebar top→bottom explains each control. "
+                "Stay skeptical of pretty numbers."
             ),
             "side": "over",
             "align": "center",
@@ -211,37 +216,40 @@ def render_tour(
       style.textContent = `
         .driver-popover.mckenna-tour-popover {{
           max-width: 360px;
-          background: #fffdf8;
-          color: #1b1b1b;
-          border: 1px solid #c9b8a0;
+          background: #1a1d27;
+          color: #e8e6f0;
+          border: 1px solid rgba(167, 139, 250, 0.45);
           border-radius: 10px;
-          box-shadow: 0 12px 40px rgba(40, 24, 8, 0.22);
+          box-shadow: 0 16px 48px rgba(0, 0, 0, 0.55), 0 0 24px rgba(167, 139, 250, 0.18);
         }}
         .driver-popover.mckenna-tour-popover .driver-popover-title {{
           font-size: 1.05rem;
           font-weight: 700;
-          color: #3b2a55;
+          color: #a78bfa;
         }}
         .driver-popover.mckenna-tour-popover .driver-popover-description {{
           font-size: 0.92rem;
           line-height: 1.45;
-          color: #2c2c2c;
+          color: #e8e6f0;
         }}
         .driver-popover.mckenna-tour-popover .driver-popover-next-btn,
         .driver-popover.mckenna-tour-popover .driver-popover-done-btn {{
-          background: #9467bd;
+          background: linear-gradient(135deg, #8b5cf6, #6366f1);
           color: #fff;
           border: 0;
           text-shadow: none;
         }}
         .driver-popover.mckenna-tour-popover .driver-popover-prev-btn {{
           background: transparent;
-          color: #5a4a6a;
-          border: 1px solid #c9b8a0;
+          color: #94a3b8;
+          border: 1px solid rgba(167, 139, 250, 0.4);
           text-shadow: none;
         }}
+        .driver-popover.mckenna-tour-popover .driver-popover-close-btn {{
+          color: #94a3b8;
+        }}
         .driver-overlay {{
-          background: rgba(28, 18, 40, 0.55) !important;
+          background: rgba(8, 10, 16, 0.72) !important;
         }}
       `;
       DOC.head.appendChild(style);
@@ -338,7 +346,10 @@ def maybe_start_tour(*, has_results: bool = False) -> None:
 def render_tour_sidebar_controls() -> None:
     """Sidebar button to replay the guided tour."""
     st.markdown("##### Guided tour")
-    st.caption("First visit walks you through the page with popover tips.")
+    st.caption(
+        "First visit walks you through the page with popover tips. "
+        "Replay anytime if you want the walkthrough again."
+    )
     if st.button("Replay guided tour", key="tour_replay_btn"):
         st.session_state[TOUR_FORCE_STATE_KEY] = True
         st.rerun()

@@ -40,3 +40,7 @@ def test_tour_module_exposes_replay_control_label():
     assert "calendar wave" in src
     assert "Picky betting" in src
     assert "Bias guess" in src
+    assert "popover tips" in src
+    assert "track's cut" in src
+    assert "no upload needed" in src
+    assert "sidebar top→bottom" in src
