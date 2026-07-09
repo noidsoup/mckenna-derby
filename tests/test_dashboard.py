@@ -320,26 +320,48 @@ def test_dashboard_blurbs_under_main_views():
         "_interpret_timing",
         "_interpret_engine",
         "_hippie_pick",
-        "boring baseline",
-        "no free lunch",
-        "usual honest answer",
         "fair-price case",
-        "Sorry man",
         "Far out",
         "old lady",
         "VW bus",
         "Burning Man",
         "commune",
         "ashram",
-        "bummer vibes",
         "gonna be broke",
-        "if the wave flops",
+        "this run is a flop",
+        "proved nothing",
     ):
         assert needle in DASHBOARD_SOURCE, f"missing blurb: {needle}"
 
+    # Doubt / flop language belongs in So what helpers only — not general UI copy.
+    start = DASHBOARD_SOURCE.index("def _hippie_pick")
+    end = DASHBOARD_SOURCE.index(
+        "\n# ---------------------------------------------------------------------------\n# Auth & config"
+    )
+    interpret_src = DASHBOARD_SOURCE[start:end]
+    general_src = DASHBOARD_SOURCE[:start] + DASHBOARD_SOURCE[end:]
+    for needle in (
+        "boring baseline",
+        "no free lunch",
+        "expected null",
+        "this run is a flop",
+        "proved nothing",
+        "Sorry man",
+    ):
+        assert needle in interpret_src, f"missing So what needle: {needle}"
+    for spoiler in (
+        "usual honest answer",
+        "if the wave flops",
+        "usually \"no support\"",
+        "fake null demo",
+        "usual Hong Kong",
+        "Gray zone = the usual null",
+    ):
+        assert spoiler not in general_src, f"pre-spoiler leaked outside So what: {spoiler}"
+
 
 def test_interpret_helpers_plain_english():
-    """Interpretation helpers should label null vs interesting in hippie plain English."""
+    """Interpretation helpers: flop on null/negative; Far out on interesting hits."""
     assert "def _interpret_match" in DASHBOARD_SOURCE
     assert "def _interpret_timing" in DASHBOARD_SOURCE
     assert "def _interpret_engine" in DASHBOARD_SOURCE
@@ -363,39 +385,62 @@ def test_interpret_helpers_plain_english():
         low = text.lower()
         return any(p in low for p in personas)
 
-    # Mild null (p under 0.40): soft bummer.
+    def _is_flop(text: str) -> bool:
+        low = text.lower()
+        return "flop" in low and ("proved nothing" in low or "prove nothing" in low)
+
+    # Mild null (p under 0.40): soft flop — this run proved nothing.
     mild_null = ns["_interpret_match"]({"permutation_p": 0.12, "spearman_r": -0.01})
     assert "null" in mild_null.lower()
     assert "So what?" in mild_null
-    assert "bummer" in mild_null.lower() or "sorry man" in mild_null.lower()
+    assert _is_flop(mild_null)
     assert "0.1200" in mild_null and "-0.0100" in mild_null
 
-    # Dead null (high p): escalate to a dramatic persona lament.
+    # Dead null (high p): escalate to a dramatic persona lament + flop.
     null_txt = ns["_interpret_match"]({"permutation_p": 0.42, "spearman_r": -0.01})
     assert "null" in null_txt.lower()
     assert "So what?" in null_txt
+    assert _is_flop(null_txt)
     assert "broke" in null_txt.lower()
     assert _has_persona(null_txt)
     assert "0.4200" in null_txt and "-0.0100" in null_txt
     # Same metrics → same persona (no Streamlit flicker).
     assert null_txt == ns["_interpret_match"]({"permutation_p": 0.42, "spearman_r": -0.01})
 
+    # Interesting hit: Far out — do NOT force flop language.
     hit_txt = ns["_interpret_match"]({"permutation_p": 0.01, "spearman_r": -0.3})
     assert "interesting" in hit_txt.lower() or "McKenna" in hit_txt
     assert "far out" in hit_txt.lower()
     assert "broke" not in hit_txt.lower()
+    assert "flop" not in hit_txt.lower()
+    assert "proved nothing" not in hit_txt.lower()
+
+    # Wrong-direction small-p: not a McKenna hit, but not the null flop path either.
+    wrong_way = ns["_interpret_match"]({"permutation_p": 0.01, "spearman_r": 0.3})
+    assert "opposite" in wrong_way.lower()
+    assert "far out" not in wrong_way.lower()
 
     timing = ns["_interpret_timing"](
         {"roi_pct": -18.0}, {"roi_pct": -17.5}, 0.18
     )
     assert "baseline" in timing.lower() or "timing" in timing.lower()
-    assert "bummer" in timing.lower() or "drag" in timing.lower()
+    assert _is_flop(timing)
     assert _has_persona(timing) or "sorry man" in timing.lower()
+
+    # Timing clearly beats baseline: Far out — no flop.
+    timing_hit = ns["_interpret_timing"](
+        {"roi_pct": -10.0}, {"roi_pct": -18.0}, 0.18
+    )
+    assert "far out" in timing_hit.lower()
+    assert "interesting" in timing_hit.lower()
+    assert "flop" not in timing_hit.lower()
+    assert "proved nothing" not in timing_hit.lower()
 
     timing_hurt = ns["_interpret_timing"](
         {"roi_pct": -5.87}, {"roi_pct": 1.95}, 0.18
     )
     assert "null/negative" in timing_hurt.lower()
+    assert _is_flop(timing_hurt)
     assert "broke" in timing_hurt.lower()
     assert _has_persona(timing_hurt)
     assert "-5.87%" in timing_hurt and "+1.95%" in timing_hurt
@@ -415,14 +460,15 @@ def test_interpret_helpers_plain_english():
         {"engine_beta": 1.0},
         ns["pd"].DataFrame([{"strategy": "demo", "roi_pct": -1.0, "tickets": 10}]),
     )
+    assert _is_flop(engine_mild)
     assert "null" in engine_mild.lower() or "free lunch" in engine_mild.lower()
-    assert "bummer" in engine_mild.lower() or "sorry man" in engine_mild.lower()
 
     # Really dead fair-pool (bad ROI): longer lament.
     engine = ns["_interpret_engine"](
         {"engine_beta": 1.0},
         ns["pd"].DataFrame([{"strategy": "demo", "roi_pct": -5.0, "tickets": 0}]),
     )
+    assert _is_flop(engine)
     assert "null" in engine.lower() or "free lunch" in engine.lower()
     assert "broke" in engine.lower()
     assert _has_persona(engine)
@@ -431,3 +477,12 @@ def test_interpret_helpers_plain_english():
         {"engine_beta": 1.0},
         ns["pd"].DataFrame([{"strategy": "demo", "roi_pct": -5.0, "tickets": 0}]),
     )
+
+    # Fair-pool interesting ROI: Far out — no flop.
+    engine_hit = ns["_interpret_engine"](
+        {"engine_beta": 1.0},
+        ns["pd"].DataFrame([{"strategy": "demo", "roi_pct": 5.0, "tickets": 10}]),
+    )
+    assert "far out" in engine_hit.lower()
+    assert "flop" not in engine_hit.lower()
+    assert "proved nothing" not in engine_hit.lower()

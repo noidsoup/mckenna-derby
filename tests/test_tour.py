@@ -50,3 +50,10 @@ def test_tour_module_exposes_replay_control_label():
     assert "Who is Terence McKenna?" in src
     assert "on the main page" in src
     assert "not the sidebar" in src
+    assert "So what?" in src
+    # Tour must not pre-spoil the result.
+    assert "usually null" not in src.lower()
+    assert 'often "no match"' not in src
+    assert "should show no signal" not in src
+    assert "If the wave flops" not in src
+    assert "fake null demo" not in src

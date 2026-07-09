@@ -30,8 +30,8 @@ TOUR_STEPS: list[dict[str, Any]] = [
                 "(low wave ↔ high chaos; zero-date lore ~2012). "
                 "We ask: do surprising 🐎 race days line up with that wave? "
                 "And does betting only on \"wave\" days beat the track's cut? "
-                "Mystique in the story; honest nulls in the numbers 🎱. "
-                "If the wave flops, don't say we didn't warn you, man."
+                "Mystique in the story; honesty in the numbers 🎱. "
+                "Hit Run Analysis, then read <b>So what?</b> for <i>this</i> run."
             ),
             "side": "over",
             "align": "center",
@@ -43,7 +43,7 @@ TOUR_STEPS: list[dict[str, Any]] = [
             "title": "✨ The question",
             "description": (
                 "The title is the research question. Charts and numbers below "
-                "are the evidence — not betting tips 🔮."
+                "are the evidence — dig them, then read <b>So what?</b> 🔮."
             ),
             "side": "bottom",
             "align": "start",
@@ -70,8 +70,8 @@ TOUR_STEPS: list[dict[str, Any]] = [
             "title": "📁 Your data (sidebar)",
             "description": (
                 "Default is <b>real Hong Kong races</b> 🐎 — no upload needed. "
-                "Open Advanced options for UK/Ireland exploratory data, a fake null demo 🎱 (should show "
-                "no signal) or your own CSV. Sidebar also has "
+                "Open Advanced options for UK/Ireland exploratory data, a synthetic "
+                "demo 🎱, or your own CSV. Sidebar also has "
                 "<b>Who is Terence McKenna?</b> for the mystique."
             ),
             "side": "right",
@@ -98,7 +98,7 @@ TOUR_STEPS: list[dict[str, Any]] = [
             "description": (
                 "A stricter side experiment: fewer days, fewer tickets, plus a "
                 "coin-cast hexagram-style picker 🃏 (☯️ I Ching 64-pattern vibe). "
-                "<b>Bias guess = 1.0</b> means fair prices ☯️ (no free lunch). "
+                "<b>Bias guess = 1.0</b> means fair prices ☯️ (no built-in pool tilt). "
                 "Higher values pretend favorites are overbet — a guess 🎱, not a fact."
             ),
             "side": "right",
@@ -111,9 +111,8 @@ TOUR_STEPS: list[dict[str, Any]] = [
             "title": "🏇 Run Analysis",
             "description": (
                 "This big button is on the <b>main page</b> (not the sidebar). "
-                "Click it, then open <b>📊 Overview</b> for the plain-English "
-                "answer. On this data the main finding is often \"no match\" ☯️ — "
-                "honest, not a tip sheet 🔮."
+                "Click it, then open <b>📊 Overview</b> and read the "
+                "<b>So what?</b> boxes for the plain-English take on <i>this</i> run 🔮."
             ),
             "side": "bottom",
             "align": "center",
@@ -127,7 +126,7 @@ TOUR_STEPS: list[dict[str, Any]] = [
                 "Replay anytime from the sidebar (<b>Replay guided tour</b>). "
                 "Reading the sidebar top→bottom explains each control; "
                 "then hit <b>🏇 Run Analysis</b> on the main page. "
-                "Stay skeptical of pretty numbers 🧿."
+                "Stay curious, stay honest 🧿."
             ),
             "side": "over",
             "align": "center",
