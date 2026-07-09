@@ -610,6 +610,302 @@ def animate_roi_by_beta(
     return fig
 
 
+# ---------------------------------------------------------------------------
+# Static "richer" visualizations (relationships, distributions, risk)
+# ---------------------------------------------------------------------------
+
+
+def plot_novelty_calendar_heatmap(daily: pd.Series) -> go.Figure:
+    """Month × day heatmap of daily novelty z-scores (calendar view)."""
+    df = daily.rename("novelty").reset_index()
+    df.columns = ["date", "novelty"]
+    df["date"] = pd.to_datetime(df["date"])
+    df["month"] = df["date"].dt.strftime("%Y-%m")
+    df["day"] = df["date"].dt.day
+    pivot = df.pivot_table(index="month", columns="day", values="novelty", aggfunc="mean")
+
+    fig = go.Figure(
+        go.Heatmap(
+            z=pivot.values,
+            x=pivot.columns,
+            y=pivot.index,
+            colorscale="RdBu_r",
+            zmid=0.0,
+            colorbar=dict(title="Novelty z"),
+            hovertemplate="Month %{y}, day %{x}<br>novelty z = %{z:.3f}<extra></extra>",
+        )
+    )
+    fig.update_layout(
+        title="Novelty calendar (month × day of month)",
+        xaxis_title="Day of month",
+        yaxis_title="Month",
+        height=max(320, 24 * len(pivot.index) + 120),
+    )
+    return fig
+
+
+def plot_novelty_vs_timewave_scatter(daily: pd.Series, tw: pd.Series) -> go.Figure:
+    """Scatter of daily novelty vs (inverted) timewave with an OLS trendline."""
+    df = pd.DataFrame({"novelty": daily, "timewave_inv": -tw}).dropna()
+    if df.empty:
+        fig = go.Figure()
+        fig.update_layout(title="Novelty vs timewave (no data)", height=400)
+        return fig
+
+    dates = pd.to_datetime(pd.Index(df.index))
+    day_num = (dates - dates.min()).days.to_numpy(dtype=float)
+
+    fig = go.Figure()
+    fig.add_trace(
+        go.Scatter(
+            x=df["timewave_inv"],
+            y=df["novelty"],
+            mode="markers",
+            name="Days",
+            marker=dict(
+                size=6,
+                color=day_num,
+                colorscale="Viridis",
+                colorbar=dict(title="Days since start"),
+                opacity=0.7,
+            ),
+            text=[str(d.date()) for d in dates],
+            hovertemplate="%{text}<br>timewave (inv) = %{x:.4f}<br>novelty z = %{y:.3f}<extra></extra>",
+        )
+    )
+    # OLS trendline (descriptive only — inference stays with the permutation test).
+    x = df["timewave_inv"].to_numpy()
+    y = df["novelty"].to_numpy()
+    if len(x) >= 2 and np.ptp(x) > 0:
+        slope, intercept = np.polyfit(x, y, 1)
+        xs = np.linspace(x.min(), x.max(), 50)
+        fig.add_trace(
+            go.Scatter(
+                x=xs,
+                y=slope * xs + intercept,
+                mode="lines",
+                name=f"OLS (slope {slope:+.3f})",
+                line=dict(color="rgb(214,39,40)", dash="dash"),
+            )
+        )
+    fig.update_layout(
+        title="Daily novelty vs inverted timewave (per day, colored by time)",
+        xaxis_title="Timewave (inverted)",
+        yaxis_title="Daily novelty (z)",
+        height=460,
+        # Horizontal legend on top so it doesn't collide with the colorbar.
+        legend=dict(orientation="h", yanchor="bottom", y=1.02, x=0),
+    )
+    return fig
+
+
+def plot_rolling_correlation(daily: pd.Series, tw: pd.Series, window: int = 30) -> go.Figure:
+    """Rolling Spearman correlation between novelty and inverted timewave."""
+    df = pd.DataFrame({"novelty": daily, "timewave_inv": -tw}).dropna()
+    fig = go.Figure()
+    if len(df) < window + 1:
+        fig.update_layout(
+            title=f"Rolling correlation (needs > {window} aligned days)", height=360
+        )
+        return fig
+
+    # Spearman = Pearson on ranks; ranking inside each window keeps it exact.
+    dates = pd.to_datetime(pd.Index(df.index))
+    x = df["novelty"].to_numpy()
+    y = df["timewave_inv"].to_numpy()
+    vals = np.full(len(df), np.nan)
+    for i in range(window, len(df)):
+        xs = pd.Series(x[i - window : i + 1]).rank().to_numpy()
+        ys = pd.Series(y[i - window : i + 1]).rank().to_numpy()
+        if np.ptp(xs) > 0 and np.ptp(ys) > 0:
+            vals[i] = float(np.corrcoef(xs, ys)[0, 1])
+
+    fig.add_trace(
+        go.Scatter(
+            x=dates,
+            y=vals,
+            mode="lines",
+            name=f"{window}-day Spearman r",
+            line=dict(color="rgb(31,119,180)"),
+            fill="tozeroy",
+            fillcolor="rgba(31,119,180,0.15)",
+        )
+    )
+    fig.add_hline(y=0.0, line_dash="dot", line_color="gray")
+    fig.update_layout(
+        title=f"Rolling {window}-day Spearman correlation (novelty vs inverted timewave)",
+        xaxis_title="Date",
+        yaxis_title="Spearman r",
+        yaxis_range=[-1, 1],
+        height=380,
+    )
+    return fig
+
+
+def plot_field_size_novelty(scores: pd.DataFrame, metric: str = "trifecta_novelty") -> go.Figure:
+    """Distribution of raw novelty per field size — shows why we z-score within bucket."""
+    fig = go.Figure()
+    for n, g in sorted(scores.groupby("n_runners"), key=lambda kv: kv[0]):
+        fig.add_trace(
+            go.Box(
+                y=g[metric],
+                name=f"{int(n)}",
+                boxpoints="outliers",
+                marker=dict(color="rgb(31,119,180)"),
+                line=dict(color="rgb(31,119,180)"),
+                showlegend=False,
+            )
+        )
+    fig.update_layout(
+        title=f"Raw {metric} by field size (bigger fields ⇒ higher surprisal; z-scored before daily aggregation)",
+        xaxis_title="Runners in race",
+        yaxis_title=metric,
+        height=420,
+    )
+    return fig
+
+
+def plot_winner_profile(scores: pd.DataFrame) -> go.Figure:
+    """Winner odds distribution + monthly favorite strike rate."""
+    fig = make_subplots(
+        rows=1,
+        cols=2,
+        subplot_titles=("Winning odds distribution (log x)", "Favorite strike rate by month"),
+    )
+    fig.add_trace(
+        go.Histogram(
+            x=np.log10(scores["winner_odds"].clip(lower=1.01)),
+            nbinsx=40,
+            marker_color="rgb(31,119,180)",
+            name="log10(winner odds)",
+            showlegend=False,
+        ),
+        row=1,
+        col=1,
+    )
+    monthly = (
+        scores.assign(month=scores["date"].dt.to_period("M").dt.to_timestamp())
+        .groupby("month")["winner_was_favorite"]
+        .mean()
+        * 100.0
+    )
+    fig.add_trace(
+        go.Scatter(
+            x=monthly.index,
+            y=monthly.values,
+            mode="lines+markers",
+            name="Favorite win %",
+            line=dict(color="rgb(44,160,44)"),
+            showlegend=False,
+        ),
+        row=1,
+        col=2,
+    )
+    fig.update_xaxes(title_text="log10(decimal odds)", row=1, col=1)
+    fig.update_yaxes(title_text="Races", row=1, col=1)
+    fig.update_xaxes(title_text="Month", row=1, col=2)
+    fig.update_yaxes(title_text="Favorite win %", row=1, col=2)
+    fig.update_layout(title="Winner profile", height=400)
+    return fig
+
+
+def plot_pnl_distribution(per_race: pd.DataFrame) -> go.Figure:
+    """Per-race P&L distributions: timewave-selected days vs the rest."""
+    sel = per_race.loc[per_race["selected"], "pnl"]
+    rest = per_race.loc[~per_race["selected"], "pnl"]
+    fig = go.Figure()
+    fig.add_trace(
+        go.Violin(
+            y=rest,
+            name=f"Not selected (n={len(rest):,})",
+            side="negative",
+            line_color="rgb(214,39,40)",
+            meanline_visible=True,
+            points=False,
+        )
+    )
+    fig.add_trace(
+        go.Violin(
+            y=sel,
+            name=f"Timewave-selected (n={len(sel):,})",
+            side="positive",
+            line_color="rgb(44,160,44)",
+            meanline_visible=True,
+            points=False,
+        )
+    )
+    fig.update_layout(
+        title="Per-race P&L distribution: selected vs not-selected days",
+        yaxis_title="P&L per race ($)",
+        violinmode="overlay",
+        height=430,
+    )
+    return fig
+
+
+def plot_drawdown(per_race: pd.DataFrame) -> go.Figure:
+    """Cumulative P&L drawdown for both strategies."""
+    pr = per_race.sort_values("date").reset_index(drop=True)
+    fig = go.Figure()
+    for name, pnl, color in [
+        ("Bet every race", pr["pnl"], "rgb(214,39,40)"),
+        ("Timewave-filtered", pr["pnl"].where(pr["selected"], 0.0), "rgb(44,160,44)"),
+    ]:
+        cum = pnl.cumsum()
+        dd = cum - cum.cummax()
+        fig.add_trace(
+            go.Scatter(
+                x=pr["date"],
+                y=dd,
+                mode="lines",
+                name=f"{name} (max {dd.min():,.0f})",
+                line=dict(color=color),
+                fill="tozeroy",
+            )
+        )
+    fig.update_layout(
+        title="Drawdown from running peak (cumulative P&L)",
+        xaxis_title="Date",
+        yaxis_title="Drawdown ($)",
+        height=400,
+        hovermode="x unified",
+    )
+    return fig
+
+
+def plot_monthly_pnl_heatmap(per_race: pd.DataFrame) -> go.Figure:
+    """Year × month heatmap of timewave-filtered strategy P&L."""
+    pr = per_race.copy()
+    strat_pnl = pr["pnl"].where(pr["selected"], 0.0)
+    df = pd.DataFrame({"date": pr["date"], "pnl": strat_pnl})
+    df["year"] = df["date"].dt.year
+    df["month"] = df["date"].dt.month
+    pivot = df.pivot_table(index="year", columns="month", values="pnl", aggfunc="sum")
+    pivot = pivot.reindex(columns=range(1, 13))
+    month_labels = ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
+                    "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+
+    fig = go.Figure(
+        go.Heatmap(
+            z=pivot.values,
+            x=month_labels,
+            y=[str(y) for y in pivot.index],
+            colorscale="RdYlGn",
+            zmid=0.0,
+            colorbar=dict(title="P&L ($)"),
+            hovertemplate="%{y} %{x}<br>P&L $%{z:,.0f}<extra></extra>",
+        )
+    )
+    fig.update_layout(
+        title="Timewave-filtered strategy: monthly P&L heatmap",
+        xaxis_title="Month",
+        yaxis_title="Year",
+        yaxis_type="category",
+        height=max(300, 40 * len(pivot.index) + 140),
+    )
+    return fig
+
+
 def plot_sweep(sweep: pd.DataFrame) -> go.Figure:
     fig = go.Figure()
     fig.add_trace(
@@ -1011,6 +1307,20 @@ def render_overview(state: dict) -> None:
     )
     st.caption("Use **Play** or drag the slider to scrub through the timeline.")
 
+    oc1, oc2 = st.columns(2)
+    with oc1:
+        st.plotly_chart(
+            plot_novelty_vs_timewave_scatter(daily, tw),
+            use_container_width=True,
+            key="overview_scatter",
+        )
+    with oc2:
+        st.plotly_chart(
+            plot_rolling_correlation(daily, tw),
+            use_container_width=True,
+            key="overview_rolling_corr",
+        )
+
     st.markdown("**Backtest at a glance**")
     st.caption(
         "Timewave-filtered = bet only on low-wave days. "
@@ -1100,6 +1410,43 @@ def render_novelty_timewave(state: dict) -> None:
         key="novelty_hist",
     )
 
+    st.subheader("Relationship diagnostics")
+    st.caption(
+        "Descriptive views of the novelty ↔ timewave relationship. "
+        "Inference still rests on the pre-registered permutation test above."
+    )
+    nc1, nc2 = st.columns(2)
+    with nc1:
+        st.plotly_chart(
+            plot_novelty_vs_timewave_scatter(daily, tw),
+            use_container_width=True,
+            key="novelty_scatter",
+        )
+    with nc2:
+        st.plotly_chart(
+            plot_rolling_correlation(daily, tw),
+            use_container_width=True,
+            key="novelty_rolling_corr",
+        )
+
+    st.plotly_chart(
+        plot_novelty_calendar_heatmap(daily),
+        use_container_width=True,
+        key="novelty_calendar",
+    )
+
+    st.subheader("Race structure")
+    st.plotly_chart(
+        plot_field_size_novelty(scores, metric=opts["metric"]),
+        use_container_width=True,
+        key="field_size_box",
+    )
+    st.plotly_chart(
+        plot_winner_profile(scores),
+        use_container_width=True,
+        key="winner_profile",
+    )
+
     if result["lag"] is not None:
         lag = result["lag"]
         best = lag.loc[lag["spearman_r"].abs().idxmax()]
@@ -1156,6 +1503,26 @@ def render_backtest(state: dict) -> None:
         key="cum_pnl",
     )
     st.caption("Play advances race-by-race cumulative P&L.")
+
+    st.subheader("Risk & distribution")
+    rc1, rc2 = st.columns(2)
+    with rc1:
+        st.plotly_chart(
+            plot_pnl_distribution(res["per_race"]),
+            use_container_width=True,
+            key="pnl_violin",
+        )
+    with rc2:
+        st.plotly_chart(
+            plot_drawdown(res["per_race"]),
+            use_container_width=True,
+            key="drawdown",
+        )
+    st.plotly_chart(
+        plot_monthly_pnl_heatmap(res["per_race"]),
+        use_container_width=True,
+        key="monthly_pnl_heatmap",
+    )
 
     if result["sweep"] is not None:
         st.subheader("Threshold sweep (exploratory)")
