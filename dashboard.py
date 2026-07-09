@@ -966,6 +966,7 @@ SIDEBAR_INTRO = (
     "raconteur — who built that wave from fractal ☯️ I Ching tables "
     "(low wave ↔ high novelty; zero-date lore ~2012). We keep the mystique in "
     "the story and the honesty in the numbers 🎱.\n\n"
+    "Dig it: if the wave flops, don't say we didn't warn you, man.\n\n"
     "Read the controls below top to bottom, then hit **🏇 Run Analysis** "
     "on the main page — Overview tells you what *this* run found."
 )
@@ -997,7 +998,7 @@ SIDEBAR_HELP = {
         "so you do not need to upload anything.\n\n"
         "That history is the default for the **locked** main test. Open "
         "**Advanced options** for a larger free UK/Ireland slice (exploratory "
-        "only — not the official claim), a fake null demo 🎱, or your own CSV."
+        "only — not the official claim), a synthetic demo 🎱, or your own CSV."
     ),
     "locked": (
         "**What is this section?** ⭐ Before looking at results, we wrote down the "
@@ -1015,7 +1016,7 @@ SIDEBAR_HELP = {
         "A stricter side experiment 🎲: fewer days, fewer tickets, and an optional "
         "pool-bias guess. When too many tickets look good, a **coin-cast "
         "hexagram-style** picker 🃏 (☯️ I Ching vibe — 64 patterns) thins the field. "
-        "**Bias guess = 1.0** means fair prices ☯️ (no free lunch). "
+        "**Bias guess = 1.0** means fair prices ☯️ (no built-in pool tilt). "
         "Higher values pretend favorites are overbet — a guess 🎱, not a fact."
     ),
 }
@@ -1034,7 +1035,7 @@ SIDEBAR_CONTROL_CAPTIONS = {
     ),
     "takeout": (
         "The share the track keeps from every bet pool (the house edge) 🏁. "
-        "With no real edge, expect to lose about this fraction over time."
+        "Returns are measured against this cut."
     ),
     "metric": (
         "How we measure \"weird\" 🍄 finishes given the odds. "
@@ -1058,7 +1059,7 @@ SIDEBAR_CONTROL_CAPTIONS = {
         "Off = skip it and only run the main wave test 🌊."
     ),
     "engine_beta": (
-        "1.0 assumes fair odds ☯️ (no free lunch expected). "
+        "1.0 assumes fair odds ☯️ (no built-in pool tilt). "
         "Above 1.0 pretends favorites are overbet — a guess 🎱 you can explore, "
         "not a fact about the track."
     ),
@@ -1069,7 +1070,7 @@ SIDEBAR_CONTROL_CAPTIONS = {
     "engine_k_max": (
         "Cap how many tickets we buy in one race 🏇. "
         "If too many look good, a coin-cast hexagram-style 🃏 pick "
-        "(☯️ I Ching 64-pattern vibe) keeps this many — theme, not a tip."
+        "(☯️ I Ching 64-pattern vibe) keeps this many — theme flair for the picker."
     ),
 }
 
@@ -1078,35 +1079,32 @@ TAB_INTROS = {
         "Big picture 📊 for this run, dude: how much 🐎 data you have, whether "
         "surprising race days lined up with McKenna's 🌊 Timewave Zero (his I Ching–built "
         "chaos calendar 🍄), and whether betting only on \"wave\" days beat betting "
-        "every day. Mystique in the story; honesty in the numbers — on Hong Kong "
-        "history the vibes are usually \"no support\" ☯️, not a tip sheet 🔮. "
-        "If it flops, sorry man — we told you."
+        "every day. Mystique in the story; honesty in the numbers 🎱. "
+        "Read the **So what?** boxes for what *this* run actually found."
     ),
     "novelty": (
         "**Surprise score** ✨ = how unexpected the finishes were, given the odds. "
         "**The wave** 🌊 = McKenna's Timewave Zero calendar of 🌀 chaos, built from "
         "☯️ I Ching number tables. His idea: **low wave ↔ high surprise** ☯️ "
-        "(they should move opposite ways). Near-zero link + high chance score "
-        "🎱 ≈ no support for that idea — null stays null, man. Bummer vibes ahead "
-        "if the ranks don't dance."
+        "(they should move opposite ways). Chance score + rank link below tell "
+        "the story for *this* run — dig the charts, then read **So what?**."
     ),
     "backtest": (
-        "Pretend we buy every top-3 ticket on chosen days 🏇. The track keeps a cut, "
-        "so with no real edge you usually lose about that cut — dig it. Timing only "
-        "helps if wave-picked days clearly beat betting every day — ROI near −track "
-        "cut is the boring baseline 🏁. A pretty wave does not print money by itself, "
-        "and your old lady will not be impressed by a flat line."
+        "Pretend we buy every top-3 ticket on chosen days 🏇. The track keeps a cut. "
+        "Compare wave-picked days vs betting every day — if timing helped, wave days "
+        "should look clearly better. Numbers first; **So what?** says whether "
+        "*this* run printed anything interesting 🏁."
     ),
     "engine": (
         "A pickier side experiment 🎲: fewer tickets, fewer days, optional pool-bias "
         "guess, and a coin-cast **hexagram-style** ticket thinner 🃏 (same 64-pattern "
-        "☯️ I Ching vibe McKenna used for the wave tables). At bias = 1.0 (fair "
-        "prices ☯️) you should not find a free lunch — peace, but prepare to be "
-        "bummed. Higher bias is a guess 🎱 — not a fact, and not a claim the oracle pays."
+        "☯️ I Ching vibe McKenna used for the wave tables). Bias = 1.0 means fair "
+        "prices ☯️. Higher bias is a guess 🎱 — explore it, then read **So what?** "
+        "for what *this* table actually did."
     ),
     "raw": (
         "The 🐎 race rows we scored, plus CSV downloads 📥 so you can check or reuse "
-        "the numbers. This tab is the input and exports — not a new claim, man."
+        "the numbers. This tab is the input and exports — dig in, man."
     ),
 }
 
