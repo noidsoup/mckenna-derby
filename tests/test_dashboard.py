@@ -50,15 +50,50 @@ def test_dashboard_observatory_dark_theme():
     assert "return apply_plotly_theme(fig)" in DASHBOARD_SOURCE
 
 
+def test_dashboard_clipart_and_extra_animations():
+    """Local SVG clipart + new animated charts should be present and wired."""
+    assert "from mckenna_derby.assets" in DASHBOARD_SOURCE
+    assert "def render_clipart_row" in DASHBOARD_SOURCE
+    assert "md-clipart-bobble" in DASHBOARD_SOURCE
+    assert "prefers-reduced-motion" in DASHBOARD_SOURCE
+    assert "def animate_odds_decile_roi" in DASHBOARD_SOURCE
+    assert "def animate_hexagram_slots" in DASHBOARD_SOURCE
+    assert "def plot_vibe_meter" in DASHBOARD_SOURCE
+    assert "def animate_rolling_correlation" in DASHBOARD_SOURCE
+    assert "def animate_monthly_pnl_heatmap" in DASHBOARD_SOURCE
+    assert "MAX_ANIM_FRAMES" in DASHBOARD_SOURCE
+    assert "render_clipart_row(" in DASHBOARD_SOURCE
+    assert "overview_vibe_meter" in DASHBOARD_SOURCE
+    assert "animate_odds_decile_roi(runners)" in DASHBOARD_SOURCE
+    assert "animate_rolling_correlation(daily, tw)" in DASHBOARD_SOURCE
+    assert "animate_monthly_pnl_heatmap" in DASHBOARD_SOURCE
+
+    from mckenna_derby.assets import CLIPART, clipart_path
+
+    for name in (
+        "horse",
+        "yin_yang",
+        "mushroom",
+        "crystal_ball",
+        "eight_ball",
+        "finish_flag",
+    ):
+        assert name in CLIPART
+        p = clipart_path(name)
+        assert p.exists(), name
+        assert p.suffix == ".svg"
+        assert p.stat().st_size > 50
+
+
 def test_apply_plotly_theme_sets_dark_template():
     """Runtime check: apply_plotly_theme stamps plotly_dark on a figure."""
     import plotly.graph_objects as go
 
     ns: dict = {"go": go}
     src = DASHBOARD_SOURCE
-    # Extract PALETTE + apply_plotly_theme only (no Streamlit import needed).
+    # Extract PALETTE + apply_plotly_theme only (stop before CSS / clipart helpers).
     start = src.index("PALETTE = {")
-    end = src.index("\n# ---------------------------------------------------------------------------\n# Plain-English copy")
+    end = src.index("\ndef inject_app_css")
     code = "from __future__ import annotations\n" + src[start:end]
     exec(compile(code, "dashboard_theme.py", "exec"), ns)
 
@@ -176,6 +211,32 @@ def test_dashboard_wires_first_visit_tour():
     assert 'key="tour_data_source"' in DASHBOARD_SOURCE
     assert 'key="tour_run_button"' in DASHBOARD_SOURCE
     assert "from mckenna_derby.tour import" in DASHBOARD_SOURCE
+
+
+def test_dashboard_main_run_button_on_intro():
+    """Primary Run lives on the main intro; sidebar only collects opts."""
+    assert "def render_sidebar(prereg: dict) -> dict:" in DASHBOARD_SOURCE
+    assert "pending_opts" in DASHBOARD_SOURCE
+    assert 'key="tour_run_button"' in DASHBOARD_SOURCE
+    # No dual-button / force_run bridge — one primary on main.
+    assert "force_run" not in DASHBOARD_SOURCE
+    assert "render_main_run_button" not in DASHBOARD_SOURCE
+    assert 'key="tour_run_button_main"' not in DASHBOARD_SOURCE
+    # Empty-state + sidebar copy point at the main-page button.
+    assert "Click **🏇 Run Analysis** below (on this page)" in DASHBOARD_SOURCE
+    assert "hit **🏇 Run Analysis** on the main page" in DASHBOARD_SOURCE
+    assert "Settings above — then hit **🏇 Run Analysis** on the main page" in DASHBOARD_SOURCE
+    # Sidebar must not own the primary Run button.
+    sidebar_start = DASHBOARD_SOURCE.index("def render_sidebar")
+    sidebar_end = DASHBOARD_SOURCE.index("\ndef load_runners")
+    sidebar_src = DASHBOARD_SOURCE[sidebar_start:sidebar_end]
+    assert 'key="tour_run_button"' not in sidebar_src
+    assert "Run Analysis" not in sidebar_src or "on the main page" in sidebar_src
+    # Main() wires the button inside tour_empty_intro.
+    main_start = DASHBOARD_SOURCE.index("def main()")
+    main_src = DASHBOARD_SOURCE[main_start:]
+    assert 'key="tour_run_button"' in main_src
+    assert "run_clicked" in main_src
 
 
 def test_dashboard_blurbs_under_main_views():

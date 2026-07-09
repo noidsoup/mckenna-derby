@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Mushroom">
+  <rect width="64" height="64" rx="12" fill="#1a1d27"/>
+  <ellipse cx="32" cy="28" rx="20" ry="14" fill="#fb7185"/>
+  <ellipse cx="32" cy="28" rx="20" ry="14" fill="none" stroke="#a78bfa" stroke-width="1.5"/>
+  <circle cx="22" cy="24" r="3" fill="#e8e6f0" opacity="0.85"/>
+  <circle cx="34" cy="20" r="2.5" fill="#e8e6f0" opacity="0.85"/>
+  <circle cx="42" cy="26" r="2" fill="#e8e6f0" opacity="0.85"/>
+  <rect x="26" y="30" width="12" height="20" rx="4" fill="#fbbf24"/>
+  <rect x="28" y="36" width="8" height="3" rx="1" fill="#0f1117" opacity="0.25"/>
+</svg>

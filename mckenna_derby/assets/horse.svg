@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Horse">
+  <rect width="64" height="64" rx="12" fill="#1a1d27"/>
+  <path fill="#a78bfa" d="M10 42c2-10 8-16 16-18 3-6 8-10 14-10 2 0 4 1 5 3l4-2 2 3-3 2c1 2 1 4 0 6l6 4-2 3-7-3c-2 3-5 5-9 6l-2 8h-6l1-7c-5 1-10 3-14 8l-5-3z"/>
+  <circle cx="42" cy="20" r="2.2" fill="#0f1117"/>
+  <path fill="#38bdf8" d="M46 16c3-1 6 0 8 2l-2 2c-2-1-4-1-6 0l0-4z"/>
+  <path fill="#94a3b8" d="M22 48h4v8h-4zm10 0h4v8h-4z"/>
+</svg>

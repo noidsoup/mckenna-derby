@@ -57,7 +57,8 @@ TOUR_STEPS: list[dict[str, Any]] = [
                 "Plain-English intro: who McKenna was, what Timewave Zero is, "
                 "and how the ☯️ I Ching ties in (wave tables + coin-cast "
                 "hexagram-style picks 🃏). Real Hong Kong 🏇 races (1997–2005) "
-                "are already loaded. Next: click <b>🏇 Run Analysis</b>."
+                "are already loaded. Next: set knobs in the sidebar if you like, "
+                "then click <b>🏇 Run Analysis</b> on the main page."
             ),
             "side": "left",
             "align": "start",
@@ -109,11 +110,12 @@ TOUR_STEPS: list[dict[str, Any]] = [
         "popover": {
             "title": "🏇 Run Analysis",
             "description": (
-                "Click this, then open <b>📊 Overview</b> for the plain-English "
+                "This big button is on the <b>main page</b> (not the sidebar). "
+                "Click it, then open <b>📊 Overview</b> for the plain-English "
                 "answer. On this data the main finding is often \"no match\" ☯️ — "
                 "honest, not a tip sheet 🔮."
             ),
-            "side": "right",
+            "side": "bottom",
             "align": "center",
         },
     },
@@ -123,7 +125,8 @@ TOUR_STEPS: list[dict[str, Any]] = [
             "title": "🏁 You're set",
             "description": (
                 "Replay anytime from the sidebar (<b>Replay guided tour</b>). "
-                "Reading the sidebar top→bottom explains each control. "
+                "Reading the sidebar top→bottom explains each control; "
+                "then hit <b>🏇 Run Analysis</b> on the main page. "
                 "Stay skeptical of pretty numbers 🧿."
             ),
             "side": "over",

@@ -7,6 +7,7 @@ Launch:
 
 from __future__ import annotations
 
+import base64
 import datetime as dt
 import json
 from pathlib import Path
@@ -19,6 +20,7 @@ import streamlit as st
 
 from mckenna_derby import backtest as bt
 from mckenna_derby import compare, data, novelty
+from mckenna_derby.assets import clipart_path
 from mckenna_derby.mckenna_engine import (
     IChingSelector,
     RollingTimewave,
@@ -31,6 +33,7 @@ PREREG_PATH = ROOT / "prereg.json"
 ALL_SETS = ["kelley", "watkins", "sheliak", "huangti"]
 BETA_FRAMES = [1.0, 1.05, 1.10, 1.15, 1.20]
 MAX_ANIM_FRAMES = 80
+CLIPART_HERO = ("horse", "yin_yang", "mushroom", "crystal_ball", "eight_ball", "finish_flag")
 
 # Observatory dark palette (Plotly + CSS share these accents)
 PALETTE = {
@@ -174,17 +177,83 @@ def inject_app_css() -> None:
     border: 0;
     box-shadow: 0 0 20px rgba(167, 139, 250, 0.35);
   }}
+  /* Local clipart flair (flat SVGs — no web hotlinks) */
+  .md-clipart-row {{
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.65rem;
+    align-items: center;
+    justify-content: flex-start;
+    margin: 0.35rem 0 0.85rem 0;
+  }}
+  .md-clipart-row img {{
+    width: 52px;
+    height: 52px;
+    border-radius: 12px;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+  }}
+  .md-clipart-row.md-clipart-hero img {{
+    width: 64px;
+    height: 64px;
+  }}
+  .md-clipart-bobble img {{
+    animation: md-bobble 3.2s ease-in-out infinite;
+  }}
+  .md-clipart-bobble img:nth-child(2) {{ animation-delay: 0.35s; }}
+  .md-clipart-bobble img:nth-child(3) {{ animation-delay: 0.7s; }}
+  .md-clipart-bobble img:nth-child(4) {{ animation-delay: 1.05s; }}
+  .md-clipart-bobble img:nth-child(5) {{ animation-delay: 1.4s; }}
+  .md-clipart-bobble img:nth-child(6) {{ animation-delay: 1.75s; }}
+  @keyframes md-bobble {{
+    0%, 100% {{ transform: translateY(0); }}
+    50% {{ transform: translateY(-5px); }}
+  }}
+  /* Soften Plotly Play/Pause against dark theme */
+  .js-plotly-plot .updatemenu-button rect {{
+    fill: rgba(26, 29, 39, 0.92) !important;
+    stroke: {PALETTE["wave"]} !important;
+  }}
+  .js-plotly-plot .updatemenu-button text {{
+    fill: {PALETTE["text"]} !important;
+  }}
   @media (prefers-reduced-motion: reduce) {{
     *, *::before, *::after {{
       animation-duration: 0.01ms !important;
       animation-iteration-count: 1 !important;
       transition-duration: 0.01ms !important;
     }}
+    .md-clipart-bobble img {{
+      animation: none !important;
+    }}
   }}
 </style>
 """,
         unsafe_allow_html=True,
     )
+
+
+def render_clipart_row(
+    names: tuple[str, ...] | list[str] = CLIPART_HERO,
+    *,
+    hero: bool = False,
+    bobble: bool = True,
+) -> None:
+    """Show a small row of local flat SVG clipart (tasteful flair, not every caption)."""
+    classes = ["md-clipart-row"]
+    if hero:
+        classes.append("md-clipart-hero")
+    if bobble:
+        classes.append("md-clipart-bobble")
+    parts = [f'<div class="{" ".join(classes)}">']
+    for name in names:
+        path = clipart_path(name)
+        # Embed as data URI so CSS bobble can target the <img> tags.
+        b64 = base64.b64encode(path.read_bytes()).decode("ascii")
+        parts.append(
+            f'<img src="data:image/svg+xml;base64,{b64}" alt="{name.replace("_", " ")}" />'
+        )
+    parts.append("</div>")
+    st.markdown("".join(parts), unsafe_allow_html=True)
 
 
 # ---------------------------------------------------------------------------
@@ -212,7 +281,7 @@ coin-cast hexagram-style picker 🃏 (same 64-pattern vibe — not a money tip).
 
 **Data:** Real Hong Kong 🏇 races (1997–2005) are already loaded.
 
-**What to do:** Click **🏇 Run Analysis** in the sidebar.
+**What to do:** Click **🏇 Run Analysis** below (on this page).
 
 Then open **📊 Overview**. On this data the main answer is usually "no match" ☯️.
 That is an honest finding, not a tip sheet 🔮.
@@ -228,7 +297,8 @@ SIDEBAR_INTRO = (
     "(low wave ↔ high novelty; zero-date lore ~2012). We keep the mystique in "
     "the story and the honesty in the numbers 🎱.\n\n"
     "Dig it: if the wave flops, don't say we didn't warn you, man.\n\n"
-    "Read the controls below top to bottom, then click **🏇 Run Analysis**."
+    "Read the controls below top to bottom, then hit **🏇 Run Analysis** "
+    "on the main page."
 )
 
 WHO_IS_MCKENNA = """
@@ -1362,6 +1432,455 @@ def animate_drawdown(
     return apply_plotly_theme(fig)
 
 
+
+def animate_odds_decile_roi(
+    runners: pd.DataFrame, max_frames: int = MAX_ANIM_FRAMES
+) -> go.Figure | None:
+    """Animated bar reveal: win ROI by posted-odds decile (needs win_payout)."""
+    if "win_payout" not in runners.columns or "decimal_odds" not in runners.columns:
+        return None
+    if "finish_position" not in runners.columns:
+        return None
+    winners = runners.loc[
+        (runners["finish_position"] == 1) & runners["win_payout"].notna()
+    ].copy()
+    if len(winners) < 30:
+        return None
+
+    # Bet $1 on every horse; settle with real win_payout on winners only.
+    all_bets = runners.dropna(subset=["decimal_odds"]).copy()
+    all_bets = all_bets[all_bets["decimal_odds"] > 1.0]
+    if len(all_bets) < 50:
+        return None
+    try:
+        all_bets["odds_decile"] = (
+            pd.qcut(all_bets["decimal_odds"], 10, labels=False, duplicates="drop") + 1
+        )
+    except ValueError:
+        return None
+
+    # Drop any existing payout col so the winner join is unambiguous.
+    bet_cols = [c for c in ("race_id", "horse", "decimal_odds", "odds_decile") if c in all_bets.columns]
+    bets = all_bets[bet_cols].copy()
+    pay = runners.loc[
+        (runners["finish_position"] == 1) & runners["win_payout"].notna(),
+        ["race_id", "horse", "win_payout"],
+    ]
+    # Only score races that actually have a settled win payout.
+    bets = bets[bets["race_id"].isin(pay["race_id"])]
+    if len(bets) < 50:
+        return None
+    merged = bets.merge(pay, on=["race_id", "horse"], how="left")
+    merged["pnl"] = merged["win_payout"].fillna(0.0) - 1.0
+
+    rows = []
+    for d, sub in merged.groupby("odds_decile"):
+        cost = float(len(sub))
+        pnl = float(sub["pnl"].sum())
+        roi = 100.0 * pnl / cost if cost else np.nan
+        rows.append(
+            {
+                "odds_decile": int(d),
+                "mean_odds": float(sub["decimal_odds"].mean()),
+                "roi_pct": roi,
+                "bets": int(len(sub)),
+            }
+        )
+    dec = pd.DataFrame(rows).sort_values("odds_decile")
+    if dec.empty:
+        return None
+
+    labels_x = [
+        f"D{int(r.odds_decile)}\n(~{r.mean_odds:.1f})" for r in dec.itertuples()
+    ]
+    rois = dec["roi_pct"].to_numpy(dtype=float)
+    colors = [
+        PALETTE["money_up"] if v >= 0 else PALETTE["money_down"] for v in rois
+    ]
+
+    n = len(dec)
+    ends = list(range(1, n + 1))
+    if len(ends) > max_frames:
+        ends = sorted(set(np.linspace(1, n, max_frames, dtype=int).tolist()))
+
+    fig = go.Figure()
+    fig.add_trace(
+        go.Bar(
+            x=[],
+            y=[],
+            marker_color=[],
+            marker_line=dict(width=1, color=PALETTE["muted"]),
+            name="Win ROI",
+        )
+    )
+    frames = []
+    frame_labels = []
+    for end in ends:
+        label = f"{end} bands"
+        frame_labels.append(label)
+        frames.append(
+            go.Frame(
+                name=label,
+                data=[
+                    go.Bar(
+                        x=labels_x[:end],
+                        y=rois[:end],
+                        marker_color=colors[:end],
+                        marker_line=dict(width=1, color=PALETTE["muted"]),
+                    )
+                ],
+                traces=[0],
+            )
+        )
+
+    fig.frames = frames
+    menus, sliders = _play_slider_menus(frame_labels, frame_duration=350)
+    fig.add_hline(y=0.0, line_dash="dot", line_color=PALETTE["muted"])
+    fig.update_layout(
+        title="Win return by odds band (buy every horse, $1)",
+        xaxis_title="Odds decile (short → long)",
+        yaxis_title="Return on money spent (%)",
+        height=420,
+        updatemenus=menus,
+        sliders=sliders,
+    )
+    if frames:
+        fig.update(data=list(frames[-1].data))
+    return apply_plotly_theme(fig)
+
+
+def animate_hexagram_slots(
+    hexagram: int | None, max_frames: int = MAX_ANIM_FRAMES
+) -> go.Figure:
+    """Polar 64-slot visual highlighting the last I Ching-style cast."""
+    slots = np.arange(1, 65)
+    baseline = np.full(64, 0.35, dtype=float)
+    highlight = int(hexagram) if hexagram is not None else None
+    if highlight is not None:
+        highlight = max(1, min(64, highlight))
+
+    theta = (slots - 1) * (360.0 / 64.0)
+    colors = [PALETTE["muted"]] * 64
+    r_vals = baseline.copy()
+    if highlight is not None:
+        colors[highlight - 1] = PALETTE["gate"]
+        r_vals[highlight - 1] = 1.0
+
+    n_frames = min(max_frames, 64)
+    idx = _subsample_indices(64, n_frames)
+
+    fig = go.Figure()
+    fig.add_trace(
+        go.Barpolar(
+            r=np.zeros(64),
+            theta=theta,
+            marker_color=[PALETTE["muted"]] * 64,
+            marker_line_color=PALETTE["plot"],
+            marker_line_width=0.5,
+            opacity=0.9,
+            hovertemplate="slot %{customdata}<extra></extra>",
+            customdata=slots,
+            name="64 patterns",
+        )
+    )
+
+    frames = []
+    labels = []
+    for end in idx:
+        end_i = int(end)
+        label = f"slot {end_i + 1}"
+        labels.append(label)
+        r_frame = np.zeros(64)
+        c_frame = [PALETTE["muted"]] * 64
+        r_frame[: end_i + 1] = 0.35
+        if highlight is not None and highlight - 1 <= end_i:
+            r_frame[highlight - 1] = 1.0
+            c_frame[highlight - 1] = PALETTE["gate"]
+            for nb in (highlight - 2, highlight):
+                if 0 <= nb < 64 and nb != highlight - 1:
+                    c_frame[nb] = PALETTE["wave"]
+                    r_frame[nb] = max(r_frame[nb], 0.55)
+        frames.append(
+            go.Frame(
+                name=label,
+                data=[
+                    go.Barpolar(
+                        r=r_frame,
+                        theta=theta,
+                        marker_color=c_frame,
+                        marker_line_color=PALETTE["plot"],
+                        marker_line_width=0.5,
+                        customdata=slots,
+                    )
+                ],
+                traces=[0],
+            )
+        )
+
+    fig.frames = frames
+    menus, sliders = _play_slider_menus(labels, frame_duration=60, transition_ms=40)
+    title = (
+        f"64-pattern ring — last cast #{highlight}"
+        if highlight is not None
+        else "64-pattern ring (no cast this run)"
+    )
+    fig.update_layout(
+        title=title,
+        height=440,
+        updatemenus=menus,
+        sliders=sliders,
+        polar=dict(
+            bgcolor=PALETTE["plot"],
+            radialaxis=dict(visible=False, range=[0, 1.15]),
+            angularaxis=dict(
+                tickfont=dict(color=PALETTE["muted"], size=9),
+                direction="clockwise",
+                rotation=90,
+            ),
+        ),
+        showlegend=False,
+    )
+    fig.update(
+        data=[
+            go.Barpolar(
+                r=r_vals,
+                theta=theta,
+                marker_color=colors,
+                marker_line_color=PALETTE["plot"],
+                marker_line_width=0.5,
+                customdata=slots,
+                hovertemplate="pattern %{customdata}<extra></extra>",
+            )
+        ]
+    )
+    return apply_plotly_theme(fig)
+
+
+def plot_vibe_meter(primary: dict) -> go.Figure:
+    """Dual-axis vibe meter: wave match vs null chill vs chaos spark (descriptive)."""
+    r = float(primary.get("spearman_r", 0.0))
+    p = float(primary.get("permutation_p", 1.0))
+    match_vibe = float(np.clip((abs(r) / 0.25) * (1.0 - p), 0.0, 1.0))
+    null_vibe = float(np.clip(p, 0.0, 1.0))
+    chaos_vibe = float(np.clip(1.0 - p, 0.0, 1.0))
+
+    categories = ["Wave match", "Null chill", "Chaos spark"]
+    values = [match_vibe, null_vibe, chaos_vibe]
+    colors = [PALETTE["wave"], PALETTE["muted"], PALETTE["surprise"]]
+
+    fig = go.Figure()
+    fig.add_trace(
+        go.Scatterpolar(
+            r=values + [values[0]],
+            theta=categories + [categories[0]],
+            fill="toself",
+            fillcolor=PALETTE["fill_wave"],
+            line=dict(color=PALETTE["wave"], width=2.4),
+            name="Vibe",
+            hovertemplate="%{theta}: %{r:.2f}<extra></extra>",
+        )
+    )
+    fig.add_trace(
+        go.Scatterpolar(
+            r=values,
+            theta=categories,
+            mode="markers",
+            marker=dict(size=10, color=colors, line=dict(width=1, color=PALETTE["text"])),
+            name="Spokes",
+            hovertemplate="%{theta}: %{r:.2f}<extra></extra>",
+        )
+    )
+    fig.update_layout(
+        title="Vibe meter (descriptive — not a tip)",
+        height=380,
+        showlegend=False,
+        polar=dict(
+            bgcolor=PALETTE["plot"],
+            radialaxis=dict(
+                visible=True,
+                range=[0, 1],
+                tickvals=[0, 0.5, 1],
+                tickfont=dict(color=PALETTE["muted"], size=10),
+                gridcolor=PALETTE["grid"],
+            ),
+            angularaxis=dict(
+                tickfont=dict(color=PALETTE["text"], size=12),
+                gridcolor=PALETTE["grid"],
+            ),
+        ),
+        margin=dict(l=48, r=48, t=64, b=36),
+    )
+    return apply_plotly_theme(fig)
+
+
+def animate_rolling_correlation(
+    daily: pd.Series, tw: pd.Series, window: int = 30, max_frames: int = MAX_ANIM_FRAMES
+) -> go.Figure:
+    """Animated reveal of the rolling rank-link series."""
+    df = pd.DataFrame({"novelty": daily, "timewave_inv": -tw}).dropna()
+    fig = go.Figure()
+    if len(df) < window + 1:
+        fig.update_layout(
+            title=f"Rolling match (needs more than {window} days)", height=360
+        )
+        return apply_plotly_theme(fig)
+
+    dates = pd.to_datetime(pd.Index(df.index))
+    x = df["novelty"].to_numpy()
+    y = df["timewave_inv"].to_numpy()
+    vals = np.full(len(df), np.nan)
+    for i in range(window, len(df)):
+        xs = pd.Series(x[i - window : i + 1]).rank().to_numpy()
+        ys = pd.Series(y[i - window : i + 1]).rank().to_numpy()
+        if np.ptp(xs) > 0 and np.ptp(ys) > 0:
+            vals[i] = float(np.corrcoef(xs, ys)[0, 1])
+
+    valid_start = window
+    idx = _subsample_indices(len(df) - valid_start, max_frames) + valid_start
+
+    fig.add_trace(
+        go.Scatter(
+            x=[],
+            y=[],
+            mode="lines",
+            name=f"{window}-day rank link",
+            line=dict(color=PALETTE["surprise"], width=2.2),
+            fill="tozeroy",
+            fillcolor=PALETTE["fill_surprise"],
+        )
+    )
+    frames = []
+    labels = []
+    for end in idx:
+        end_i = int(end)
+        label = str(dates[end_i].date())
+        labels.append(label)
+        sl = slice(0, end_i + 1)
+        frames.append(
+            go.Frame(
+                name=label,
+                data=[
+                    go.Scatter(
+                        x=dates[sl],
+                        y=vals[sl],
+                        mode="lines",
+                        line=dict(color=PALETTE["surprise"], width=2.2),
+                        fill="tozeroy",
+                        fillcolor=PALETTE["fill_surprise"],
+                    )
+                ],
+                traces=[0],
+            )
+        )
+
+    fig.frames = frames
+    menus, sliders = _play_slider_menus(labels)
+    fig.add_hline(y=0.0, line_dash="dot", line_color=PALETTE["muted"])
+    fig.update_layout(
+        title=f"Rolling match reveal ({window}-day window)",
+        xaxis_title="Date",
+        yaxis_title="Rank link (−1 to +1)",
+        yaxis_range=[-1, 1],
+        height=380,
+        updatemenus=menus,
+        sliders=sliders,
+    )
+    if frames:
+        fig.update(data=list(frames[-1].data))
+    return apply_plotly_theme(fig)
+
+
+def animate_monthly_pnl_heatmap(
+    per_race: pd.DataFrame, max_frames: int = MAX_ANIM_FRAMES
+) -> go.Figure:
+    """Year-by-year reveal of the monthly P&L heatmap."""
+    pr = per_race.copy()
+    strat_pnl = pr["pnl"].where(pr["selected"], 0.0)
+    df = pd.DataFrame({"date": pr["date"], "pnl": strat_pnl})
+    df["year"] = df["date"].dt.year
+    df["month"] = df["date"].dt.month
+    pivot = df.pivot_table(index="year", columns="month", values="pnl", aggfunc="sum")
+    pivot = pivot.reindex(columns=range(1, 13))
+    month_labels = ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
+                    "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+    years = [str(y) for y in pivot.index]
+    z_full = pivot.values.astype(float)
+    if z_full.size == 0:
+        fig = go.Figure()
+        fig.update_layout(title="Monthly P&L (no data)", height=300)
+        return apply_plotly_theme(fig)
+
+    zmin = float(np.nanmin(z_full))
+    zmax = float(np.nanmax(z_full))
+    colorscale = [
+        [0.0, "#7f1d1d"],
+        [0.35, "#f87171"],
+        [0.5, "#1a1d27"],
+        [0.65, "#34d399"],
+        [1.0, "#065f46"],
+    ]
+
+    n_years = len(years)
+    ends = list(range(1, n_years + 1))
+    if len(ends) > max_frames:
+        ends = sorted(set(np.linspace(1, n_years, max_frames, dtype=int).tolist()))
+
+    empty = np.full_like(z_full, np.nan)
+    fig = go.Figure(
+        go.Heatmap(
+            z=empty,
+            x=month_labels,
+            y=years,
+            colorscale=colorscale,
+            zmid=0.0,
+            zmin=zmin,
+            zmax=zmax,
+            colorbar=dict(title="Profit/loss ($)"),
+            hovertemplate="%{y} %{x}<br>$%{z:,.0f}<extra></extra>",
+        )
+    )
+    frames = []
+    labels = []
+    for end in ends:
+        label = years[end - 1]
+        labels.append(label)
+        z_frame = np.full_like(z_full, np.nan)
+        z_frame[:end, :] = z_full[:end, :]
+        frames.append(
+            go.Frame(
+                name=label,
+                data=[
+                    go.Heatmap(
+                        z=z_frame,
+                        x=month_labels,
+                        y=years,
+                        colorscale=colorscale,
+                        zmid=0.0,
+                        zmin=zmin,
+                        zmax=zmax,
+                    )
+                ],
+                traces=[0],
+            )
+        )
+
+    fig.frames = frames
+    menus, sliders = _play_slider_menus(labels, frame_duration=500)
+    fig.update_layout(
+        title="Wave-picked days: profit or loss by month (year reveal)",
+        xaxis_title="Month",
+        yaxis_title="Year",
+        yaxis_type="category",
+        height=max(300, 40 * n_years + 140),
+        updatemenus=menus,
+        sliders=sliders,
+    )
+    if frames:
+        fig.update(data=list(frames[-1].data))
+    return apply_plotly_theme(fig)
+
+
+
 # ---------------------------------------------------------------------------
 # Static "richer" visualizations (relationships, distributions, risk)
 # ---------------------------------------------------------------------------
@@ -1867,10 +2386,15 @@ def series_stats(s: pd.Series) -> dict:
 # ---------------------------------------------------------------------------
 
 
-def render_sidebar(prereg: dict) -> dict | None:
+def render_sidebar(prereg: dict) -> dict:
+    """Render sidebar controls and always return the current opts dict.
+
+    The primary **Run Analysis** button lives on the main page (``tour_run_button``).
+    """
     with st.sidebar:
         st.markdown("##### 🐴 What this software does")
         st.caption(SIDEBAR_INTRO)
+        render_clipart_row(("horse", "yin_yang", "mushroom"), bobble=True)
 
         with st.expander("🍄 Who is Terence McKenna?", expanded=False):
             st.markdown(WHO_IS_MCKENNA)
@@ -2021,14 +2545,11 @@ def render_sidebar(prereg: dict) -> dict | None:
             st.caption(SIDEBAR_CONTROL_CAPTIONS["engine_k_max"])
 
         st.caption(
-            "Runs the 🌊 wave match test and (if enabled) 🎲 picky betting on the "
-            "🐎 data above. Then open **📊 Overview** for the plain-English answer. "
+            "Settings above — then hit **🏇 Run Analysis** on the main page. "
+            "That runs the 🌊 wave match test and (if enabled) 🎲 picky betting. "
+            "Then open **📊 Overview** for the plain-English answer. "
             "If the wave flops, don't say we didn't warn you, man."
         )
-        run = st.button("🏇 Run Analysis", type="primary", key="tour_run_button")
-
-    if not run:
-        return None
 
     return {
         "source": source,
@@ -2078,9 +2599,11 @@ def render_overview(state: dict) -> None:
     res = result["backtest"]
     daily = result["daily"]
     tw = result["timewave"]
+    hexagram = state.get("hexagram")
 
     st.subheader("📊 Overview")
     st.caption(TAB_INTROS["overview"])
+    render_clipart_row(hero=True)
     c1, c2, c3, c4, c5 = st.columns(5)
     c1.metric("Races", f"{runners['race_id'].nunique():,}")
     c2.metric("Horses entered", f"{len(runners):,}")
@@ -2135,6 +2658,17 @@ def render_overview(state: dict) -> None:
             "Gray zone = the usual null ☯️. Dig it: the big number is the chance "
             "score, not a tip — and a gray dial is a bummer, man."
         )
+        st.plotly_chart(
+            plot_vibe_meter(primary),
+            use_container_width=True,
+            key="overview_vibe_meter",
+        )
+        st.caption(
+            "Vibe meter ☯️ — a soft radar of match / null chill / chaos spark from "
+            "the same chance score and rank link. High **Null chill** with a flat "
+            "wave match is the usual Hong Kong read — sorry man, bummer vibes. "
+            "Not a tip sheet 🎱."
+        )
     with gc2:
         st.plotly_chart(
             animate_novelty_timewave(daily, tw),
@@ -2164,14 +2698,52 @@ def render_overview(state: dict) -> None:
         )
     with oc2:
         st.plotly_chart(
-            plot_rolling_correlation(daily, tw),
+            animate_rolling_correlation(daily, tw),
             use_container_width=True,
             key="overview_rolling_corr",
         )
         st.caption(
-            "Does the match come and go over time 🌙? Values near zero mean little "
-            "link in that window. A brief spike is curiosity ✨, not a new main claim."
+            "Does the match come and go over time 🌙? Play reveals the rolling "
+            "rank link. Values near zero mean little link in that window. A brief "
+            "spike is curiosity ✨, not a new main claim."
         )
+
+    odds_fig = animate_odds_decile_roi(runners)
+    if odds_fig is not None:
+        st.plotly_chart(
+            odds_fig,
+            use_container_width=True,
+            key="overview_odds_decile",
+        )
+        st.caption(
+            "Win return by odds band 🐴 — pretend we buy every horse for $1 and "
+            "cash real win payouts when they land. Play reveals short→long bands. "
+            "Bars near −track cut across the board = no free lunch ☯️ — dig it, "
+            "the market already priced the ponies. Not a tip 🎱."
+        )
+
+    if hexagram is not None:
+        hx1, hx2 = st.columns([1.4, 1.0])
+        with hx1:
+            st.plotly_chart(
+                animate_hexagram_slots(hexagram),
+                use_container_width=True,
+                key="overview_hexagram_ring",
+            )
+            st.caption(
+                "64-pattern ring 🃏 — same I Ching-style coin-cast vibe McKenna "
+                "mined for the wave tables. Amber spoke = this run's seed-tied "
+                "cast. Theme flair for picky betting 🎲 — not a prophecy, man."
+            )
+        with hx2:
+            render_clipart_row(
+                ("crystal_ball", "eight_ball", "yin_yang", "finish_flag"),
+                bobble=True,
+            )
+            st.caption(
+                f"Last cast pattern **{hexagram}** / 64 🔮. Same seed → same "
+                "pattern. Oracle vibes only — your old lady still wants the rent."
+            )
 
     st.markdown("**🏁 Did the wave help pick better days?**")
     st.caption(
@@ -2338,13 +2910,13 @@ def render_novelty_timewave(state: dict) -> None:
         )
     with nc2:
         st.plotly_chart(
-            plot_rolling_correlation(daily, tw),
+            animate_rolling_correlation(daily, tw),
             use_container_width=True,
             key="novelty_rolling_corr",
         )
         st.caption(
             "Does the link strengthen or fade in different periods 🌙? "
-            "Mostly near zero = still a null overall 🎱."
+            "Play walks the rolling rank link. Mostly near zero = still a null overall 🎱."
         )
 
     st.plotly_chart(
@@ -2500,14 +3072,14 @@ def render_backtest(state: dict) -> None:
             "riskier path even if the end looks okay."
         )
     st.plotly_chart(
-        plot_monthly_pnl_heatmap(res["per_race"]),
+        animate_monthly_pnl_heatmap(res["per_race"]),
         use_container_width=True,
         key="monthly_pnl_heatmap",
     )
     st.caption(
         "Green months made money on wave-picked days; red months lost 🏇. "
-        "A checkerboard of red and green with no lasting green streak = no "
-        "reliable timing edge ☯️."
+        "Play reveals year by year. A checkerboard of red and green with no "
+        "lasting green streak = no reliable timing edge ☯️."
     )
 
     if result["sweep"] is not None:
@@ -2567,6 +3139,16 @@ def render_mckenna_engine(state: dict) -> None:
             "A repeatable random pick 🎴 used when too many tickets look good. "
             "Same seed → same pattern. It is a tie-breaker, not a prophecy 🔮."
         )
+        st.plotly_chart(
+            animate_hexagram_slots(hexagram),
+            use_container_width=True,
+            key="engine_hexagram_ring",
+        )
+        st.caption(
+            "64-slot ring ☯️ — amber spoke is this seed's cast. Theme flair for "
+            "the ticket thinner, not a claim the oracle prints money 🎱."
+        )
+        render_clipart_row(("crystal_ball", "yin_yang", "eight_ball"), bobble=True)
 
     if engine_summary is None:
         st.info("Turn on **Run picky betting** 🎲 in the sidebar, then run again 🏇.")
@@ -2703,9 +3285,14 @@ def main() -> None:
             "If the wave flops, don't say we didn't warn you, man. "
             "Click **🏇 Run Analysis** to find out 🔮."
         )
+        render_clipart_row(
+            ("horse", "yin_yang", "mushroom", "eight_ball"),
+            bobble=True,
+        )
 
     prereg = load_prereg()
     opts = render_sidebar(prereg)
+    st.session_state["pending_opts"] = opts
 
     def _render_result_tabs(state: dict) -> None:
         tab_over, tab_nt, tab_bt, tab_eng, tab_raw = st.tabs(TAB_LABELS)
@@ -2720,34 +3307,45 @@ def main() -> None:
         with tab_raw:
             render_raw_data(state)
 
-    if opts is None:
-        if st.session_state.get("analysis"):
-            with st.container(key="tour_empty_intro"):
-                st.caption(
-                    "Weird 🐎 race days vs McKenna's 🌊 calendar wave. "
-                    "Change the sidebar and click **🏇 Run Analysis** to refresh."
-                )
+    def _main_run_button() -> bool:
+        return st.button(
+            "🏇 Run Analysis",
+            type="primary",
+            key="tour_run_button",
+            use_container_width=True,
+        )
+
+    run_clicked = False
+    if st.session_state.get("analysis"):
+        with st.container(key="tour_empty_intro"):
+            st.caption(
+                "Weird 🐎 race days vs McKenna's 🌊 calendar wave. "
+                "Change the sidebar, then click **🏇 Run Analysis** below to refresh."
+            )
+            run_clicked = _main_run_button()
+        if not run_clicked:
             st.info(
                 "Showing the last run. Change the sidebar and click "
-                "**🏇 Run Analysis** to refresh ✨."
+                "**🏇 Run Analysis** above to refresh ✨."
             )
             _render_result_tabs(st.session_state["analysis"])
             maybe_start_tour(has_results=True)
-        else:
-            with st.container(key="tour_empty_intro"):
-                st.markdown(EMPTY_STATE_MARKDOWN)
+            return
+    else:
+        with st.container(key="tour_empty_intro"):
+            st.markdown(EMPTY_STATE_MARKDOWN)
+            render_clipart_row(hero=True)
+            run_clicked = _main_run_button()
+        if not run_clicked:
             maybe_start_tour(has_results=False)
-        return
+            return
 
     loaded = load_runners(opts)
     if loaded is None:
         return
     runners, source_label = loaded
 
-    with st.container(key="tour_empty_intro"):
-        st.caption(
-            "Weird 🐎 race days vs McKenna's 🌊 calendar wave 🍄."
-        )
+    st.caption("Weird 🐎 race days vs McKenna's 🌊 calendar wave 🍄.")
 
     n_races = runners["race_id"].nunique()
     st.success(
@@ -2769,8 +3367,9 @@ def main() -> None:
         )
 
     engine_summary = None
-    hexagram = None
     mckenna_daily_pnl = None
+    # Seed-tied cast for the 64-slot visual (same RNG as picky betting when enabled).
+    hexagram = IChingSelector(seed=opts["engine_seed"]).cast_hexagram()
     if opts["run_engine"]:
         with st.spinner("Running picky betting (four rules) …"):
             engine_summary = run_engine_summary(
@@ -2781,8 +3380,6 @@ def main() -> None:
                 opts["takeout"],
                 opts["engine_seed"],
             )
-            iching = IChingSelector(seed=opts["engine_seed"])
-            hexagram = iching.cast_hexagram()
         with st.spinner("Computing picky-betting money series …"):
             mckenna_daily_pnl = mckenna_gated_daily_pnl(
                 runners,
