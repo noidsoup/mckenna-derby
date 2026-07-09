@@ -141,6 +141,7 @@ def test_beta_favorites_overbet_gives_positive_modeled_roi(runners):
     assert sel["roi_pct"] > 0
     gated = _row(summary, "selective_gated")
     assert gated["races"] < sel["races"]  # gate actually filters races
+    assert gated["races"] > 0  # causal gate still fires after warm-up
 
 
 def test_random_control_matches_gated_ticket_counts(runners):
@@ -159,3 +160,63 @@ def test_summary_shape(runners):
     assert set(summary.columns) == {
         "strategy", "races", "tickets", "cost", "payout", "pnl", "roi_pct",
     }
+
+
+def test_resonance_gate_is_causal(runners):
+    """Truncating future days must not change which past days were gated.
+
+    Fixed min_history so length-dependent warm-up defaults cannot confound.
+    """
+    from mckenna_derby.mckenna_engine import _compute_gated_days
+    from mckenna_derby.novelty import daily_novelty, score_races
+
+    scores = score_races(runners)
+    daily = daily_novelty(scores)
+    mh = 10
+    full = _compute_gated_days(
+        daily, gate_pct=20.0, wave_factor=64, levels=3, min_history=mh
+    )
+    mid = daily.index[len(daily) // 2]
+    trunc = _compute_gated_days(
+        daily.loc[:mid], gate_pct=20.0, wave_factor=64, levels=3, min_history=mh
+    )
+    assert trunc.issubset(full)
+
+
+def test_selective_settlement_uses_actual_trifecta_payout():
+    """When trifecta_payout is present, settlement uses the actual dividend."""
+    # 3 runners → 6 trifecta permutations; buy_all always holds the winner.
+    runners = pd.DataFrame(
+        {
+            "date": pd.to_datetime(["2010-01-01"] * 3 + ["2010-01-02"] * 3),
+            "race_id": [1, 1, 1, 2, 2, 2],
+            "horse": ["A", "B", "C", "A", "B", "C"],
+            "decimal_odds": [2.0, 3.0, 4.0, 2.0, 3.0, 4.0],
+            "finish_position": [1, 2, 3, 1, 2, 3],
+            "trifecta_payout": [999.0, 999.0, 999.0, 999.0, 999.0, 999.0],
+        }
+    )
+    modeled = selective_backtest(
+        runners.drop(columns=["trifecta_payout"]),
+        beta=1.0,
+        takeout=0.22,
+        seed=1,
+        wave_factor=2,
+        levels=1,
+    )
+    actual = selective_backtest(
+        runners,
+        beta=1.0,
+        takeout=0.22,
+        seed=1,
+        wave_factor=2,
+        levels=1,
+    )
+    buy_modeled = _row(modeled, "buy_all")
+    buy_actual = _row(actual, "buy_all")
+    # Same ticket counts; actual settlement pays 999/race instead of the model.
+    assert buy_actual["tickets"] == buy_modeled["tickets"] == 12
+    assert buy_actual["cost"] == pytest.approx(12.0)
+    assert buy_actual["payout"] == pytest.approx(1998.0)
+    assert buy_actual["payout"] > buy_modeled["payout"]
+    assert buy_actual["pnl"] == pytest.approx(1986.0)

@@ -6,9 +6,14 @@ from pathlib import Path
 
 import pandas as pd
 
+# Lead with the honest inference statistic; naive p-values are secondary.
 PRIMARY_KEYS = [
-    "number_set", "n_days", "pearson_r", "pearson_p",
-    "spearman_r", "spearman_p", "permutation_p", "interpretation",
+    "number_set", "n_days", "spearman_r", "permutation_p", "interpretation",
+]
+NAIVE_KEYS = [
+    ("pearson_r", "pearson_r (naive)"),
+    ("pearson_p", "pearson_p (naive / uncorrected)"),
+    ("spearman_p", "spearman_p (naive / uncorrected)"),
 ]
 
 
@@ -34,8 +39,16 @@ def write_report(path, source: str, prereg: dict, primary: dict,
     ]
 
     lines += ["## Primary analysis (pre-registered)", ""]
+    lines.append(
+        "Primary inference uses the circular-shift **permutation p** "
+        "(accounts for autocorrelation). Pearson/Spearman p-values below are "
+        "naive / uncorrected and should not be treated as confirmatory."
+    )
+    lines.append("")
     for k in PRIMARY_KEYS:
         lines.append(f"- **{k}:** {primary[k]}")
+    for key, label in NAIVE_KEYS:
+        lines.append(f"- **{label}:** {primary[key]}")
     lines.append("")
 
     lines += [
@@ -45,8 +58,13 @@ def write_report(path, source: str, prereg: dict, primary: dict,
 
     lines += [
         "## Backtest (buy every trifecta combination)", "",
+        "Day selection uses a causal expanding-window timewave percentile "
+        "(no full-sample look-ahead).",
+        "",
         "| strategy | races | cost | P&L | ROI | profitable races |",
         "|---|---|---|---|---|---|",
+    ]
+    lines += [
         _backtest_row("Timewave-filtered", backtest_res["strategy"]),
         _backtest_row("Bet every race", backtest_res["bet_every_race"]),
         "",
@@ -55,7 +73,8 @@ def write_report(path, source: str, prereg: dict, primary: dict,
     lines += [
         f"Payout sources: {src_counts}. Modeled payouts have an expected ROI of "
         "exactly -takeout by construction; conclusions about profitability "
-        "require actual historical dividends.",
+        "require actual historical dividends. ROI comparisons are exploratory "
+        "and are not pre-registered success criteria.",
         "",
     ]
 

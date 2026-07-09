@@ -55,6 +55,7 @@ from functools import lru_cache
 import numpy as np
 import pandas as pd
 
+from .backtest import causal_select_mask, default_min_history
 from .novelty import daily_novelty, implied_probabilities, score_races
 
 DEFAULT_TAKEOUT = 0.22
@@ -190,14 +191,29 @@ def _harville_all(p: np.ndarray) -> np.ndarray:
 
 
 def _compute_gated_days(
-    daily: pd.Series, gate_pct: float, wave_factor: int, levels: int,
+    daily: pd.Series,
+    gate_pct: float,
+    wave_factor: int,
+    levels: int,
+    min_history: int | None = None,
 ) -> set:
-    """Days whose rolling-timewave resonance is in the top ``gate_pct`` percent."""
+    """Days whose resonance is in the top ``gate_pct``% under a causal rule.
+
+    Uses an expanding-window percentile of *past-only* resonance values
+    (exclusive of today), matching :func:`mckenna_derby.backtest.causal_select_mask`.
+    Days with fewer than ``min_history`` past resonance observations are
+    never gated in. Default ``min_history`` is
+    ``min(30, len(resonance) // 2)``.
+    """
     resonance = RollingTimewave(wave_factor=wave_factor, levels=levels).signal(daily)
     if len(resonance) == 0:
         return set()
-    cutoff = np.percentile(resonance.to_numpy(), 100.0 - gate_pct)
-    return set(resonance[resonance >= cutoff].index)
+    mh = default_min_history(len(resonance)) if min_history is None else int(min_history)
+    # High-resonance gate: lower bound = expanding (100 - gate_pct) percentile.
+    mask = causal_select_mask(
+        resonance, 100.0 - gate_pct, min_history=mh, side="high"
+    )
+    return set(mask.index[mask])
 
 
 def _selective_picks(
@@ -214,6 +230,23 @@ def _selective_picks(
     return qualifying
 
 
+def _settlement_payout(
+    g: pd.DataFrame, modeled_win_payout: float, ticket: float,
+) -> float:
+    """Winning-ticket payout for settlement: actual dividend when present.
+
+    Selection / EV still uses the modeled pool; only the cash settled on a
+    winning ticket prefers ``trifecta_payout`` (scaled to ``ticket`` size)
+    when the race carries a non-null actual dividend.
+    """
+    if "trifecta_payout" in g.columns:
+        actual = g["trifecta_payout"].iloc[0]
+        if pd.notna(actual):
+            # trifecta_payout is defined per $1 ticket (same as backtest.race_pnl).
+            return float(actual) * float(ticket)
+    return float(modeled_win_payout)
+
+
 def _build_race_bets(
     g: pd.DataFrame,
     beta: float,
@@ -225,7 +258,12 @@ def _build_race_bets(
     iching: "IChingSelector",
     control_rng: np.random.Generator,
 ) -> dict:
-    """Compute per-strategy (n_tickets, won) tuples for one race."""
+    """Compute per-strategy (n_tickets, won, win_payout) tuples for one race.
+
+    EV / combo selection uses the beta-distorted *modeled* pool. Settlement
+    payout for a winning ticket uses actual ``trifecta_payout`` when present
+    on the race rows, otherwise the modeled win payout.
+    """
     g = g.sort_values("finish_position")
     p = implied_probabilities(g["decimal_odds"].to_numpy())
     fair = _harville_all(p)
@@ -233,12 +271,13 @@ def _build_race_bets(
 
     pool_w = fair ** beta
     pool = pool_w / pool_w.sum()
-    payout = ticket * (1.0 - takeout) / pool
-    ev = fair * payout - ticket
+    modeled_payout = ticket * (1.0 - takeout) / pool
+    ev = fair * modeled_payout - ticket
 
     # Runners sorted by finish position: winning exact order is always index 0.
     winner = 0
-    win_payout = float(payout[winner])
+    modeled_win = float(modeled_payout[winner])
+    win_payout = _settlement_payout(g, modeled_win, ticket)
     day = g["date"].iloc[0].date()
 
     qualifying = np.where(ev > ev_threshold)[0]
@@ -292,6 +331,7 @@ def selective_backtest(
     seed: int = 1904,
     wave_factor: int = 64,
     levels: int = 3,
+    min_history: int | None = None,
 ) -> pd.DataFrame:
     """Compare four trifecta strategies over the same runner-level data.
 
@@ -304,11 +344,20 @@ def selective_backtest(
                             tickets per race by the I Ching selector.
     - ``selective_gated``:  ``selective``, but only on days whose fractal
                             resonance signal is in the top ``gate_pct``
-                            percent.
+                            percent under a *causal* expanding-window rule
+                            (past-only; see ``_compute_gated_days``).
     - ``random_control``:   for every race ``selective_gated`` bets, the same
                             NUMBER of tickets chosen uniformly at random —
                             the control that separates pricing skill from
                             ticket-count luck.
+
+    Selection vs settlement
+    -----------------------
+    Combo selection and EV use the beta-distorted *modeled* pool. When a
+    race carries a non-null ``trifecta_payout`` column (actual dividend per
+    $1 ticket), that actual dividend is used to settle the winning ticket's
+    payout; otherwise settlement falls back to the modeled win payout.
+    This matches ``backtest.race_pnl``.
 
     Returns a summary DataFrame with one row per strategy: races, tickets,
     cost, payout, pnl, roi_pct. See the module docstring for why any profit
@@ -316,7 +365,9 @@ def selective_backtest(
     """
     scores = score_races(runners)
     daily = daily_novelty(scores)
-    gated_days = _compute_gated_days(daily, gate_pct, wave_factor, levels)
+    gated_days = _compute_gated_days(
+        daily, gate_pct, wave_factor, levels, min_history=min_history,
+    )
     iching = IChingSelector(seed=seed)
     control_rng = np.random.default_rng(seed + 1)
 

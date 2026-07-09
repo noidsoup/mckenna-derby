@@ -75,8 +75,11 @@ kaggle datasets download -d gdaley/hkracing -p rawdata --unzip
 python run_analysis.py --hk rawdata/
 ```
 
-Other options: `--number-set {kelley,watkins,sheliak,huangti}`,
-`--takeout 0.25`, `--threshold-pct 10` (bet only the most-novel N% of days).
+CLI flags for data and exploratory extras: `--hk DIR`, `--csv FILE`,
+`--sweep`, `--max-lag N`, `--start` / `--end` (synthetic range). Primary
+analysis params (number set, threshold, takeout, metric) come from
+`prereg.json` — the CLI does not override them. The Streamlit dashboard can
+override those for exploratory runs.
 
 The primary analysis (number set, threshold, takeout) is fixed in
 `prereg.json` and must not be edited after the first real-data run. To use

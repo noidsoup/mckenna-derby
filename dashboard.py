@@ -156,13 +156,13 @@ def animate_novelty_timewave(
     daily: pd.Series, tw: pd.Series, max_frames: int = MAX_ANIM_FRAMES
 ) -> go.Figure:
     dates = pd.to_datetime(pd.Index(daily.index))
-    daily_z = (daily - daily.mean()) / daily.std(ddof=0) if daily.std(ddof=0) > 0 else daily
+    # daily_novelty is already field-size z-scored; plot as-is (no second z-score).
     tw_inv = -tw
     idx = _subsample_indices(len(dates), max_frames)
 
     fig = make_subplots(specs=[[{"secondary_y": True}]])
     fig.add_trace(
-        go.Scatter(x=[], y=[], name="Novelty z-score", line=dict(color="rgb(31,119,180)")),
+        go.Scatter(x=[], y=[], name="Daily novelty", line=dict(color="rgb(31,119,180)")),
         secondary_y=False,
     )
     fig.add_trace(
@@ -183,7 +183,7 @@ def animate_novelty_timewave(
             go.Frame(
                 name=label,
                 data=[
-                    go.Scatter(x=dates[sl], y=daily_z.iloc[sl]),
+                    go.Scatter(x=dates[sl], y=daily.iloc[sl]),
                     go.Scatter(x=dates[sl], y=tw_inv.iloc[sl]),
                 ],
                 traces=[0, 1],
@@ -192,7 +192,7 @@ def animate_novelty_timewave(
 
     fig.frames = frames
     fig.update_xaxes(title_text="Date")
-    fig.update_yaxes(title_text="Novelty z-score", secondary_y=False)
+    fig.update_yaxes(title_text="Daily novelty", secondary_y=False)
     fig.update_yaxes(title_text="Timewave (inverted)", secondary_y=True)
     menus, sliders = _play_slider_menus(labels, xaxis_title="Date")
     fig.update_layout(
@@ -523,14 +523,19 @@ def run_pipeline(
     do_sweep: bool,
     max_lag: int,
     seed: int,
+    engine_gate_pct: float = 20.0,
 ) -> dict:
     scores = novelty.score_races(runners)
     daily = novelty.daily_novelty(scores, metric=metric)
-    primary = compare.compare(daily, number_set=number_set)
+    primary = compare.compare(daily, number_set=number_set, seed=seed)
 
     exploratory_rows = []
     for ns in ALL_SETS:
-        r = primary if ns == number_set else compare.compare(daily, number_set=ns)
+        r = (
+            primary
+            if ns == number_set
+            else compare.compare(daily, number_set=ns, seed=seed)
+        )
         exploratory_rows.append(
             {
                 "number_set": ns,
@@ -547,11 +552,10 @@ def run_pipeline(
     sweep = bt.threshold_sweep(scores, tw, takeout=takeout) if do_sweep else None
     lag = compare.lead_lag(daily, number_set, max_lag=max_lag) if max_lag > 0 else None
 
+    from mckenna_derby.mckenna_engine import _compute_gated_days
+
     resonance = RollingTimewave().signal(daily)
-    gated_days: set = set()
-    if len(resonance) > 0:
-        cutoff = np.percentile(resonance.to_numpy(), 100.0 - threshold_pct)
-        gated_days = set(resonance[resonance >= cutoff].index)
+    gated_days = _compute_gated_days(daily, engine_gate_pct, wave_factor=64, levels=3)
 
     return {
         "scores": scores,
@@ -598,13 +602,12 @@ def mckenna_gated_daily_pnl(
     from mckenna_derby.mckenna_engine import TICKET_PRICE, _harville_all
     from mckenna_derby.novelty import implied_probabilities
 
+    from mckenna_derby.mckenna_engine import _compute_gated_days, _settlement_payout
+
     scores = novelty.score_races(runners)
     daily = novelty.daily_novelty(scores)
     resonance = RollingTimewave().signal(daily)
-    gated_days: set = set()
-    if len(resonance) > 0:
-        cutoff = np.percentile(resonance.to_numpy(), 100.0 - gate_pct)
-        gated_days = set(resonance[resonance >= cutoff].index)
+    gated_days = _compute_gated_days(daily, gate_pct, wave_factor=64, levels=3)
 
     iching = IChingSelector(seed=seed)
     ticket = TICKET_PRICE
@@ -620,7 +623,7 @@ def mckenna_gated_daily_pnl(
         payout = ticket * (1.0 - takeout) / pool
         ev = fair * payout - ticket
         winner = 0
-        win_payout = float(payout[winner])
+        win_payout = _settlement_payout(g, float(payout[winner]), ticket)
         day = g["date"].iloc[0].date()
 
         qualifying = np.where(ev > 0.0)[0]
@@ -777,8 +780,8 @@ def render_overview(state: dict) -> None:
     c1, c2, c3, c4, c5 = st.columns(5)
     c1.metric("Races", f"{runners['race_id'].nunique():,}")
     c2.metric("Runners", f"{len(runners):,}")
-    c3.metric("Spearman r", f"{primary['spearman_r']:+.4f}")
-    c4.metric("Permutation p", f"{primary['permutation_p']:.4f}")
+    c3.metric("Permutation p", f"{primary['permutation_p']:.4f}")
+    c4.metric("Spearman r", f"{primary['spearman_r']:+.4f}")
     c5.metric("Days", f"{primary['n_days']:,}")
 
     with st.expander("All run settings & data summary", expanded=True):
@@ -824,10 +827,15 @@ def render_novelty_timewave(state: dict) -> None:
 
     st.subheader("Primary correlation (pre-registered)")
     c1, c2, c3, c4 = st.columns(4)
-    c1.metric("Pearson r", f"{primary['pearson_r']:+.4f}")
+    c1.metric("Permutation p", f"{primary['permutation_p']:.4f}")
     c2.metric("Spearman r", f"{primary['spearman_r']:+.4f}")
-    c3.metric("Permutation p", f"{primary['permutation_p']:.4f}")
-    c4.metric("Days aligned", f"{primary['n_days']:,}")
+    c3.metric("Days aligned", f"{primary['n_days']:,}")
+    c4.metric("Naive Pearson p", f"{primary['pearson_p']:.4f}")
+    st.caption(
+        "Primary inference uses the circular-shift **permutation p**. "
+        f"Naive (uncorrected) Spearman p = {primary['spearman_p']:.4f}; "
+        f"naive Pearson p = {primary['pearson_p']:.4f}."
+    )
     st.info(primary["interpretation"])
 
     st.subheader("Exploratory: all number sets (Bonferroni ×4)")
@@ -970,11 +978,12 @@ def render_mckenna_engine(state: dict) -> None:
             roi = row["roi_pct"]
             sc6.metric("ROI", f"{roi:+.2f}%" if pd.notna(roi) else "N/A")
 
+    from mckenna_derby.mckenna_engine import _compute_gated_days
+
     resonance = result["resonance"]
-    gated_days: set = set()
-    if len(resonance) > 0:
-        cutoff = np.percentile(resonance.to_numpy(), 100.0 - opts["engine_gate_pct"])
-        gated_days = set(resonance[resonance >= cutoff].index)
+    gated_days = _compute_gated_days(
+        result["daily"], opts["engine_gate_pct"], wave_factor=64, levels=3
+    )
 
     st.plotly_chart(
         animate_resonance(resonance, gated_days),
@@ -1094,6 +1103,7 @@ def main() -> None:
             opts["do_sweep"],
             opts["max_lag"],
             opts["engine_seed"],
+            opts["engine_gate_pct"],
         )
 
     engine_summary = None

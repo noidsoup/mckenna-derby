@@ -32,6 +32,10 @@ def compare(daily_novelty: pd.Series, number_set: str = "kelley", n_permutations
 
     Returns Pearson and Spearman correlations plus a circular-shift
     permutation p-value for the Spearman statistic.
+
+    Primary inference should use ``permutation_p``. ``pearson_p`` and
+    ``spearman_p`` are naive / uncorrected (they ignore autocorrelation) and
+    are retained for transparency only.
     """
     tw = timewave_series_for(daily_novelty.index, number_set)
     x = daily_novelty.to_numpy()
