@@ -13,7 +13,7 @@ Primary always-on context for AI assistants. Read **AI_RUNBOOK.md** for operatio
 
 | Layer | Choice |
 |-------|--------|
-| Language | Python 3.9+ (main venv); CrewAI needs 3.10+ |
+| Language | Python 3.9+ (main venv) |
 | Package | `mckenna_derby` (setuptools, `pyproject.toml`) |
 | Data | pandas, NumPy |
 | Stats | SciPy (`stats`, permutation tests) |
@@ -47,13 +47,6 @@ Primary always-on context for AI assistants. Read **AI_RUNBOOK.md** for operatio
 ## Context7
 
 Prefer library IDs in `.cursor/context7-libraries.md`. Use for Streamlit, SciPy stats, pandas, pytest APIs.
-
-## CrewAI planner
-
-- Location: `crewai/` (separate subproject; requires **Python 3.10+**)
-- Setup: `cd crewai && cp .env.example .env` (set `OPENAI_API_KEY`), then `crewai install` and `crewai run`
-- Output: `crewai/plan_output.md` → copy or symlink to `.cursor/plans/PLAN.md`
-- Workflow: pair with global `plan-and-implement` skill for multi-step features
 
 ## Commands
 

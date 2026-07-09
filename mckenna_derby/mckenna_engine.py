@@ -189,6 +189,98 @@ def _harville_all(p: np.ndarray) -> np.ndarray:
     return p[i1] * p[i2] / (1.0 - p[i1]) * p[i3] / (1.0 - p[i1] - p[i2])
 
 
+def _compute_gated_days(
+    daily: pd.Series, gate_pct: float, wave_factor: int, levels: int,
+) -> set:
+    """Days whose rolling-timewave resonance is in the top ``gate_pct`` percent."""
+    resonance = RollingTimewave(wave_factor=wave_factor, levels=levels).signal(daily)
+    if len(resonance) == 0:
+        return set()
+    cutoff = np.percentile(resonance.to_numpy(), 100.0 - gate_pct)
+    return set(resonance[resonance >= cutoff].index)
+
+
+def _selective_picks(
+    ev: np.ndarray, fair: np.ndarray, k_max: int, iching: "IChingSelector",
+) -> np.ndarray:
+    """Indices of the +EV combinations, capped at ``k_max`` by the I Ching selector."""
+    qualifying = np.where(ev > 0.0)[0]
+    if len(qualifying) > k_max:
+        picked = iching.select_combinations(
+            list(qualifying), k_max,
+            weights=fair[qualifying] * ev[qualifying],
+        )
+        return np.asarray(picked, dtype=int)
+    return qualifying
+
+
+def _build_race_bets(
+    g: pd.DataFrame,
+    beta: float,
+    takeout: float,
+    ticket: float,
+    ev_threshold: float,
+    k_max: int,
+    gated_days: set,
+    iching: "IChingSelector",
+    control_rng: np.random.Generator,
+) -> dict:
+    """Compute per-strategy (n_tickets, won) tuples for one race."""
+    g = g.sort_values("finish_position")
+    p = implied_probabilities(g["decimal_odds"].to_numpy())
+    fair = _harville_all(p)
+    n_combos = len(fair)
+
+    pool_w = fair ** beta
+    pool = pool_w / pool_w.sum()
+    payout = ticket * (1.0 - takeout) / pool
+    ev = fair * payout - ticket
+
+    # Runners sorted by finish position: winning exact order is always index 0.
+    winner = 0
+    win_payout = float(payout[winner])
+    day = g["date"].iloc[0].date()
+
+    qualifying = np.where(ev > ev_threshold)[0]
+    if len(qualifying) > k_max:
+        bought = _selective_picks(ev, fair, k_max, iching)
+    else:
+        bought = qualifying
+
+    bet = {
+        "buy_all": (n_combos, True),
+        "selective": (len(bought), bool(np.isin(winner, bought))),
+    }
+
+    if day in gated_days and len(bought) > 0:
+        bet["selective_gated"] = (len(bought), bool(np.isin(winner, bought)))
+        rand = control_rng.choice(n_combos, size=len(bought), replace=False)
+        bet["random_control"] = (len(rand), bool(np.isin(winner, rand)))
+
+    return {s: (n, w, win_payout) for s, (n, w) in bet.items()}
+
+
+def _summarize_totals(totals: dict) -> pd.DataFrame:
+    """Flatten the per-strategy running totals into the summary DataFrame."""
+    rows = []
+    for s in STRATEGIES:
+        t = totals[s]
+        pnl = t["payout"] - t["cost"]
+        rows.append(
+            {
+                "strategy": s,
+                "races": t["races"],
+                "tickets": t["tickets"],
+                "cost": round(t["cost"], 2),
+                "payout": round(t["payout"], 2),
+                "pnl": round(pnl, 2),
+                "roi_pct": round(100.0 * pnl / t["cost"], 2)
+                if t["cost"] > 0 else float("nan"),
+            }
+        )
+    return pd.DataFrame(rows)
+
+
 def selective_backtest(
     runners: pd.DataFrame,
     beta: float = 1.0,
@@ -224,13 +316,7 @@ def selective_backtest(
     """
     scores = score_races(runners)
     daily = daily_novelty(scores)
-    resonance = RollingTimewave(wave_factor=wave_factor, levels=levels).signal(daily)
-
-    gated_days: set = set()
-    if len(resonance) > 0:
-        cutoff = np.percentile(resonance.to_numpy(), 100.0 - gate_pct)
-        gated_days = set(resonance[resonance >= cutoff].index)
-
+    gated_days = _compute_gated_days(daily, gate_pct, wave_factor, levels)
     iching = IChingSelector(seed=seed)
     control_rng = np.random.default_rng(seed + 1)
 
@@ -251,61 +337,10 @@ def selective_backtest(
 
     df = runners.sort_values(["date", "race_id"])
     for _, g in df.groupby("race_id", sort=False):
-        g = g.sort_values("finish_position")
-        p = implied_probabilities(g["decimal_odds"].to_numpy())
-        n = len(p)
-        fair = _harville_all(p)
-        n_combos = len(fair)
+        for strategy, (n_tickets, won, win_payout) in _build_race_bets(
+            g, beta, takeout, ticket, ev_threshold, k_max,
+            gated_days, iching, control_rng,
+        ).items():
+            record(strategy, n_tickets, won, win_payout)
 
-        pool_w = fair ** beta
-        pool = pool_w / pool_w.sum()
-        payout = ticket * (1.0 - takeout) / pool
-        ev = fair * payout - ticket
-
-        # Runners are sorted by finish position, so the winning exact order
-        # is indices (0, 1, 2) — always the first generated permutation.
-        winner = 0
-        win_payout = float(payout[winner])
-        day = g["date"].iloc[0].date()
-
-        # (a) buy everything
-        record("buy_all", n_combos, True, win_payout)
-
-        # (c) selective, no gate
-        qualifying = np.where(ev > ev_threshold)[0]
-        if len(qualifying) > k_max:
-            picked = iching.select_combinations(
-                list(qualifying), k_max,
-                weights=fair[qualifying] * ev[qualifying],
-            )
-            bought = np.array(picked)
-        else:
-            bought = qualifying
-        record("selective", len(bought), winner in set(bought.tolist()), win_payout)
-
-        # (b) selective + resonance gate
-        if day in gated_days and len(bought) > 0:
-            record("selective_gated", len(bought),
-                   winner in set(bought.tolist()), win_payout)
-            # (d) random control: same ticket count, uniform choice
-            rand = control_rng.choice(n_combos, size=len(bought), replace=False)
-            record("random_control", len(rand),
-                   winner in set(rand.tolist()), win_payout)
-
-    rows = []
-    for s in STRATEGIES:
-        t = totals[s]
-        pnl = t["payout"] - t["cost"]
-        rows.append(
-            {
-                "strategy": s,
-                "races": t["races"],
-                "tickets": t["tickets"],
-                "cost": round(t["cost"], 2),
-                "payout": round(t["payout"], 2),
-                "pnl": round(pnl, 2),
-                "roi_pct": round(100.0 * pnl / t["cost"], 2)
-                if t["cost"] > 0 else float("nan"),
-            }
-        )
-    return pd.DataFrame(rows)
+    return _summarize_totals(totals)

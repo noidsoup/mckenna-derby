@@ -550,7 +550,7 @@ def run_pipeline(
     resonance = RollingTimewave().signal(daily)
     gated_days: set = set()
     if len(resonance) > 0:
-        cutoff = np.percentile(resonance.to_numpy(), 100.0 - 20.0)
+        cutoff = np.percentile(resonance.to_numpy(), 100.0 - threshold_pct)
         gated_days = set(resonance[resonance >= cutoff].index)
 
     return {
