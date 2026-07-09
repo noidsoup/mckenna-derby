@@ -194,130 +194,174 @@ def inject_app_css() -> None:
 EMPTY_STATE_MARKDOWN = """
 ### 🐴 What is this?
 
-**Question:** Do weird race days line up with McKenna's calendar wave
-(his map of when the world should feel more chaotic)?
+**Question:** Do weird 🐎 race days line up with Terence McKenna's 🌊 calendar wave
+(his 🍄 map of when the world should feel more 🌀 chaotic)?
 
-**Data:** Real Hong Kong races (1997–2005) are already loaded.
+**Who was he?** Ethnobotanist, psychedelic philosopher, and legendary raconteur —
+a **mystical genius** who tried to chart "novelty" (how wild history feels) as a
+wave across time. Wild idea. We test it with honest stats 🎱.
+
+**The wave:** Timewave Zero is his fractal calendar built from compressed
+☯️ I Ching number tables. In his story, **low wave ↔ high chaos/novelty**.
+The lore peaks at a "zero date" around **2012-12-21** — we use the historical
+window before that.
+
+**I Ching:** Ancient Chinese oracle of **64 hexagrams** 🔮. McKenna mined its
+structure for the wave tables. This app's picky-betting mode also uses a
+coin-cast hexagram-style picker 🃏 (same 64-pattern vibe — not a money tip).
+
+**Data:** Real Hong Kong 🏇 races (1997–2005) are already loaded.
 
 **What to do:** Click **🏇 Run Analysis** in the sidebar.
 
-Then open **📊 Overview**. On this data the main answer is usually "no match."
-That is an honest finding, not a tip sheet.
+Then open **📊 Overview**. On this data the main answer is usually "no match" ☯️.
+That is an honest finding, not a tip sheet 🔮.
 """
 
 SIDEBAR_INTRO = (
-    "This app asks two questions: Do surprising race days line up with "
-    "McKenna's calendar wave (his map of when the world should feel more "
-    "chaotic)? And does betting only on those \"wave\" days help — or do you "
-    "still lose the track's cut?\n\n"
-    "Read the controls below top to bottom, then click **Run Analysis**."
+    "This app asks two questions ☯️: Do surprising 🐎 race days line up with "
+    "Terence McKenna's 🌊 Timewave Zero (his 🍄 map of when the world should feel "
+    "more 🌀 chaotic)? And does betting only on those \"wave\" days help — or do "
+    "you still lose the track's cut?\n\n"
+    "McKenna was a mystical genius — ethnobotanist, psychedelic philosopher, "
+    "raconteur — who built that wave from fractal ☯️ I Ching tables "
+    "(low wave ↔ high novelty; zero-date lore ~2012). We keep the mystique in "
+    "the story and the honesty in the numbers 🎱.\n\n"
+    "Read the controls below top to bottom, then click **🏇 Run Analysis**."
 )
+
+WHO_IS_MCKENNA = """
+**🍄 Who is Terence McKenna?**
+
+A **mystical genius** of the late 20th century: ethnobotanist, psychedelic
+philosopher, and spellbinding raconteur. He mapped "novelty" — how strange and
+history-making a moment feels — onto a calendar wave he called **Timewave Zero** 🌊.
+
+**Timewave Zero:** Built from fractal / compressed number tables drawn from the
+☯️ **I Ching** (the ancient Chinese oracle of 64 hexagrams). In his telling,
+**low wave = high chaos/novelty**; habit and boredom sit higher on the wave.
+Pop lore ties the wave's climax to a **zero date** around **2012-12-21** —
+this app's usable history sits before that cliff.
+
+**I Ching here:** Same 64-hexagram DNA. McKenna used it for the wave tables;
+our optional **picky betting** 🎲 also casts a coin-toss hexagram-style pattern
+🃏 to thin tickets when too many look "hot." Theme emoji (☯️ 🔮 🍄 🎱 🐴) mark
+that oracle vibe — **not** a claim the oracle prints money.
+"""
 
 SIDEBAR_HELP = {
     "data": (
-        "**What is the Hong Kong data?** Real horse races from the Hong Kong "
+        "**What is the Hong Kong data?** 🏇 Real horse races from the Hong Kong "
         "Jockey Club, years **1997–2005** — about 6,000 races with odds and "
         "finish order. They ship inside this app (from a public Kaggle set), "
         "so you do not need to upload anything.\n\n"
         "That history is the default for the main test. Open **Advanced options** "
-        "only for a fake null demo (should show no signal) or your own CSV."
+        "only for a fake null demo 🎱 (should show no signal) or your own CSV."
     ),
     "locked": (
-        "**What is this section?** Before looking at results, we wrote down the "
+        "**What is this section?** ⭐ Before looking at results, we wrote down the "
         "recipe for the *main* claim (which wave table, cutoff, track cut, and "
         "surprise score). That recipe is locked so nobody can tweak knobs until "
         "the answer looks nicer.\n\n"
         "The run knobs below start on that recipe. You can change them to explore "
-        "— just don't treat a new combo as the official locked answer."
+        "✨ — just don't treat a new combo as the official locked answer."
     ),
     "params": (
-        "Knobs for this run of the main test. Defaults match the locked recipe "
-        "above. Changing them is fine for curiosity — not a new official result."
+        "Knobs for this run of the main test 🏇. Defaults match the locked recipe "
+        "above. Changing them is fine for curiosity 🔮 — not a new official result."
     ),
     "engine": (
-        "A stricter side experiment: fewer days, fewer tickets, and an optional "
-        "pool-bias guess. **Bias guess = 1.0** means fair prices (no free lunch). "
-        "Higher values pretend favorites are overbet — a guess, not a fact."
+        "A stricter side experiment 🎲: fewer days, fewer tickets, and an optional "
+        "pool-bias guess. When too many tickets look good, a **coin-cast "
+        "hexagram-style** picker 🃏 (☯️ I Ching vibe — 64 patterns) thins the field. "
+        "**Bias guess = 1.0** means fair prices ☯️ (no free lunch). "
+        "Higher values pretend favorites are overbet — a guess 🎱, not a fact."
     ),
 }
 
 # Visible captions under each sidebar control (no hover tooltips).
 SIDEBAR_CONTROL_CAPTIONS = {
     "number_set": (
-        "McKenna's wave is built from a number table (Kelley, Watkins, and others). "
-        "Different tables draw slightly different waves. **Kelley** is the locked default."
+        "McKenna's 🌊 Timewave is built from ☯️ I Ching–derived number tables "
+        "(Kelley, Watkins, and others). Different tables draw slightly different "
+        "waves. **Kelley** is the locked default."
     ),
     "threshold_pct": (
-        "Only treat days in the lowest X% of the wave as \"bet days.\" "
-        "Lower cutoff = fewer, more extreme days. In McKenna's idea, low wave = high chaos."
+        "Only treat days in the lowest X% of the wave as \"bet days\" 🏇. "
+        "Lower cutoff = fewer, more extreme days. In McKenna's story, "
+        "**low wave = high 🌀 chaos/novelty**."
     ),
     "takeout": (
-        "The share the track keeps from every bet pool (the house edge). "
+        "The share the track keeps from every bet pool (the house edge) 🏁. "
         "With no real edge, expect to lose about this fraction over time."
     ),
     "metric": (
-        "How we measure \"weird\" finishes given the odds. "
+        "How we measure \"weird\" 🍄 finishes given the odds. "
         "Top-3 finish surprise looks at 1st–2nd–3rd together; "
-        "Winner-only looks at just the winner."
+        "Winner-only looks at just the winner 🐴."
     ),
     "engine_seed": (
-        "A fixed starting number for any random ticket picks. "
+        "A fixed starting number for any random ticket picks 🎱. "
         "Same seed → same choices every run, so results are repeatable."
     ),
     "do_sweep": (
-        "Also try many cutoff values and plot returns. "
+        "Also try many cutoff values and plot returns ✨. "
         "Useful curiosity — not the locked main test."
     ),
     "max_lag": (
         "Check whether weird finishes lead or lag the wave by a few days "
-        "(timing offset). Set to 0 to skip this check."
+        "(timing offset) 🌙. Set to 0 to skip this check."
     ),
     "run_engine": (
-        "Turn on the stricter side experiment (fewer days / tickets). "
-        "Off = skip it and only run the main wave test."
+        "Turn on the stricter side experiment 🎲 (fewer days / tickets). "
+        "Off = skip it and only run the main wave test 🌊."
     ),
     "engine_beta": (
-        "1.0 assumes fair odds (no free lunch expected). "
-        "Above 1.0 pretends favorites are overbet — a guess you can explore, "
+        "1.0 assumes fair odds ☯️ (no free lunch expected). "
+        "Above 1.0 pretends favorites are overbet — a guess 🎱 you can explore, "
         "not a fact about the track."
     ),
     "engine_gate_pct": (
-        "Only bet on the hottest X% of days by the echo signal "
+        "Only bet on the hottest X% of days by the echo signal 🧿 "
         "(how strongly the day matches the wave idea). Lower % = pickier."
     ),
     "engine_k_max": (
-        "Cap how many tickets we buy in one race. "
-        "If too many look good, a coin-cast pick keeps this many."
+        "Cap how many tickets we buy in one race 🏇. "
+        "If too many look good, a coin-cast hexagram-style 🃏 pick "
+        "(☯️ I Ching 64-pattern vibe) keeps this many — theme, not a tip."
     ),
 }
 
 TAB_INTROS = {
     "overview": (
-        "Big picture for this run: how much data you have, whether surprising "
-        "race days lined up with McKenna's calendar wave, and whether betting "
-        "only on \"wave\" days beat betting every day. On historical Hong Kong "
-        "data the honest answer is usually \"no support\" — that is a finding, "
-        "not a tip sheet."
+        "Big picture 📊 for this run: how much 🐎 data you have, whether surprising "
+        "race days lined up with McKenna's 🌊 Timewave Zero (his I Ching–built "
+        "chaos calendar 🍄), and whether betting only on \"wave\" days beat betting "
+        "every day. Mystique in the story; honesty in the numbers — on Hong Kong "
+        "history the answer is usually \"no support\" ☯️, not a tip sheet 🔮."
     ),
     "novelty": (
-        "**Surprise score** = how unexpected the finishes were, given the odds. "
-        "**The wave** = McKenna's calendar of chaos. His idea: low wave ↔ high "
-        "surprise (they should move opposite ways). Near-zero link + high chance "
-        "score ≈ no support for that idea."
+        "**Surprise score** ✨ = how unexpected the finishes were, given the odds. "
+        "**The wave** 🌊 = McKenna's Timewave Zero calendar of 🌀 chaos, built from "
+        "☯️ I Ching number tables. His idea: **low wave ↔ high surprise** ☯️ "
+        "(they should move opposite ways). Near-zero link + high chance score "
+        "🎱 ≈ no support for that idea — null stays null."
     ),
     "backtest": (
-        "Pretend we buy every top-3 ticket on chosen days. The track keeps a cut, "
+        "Pretend we buy every top-3 ticket on chosen days 🏇. The track keeps a cut, "
         "so with no real edge you usually lose about that cut. Timing only helps "
         "if wave-picked days clearly beat betting every day — ROI near −track cut "
-        "is the boring baseline."
+        "is the boring baseline 🏁. A pretty wave does not print money by itself."
     ),
     "engine": (
-        "A pickier side experiment: fewer tickets, fewer days, and an optional "
-        "pool-bias guess. At bias = 1.0 (fair prices) you should not find a free "
-        "lunch. Higher bias is a guess about overbet favorites — not a fact."
+        "A pickier side experiment 🎲: fewer tickets, fewer days, optional pool-bias "
+        "guess, and a coin-cast **hexagram-style** ticket thinner 🃏 (same 64-pattern "
+        "☯️ I Ching vibe McKenna used for the wave tables). At bias = 1.0 (fair "
+        "prices ☯️) you should not find a free lunch. Higher bias is a guess 🎱 — "
+        "not a fact, and not a claim the oracle pays."
     ),
     "raw": (
-        "The race rows we scored, plus CSV downloads so you can check or reuse "
+        "The 🐎 race rows we scored, plus CSV downloads 📥 so you can check or reuse "
         "the numbers. This tab is the input and exports — not a new claim."
     ),
 }
@@ -342,20 +386,20 @@ def _interpret_match(primary: dict) -> str:
     r = float(primary["spearman_r"])
     if p >= 0.05:
         return (
-            f"**So what?** Chance score {p:.4f} is not small, and the rank link "
-            f"is {r:+.4f} (near 0 = little match). That is a **null** result: "
-            "these race days do not clearly line up with McKenna's wave. "
+            f"**So what?** 🎱 Chance score {p:.4f} is not small, and the rank link "
+            f"is {r:+.4f} (near 0 = little match). That is a **null** result ☯️: "
+            "these race days do not clearly line up with McKenna's 🌊 wave. "
             "On Hong Kong history that is the usual honest answer."
         )
     if r < 0:
         return (
-            f"**So what?** Chance score {p:.4f} is small and the rank link is "
+            f"**So what?** 🔮 Chance score {p:.4f} is small and the rank link is "
             f"{r:+.4f} (negative). That is the direction McKenna guessed "
-            "(low wave ↔ high surprise) — interesting, but still not betting advice."
+            "(low wave ↔ high surprise) ☯️ — interesting 🍄, but still not betting advice."
         )
     return (
-        f"**So what?** Chance score {p:.4f} is small, but the rank link is "
-        f"{r:+.4f} (positive) — the **opposite** of McKenna's guess. "
+        f"**So what?** 🎱 Chance score {p:.4f} is small, but the rank link is "
+        f"{r:+.4f} (positive) — the **opposite** of McKenna's guess 🌀. "
         "Treat as curious, not a tip."
     )
 
@@ -368,24 +412,24 @@ def _interpret_timing(strategy: dict, baseline: dict, takeout: float) -> str:
     delta = s_roi - b_roi
     if abs(s_roi - cut_pct) < 3 and abs(b_roi - cut_pct) < 3 and abs(delta) < 3:
         return (
-            f"**So what?** Wave-picked return {s_roi:+.2f}% vs every-day "
+            f"**So what?** 🏁 Wave-picked return {s_roi:+.2f}% vs every-day "
             f"{b_roi:+.2f}%. Both sit near the track's cut (~{cut_pct:.0f}%). "
             "That is the **boring baseline**: timing did not help."
         )
     if delta > 2:
         return (
-            f"**So what?** Wave-picked return {s_roi:+.2f}% beats every-day "
+            f"**So what?** ✨ Wave-picked return {s_roi:+.2f}% beats every-day "
             f"{b_roi:+.2f}% by about {delta:+.2f} points. That is **interesting** "
-            "on this sample — still not a promise it will keep working."
+            "on this sample — still not a promise it will keep working 🔮."
         )
     if delta < -2:
         return (
-            f"**So what?** Wave-picked return {s_roi:+.2f}% is worse than every-day "
+            f"**So what?** 🎱 Wave-picked return {s_roi:+.2f}% is worse than every-day "
             f"{b_roi:+.2f}%. Filtering by the wave hurt here — a null/negative "
-            "for the timing idea."
+            "for the timing idea ☯️."
         )
     return (
-        f"**So what?** Wave-picked {s_roi:+.2f}% vs every-day {b_roi:+.2f}% "
+        f"**So what?** 🏇 Wave-picked {s_roi:+.2f}% vs every-day {b_roi:+.2f}% "
         f"(difference {delta:+.2f} points). Too close to call — treat as "
         f"no clear timing edge. Expect ~{cut_pct:.0f}% with no edge."
     )
@@ -396,13 +440,13 @@ def _interpret_engine(opts: dict, engine_summary: pd.DataFrame | None) -> str:
     beta = float(opts["engine_beta"])
     if engine_summary is None or engine_summary.empty:
         return (
-            "**So what?** Picky betting was not run. Turn it on in the sidebar "
-            "and click Run Analysis again."
+            "**So what?** 🎲 Picky betting was not run. Turn it on in the sidebar "
+            "and click 🏇 Run Analysis again."
         )
     best = engine_summary.dropna(subset=["roi_pct"])
     if best.empty:
         return (
-            "**So what?** No usable returns in the picky-betting table for this run."
+            "**So what?** 🎱 No usable returns in the picky-betting table for this run."
         )
     top = best.loc[best["roi_pct"].idxmax()]
     roi = float(top["roi_pct"])
@@ -410,17 +454,17 @@ def _interpret_engine(opts: dict, engine_summary: pd.DataFrame | None) -> str:
     if abs(beta - 1.0) < 1e-9:
         if roi > 2:
             return (
-                f"**So what?** Bias is 1.0 (fair prices). Best rule **{name}** "
+                f"**So what?** 🔮 Bias is 1.0 (fair prices ☯️). Best rule **{name}** "
                 f"shows {roi:+.2f}% — surprising under a fair-pool assumption. "
                 "Double-check; do not treat as a free lunch."
             )
         return (
-            f"**So what?** Bias is 1.0 (fair prices). Best rule **{name}** "
+            f"**So what?** 🎱 Bias is 1.0 (fair prices ☯️). Best rule **{name}** "
             f"returns {roi:+.2f}%. Near zero or negative is the **expected null** — "
             "no free lunch when the pool is fair."
         )
     return (
-        f"**So what?** Bias guess is {beta:.2f} (not fair). Best rule **{name}** "
+        f"**So what?** 🃏 Bias guess is {beta:.2f} (not fair). Best rule **{name}** "
         f"returns {roi:+.2f}%. That only means \"if favorites were overbet that "
         "way\" — a guess, not proof the track is biased."
     )
@@ -1778,14 +1822,17 @@ def render_sidebar(prereg: dict) -> dict | None:
         st.markdown("##### 🐴 What this software does")
         st.caption(SIDEBAR_INTRO)
 
+        with st.expander("🍄 Who is Terence McKenna?", expanded=False):
+            st.markdown(WHO_IS_MCKENNA)
+
         render_tour_sidebar_controls()
 
         with st.container(key="tour_data_source"):
             st.header("📁 Your data")
             st.markdown(SIDEBAR_HELP["data"])
             st.caption(
-                f"Using: **Hong Kong races (bundled)** · "
-                f"{prereg.get('declared_on', 'locked')} recipe below."
+                f"Using: **Hong Kong 🏇 races (bundled)** · "
+                f"{prereg.get('declared_on', 'locked')} recipe below ⭐."
             )
             source = "Hong Kong (bundled)"
             uploaded = None
@@ -1793,9 +1840,9 @@ def render_sidebar(prereg: dict) -> dict | None:
 
             with st.expander("Advanced options", expanded=False):
                 st.caption(
-                    "Leave the default alone for the real Hong Kong test. "
+                    "Leave the default alone for the real Hong Kong 🏇 test. "
                     "Synthetic demo builds fake races that should show no wave "
-                    "signal. Upload CSV is for your own race file."
+                    "signal 🎱. Upload CSV is for your own race file."
                 )
                 advanced = st.radio(
                     "Use a different source",
@@ -1836,7 +1883,7 @@ def render_sidebar(prereg: dict) -> dict | None:
             f"- **Written down:** {prereg.get('declared_on', 'see prereg.json')}"
         )
         st.caption(
-            "Changing the knobs below does **not** rewrite this locked recipe. "
+            "Changing the knobs below does **not** rewrite this locked recipe ⭐. "
             "Only the locked combo counts as the official main answer."
         )
 
@@ -1924,8 +1971,8 @@ def render_sidebar(prereg: dict) -> dict | None:
             st.caption(SIDEBAR_CONTROL_CAPTIONS["engine_k_max"])
 
         st.caption(
-            "Runs the wave match test and (if enabled) picky betting on the "
-            "data above. Then open **Overview** for the plain-English answer."
+            "Runs the 🌊 wave match test and (if enabled) 🎲 picky betting on the "
+            "🐎 data above. Then open **📊 Overview** for the plain-English answer."
         )
         run = st.button("🏇 Run Analysis", type="primary", key="tour_run_button")
 
@@ -1992,16 +2039,16 @@ def render_overview(state: dict) -> None:
               help="Do surprise and the wave move together by rank? Near 0 = little match. Negative = McKenna's guess.")
     c5.metric("Days compared", f"{primary['n_days']:,}")
     st.caption(
-        "**Chance score** = how often a shuffled calendar looks this strong by luck. "
-        "High (e.g. 0.2–1.0) ≈ null. Small (under ~0.05) ≈ unlikely by chance. "
+        "**Chance score** 🎱 = how often a shuffled calendar looks this strong by luck. "
+        "High (e.g. 0.2–1.0) ≈ null ☯️. Small (under ~0.05) ≈ unlikely by chance. "
         "**Rank link** near 0 = little match; McKenna guessed negative (low wave ↔ high surprise)."
     )
     st.info(_interpret_match(primary))
 
     with st.expander("All run settings & data summary", expanded=True):
         st.caption(
-            "What this run used. Confirm the data source and locked-style knobs "
-            "before reading the charts as an \"official\" answer."
+            "What this run used 🏇. Confirm the data source and locked-style knobs "
+            "before reading the charts as an \"official\" answer ⭐."
         )
         sc1, sc2, sc3 = st.columns(3)
         sc1.metric("Data source", state["source_label"])
@@ -2017,9 +2064,9 @@ def render_overview(state: dict) -> None:
             if not best.empty:
                 top = best.loc[best["roi_pct"].idxmax()]
                 st.caption(
-                    f"Best picky strategy in this run: **{top['strategy']}** "
+                    f"Best picky strategy in this run 🎲: **{top['strategy']}** "
                     f"(return {top['roi_pct']:+.2f}%). At bias 1.0, a big positive "
-                    "return would be surprising; near zero or negative is the null."
+                    "return would be surprising 🔮; near zero or negative is the null ☯️."
                 )
 
     # Wider gauge column so the dial number/subtitle are not cramped.
@@ -2031,8 +2078,8 @@ def render_overview(state: dict) -> None:
             key="overview_verdict_gauge",
         )
         st.caption(
-            "Verdict dial — green zone (under ~0.05) = unlikely by chance. "
-            "Gray zone = the usual null. The big number is the chance score, not a tip."
+            "Verdict dial 🎱 — green zone (under ~0.05) = unlikely by chance. "
+            "Gray zone = the usual null ☯️. The big number is the chance score, not a tip."
         )
     with gc2:
         st.plotly_chart(
@@ -2041,10 +2088,10 @@ def render_overview(state: dict) -> None:
             key="overview_timeline",
         )
         st.caption(
-            "Blue = how weird race days were (cyan line). Purple = McKenna's wave "
-            "(flipped so high means \"chaos\" in his story). The shaded violet band "
+            "Blue = how weird race days were (cyan line) ✨. Purple = McKenna's wave "
+            "(flipped so high means \"chaos\" 🌀 in his story). The shaded violet band "
             "is the high-chaos zone on the wave. **How to read:** if his idea worked, "
-            "blue highs would tend to sit with purple highs. A messy overlap with no "
+            "blue highs would tend to sit with purple highs ☯️. A messy overlap with no "
             "clear pattern is the null. Hit **Play** or drag the slider to walk through time."
         )
 
@@ -2056,9 +2103,9 @@ def render_overview(state: dict) -> None:
             key="overview_scatter",
         )
         st.caption(
-            "Each dot is one day. A clear downward slope would match McKenna "
-            "(high surprise on low wave). A flat cloud = little match — the usual "
-            "Hong Kong read."
+            "Each dot is one day 🐴. A clear downward slope would match McKenna "
+            "(high surprise on low wave) ☯️. A flat cloud = little match — the usual "
+            "Hong Kong read 🎱."
         )
     with oc2:
         st.plotly_chart(
@@ -2067,14 +2114,14 @@ def render_overview(state: dict) -> None:
             key="overview_rolling_corr",
         )
         st.caption(
-            "Does the match come and go over time? Values near zero mean little "
-            "link in that window. A brief spike is curiosity, not a new main claim."
+            "Does the match come and go over time 🌙? Values near zero mean little "
+            "link in that window. A brief spike is curiosity ✨, not a new main claim."
         )
 
-    st.markdown("**Did the wave help pick better days?**")
+    st.markdown("**🏁 Did the wave help pick better days?**")
     st.caption(
-        "Wave-picked days = bet only when the wave is low. "
-        "Bet every race = no filter (expect to lose about the track's cut)."
+        "Wave-picked days = bet only when the wave is low 🌊. "
+        "Bet every race = no filter (expect to lose about the track's cut) 🏇."
     )
     bc1, bc2 = st.columns(2)
     s = res["strategy"]
@@ -2083,8 +2130,8 @@ def render_overview(state: dict) -> None:
     bc2.metric("Bet every race", f"Return {s_all['roi_pct']:+.2f}%", f"Profit/loss ${s_all['total_pnl']:+,.0f}")
     st.caption(
         "Return is profit or loss as a percent of money spent. "
-        "ROI near −track cut on both sides = timing did not help. "
-        "Wave-picked clearly better than every-day would be interesting — rare on this data."
+        "ROI near −track cut on both sides = timing did not help ☯️. "
+        "Wave-picked clearly better than every-day would be interesting ✨ — rare on this data."
     )
     st.info(_interpret_timing(s, s_all, opts["takeout"]))
 
@@ -2108,9 +2155,9 @@ def render_novelty_timewave(state: dict) -> None:
     c4.metric("Simple linear check", f"{primary['pearson_p']:.4f}",
               help="A simpler line-fit check — not the main claim")
     st.caption(
-        "We trust the **chance score** for the main claim. "
-        "High chance score + near-zero rank link = **null** (no support). "
-        "Small chance score + negative rank link = direction McKenna guessed. "
+        "We trust the **chance score** 🎱 for the main claim. "
+        "High chance score + near-zero rank link = **null** ☯️ (no support). "
+        "Small chance score + negative rank link = direction McKenna guessed 🍄. "
         f"Other checks are curiosity only "
         f"(rank-link chance {primary['spearman_p']:.4f}, "
         f"simple linear {primary['pearson_p']:.4f})."
@@ -2118,22 +2165,22 @@ def render_novelty_timewave(state: dict) -> None:
     st.info(_interpret_match(primary))
     st.caption(f"Engine note: {primary['interpretation']}")
 
-    st.subheader("Extra look: all wave tables")
+    st.subheader("✨ Extra look: all wave tables")
     st.caption(
-        "Same test on four number tables that build the wave (Kelley, Watkins, "
+        "Same test on four number tables that build the wave 🌊 (Kelley, Watkins, "
         "and others). We raise the bar because we peeked at four versions — "
-        "a \"hit\" on one table alone is weaker evidence."
+        "a \"hit\" on one table alone is weaker evidence 🎱."
     )
     st.dataframe(result["exploratory"], use_container_width=True, hide_index=True)
     st.caption(
-        "Each row is one wave table. Chance score is the honesty check; "
+        "Each row is one wave table. Chance score 🎱 is the honesty check; "
         "the raised bar is the same check made stricter for peeking. "
-        "Mostly high chance scores across rows = still a null story."
+        "Mostly high chance scores across rows = still a null story ☯️."
     )
 
-    st.subheader("Daily surprise scores")
+    st.subheader("✨ Daily surprise scores")
     st.caption(
-        "How weird finishes were, day by day. Higher = weirder given the odds. "
+        "How weird 🍄 finishes were, day by day. Higher = weirder given the odds. "
         "These numbers feed the blue line — they are not a betting tip by themselves."
     )
     dstat = series_stats(daily)
@@ -2144,14 +2191,14 @@ def render_novelty_timewave(state: dict) -> None:
     dc4.metric("Highest", f"{dstat['max']:.4f}")
     dc5.metric("Last day", f"{dstat['current']:.4f}")
     st.caption(
-        "Summary of the blue surprise line. Wide spread means some days were "
-        "much weirder than others — expected in racing, not proof of a wave."
+        "Summary of the blue surprise line ✨. Wide spread means some days were "
+        "much weirder than others — expected in racing 🏇, not proof of a wave."
     )
 
     st.subheader("🌊 McKenna's wave (same days)")
     st.caption(
-        "The calendar wave on the same days. In his story, low values = "
-        "\"high chaos\" zone — where surprise should pile up if the idea worked."
+        "The calendar wave on the same days 🌌. In his story, low values = "
+        "\"high chaos\" 🌀 zone — where surprise should pile up if the idea worked."
     )
     tstat = series_stats(tw)
     tc1, tc2, tc3, tc4 = st.columns(4)
@@ -2160,18 +2207,18 @@ def render_novelty_timewave(state: dict) -> None:
     tc3.metric("Highest", f"{tstat['max']:.4f}")
     tc4.metric("Last day", f"{tstat['current']:.4f}")
     st.caption(
-        "Summary of the purple wave line. The main question is whether this "
-        "line lines up with surprise — answered by the chance score above, not "
+        "Summary of the purple wave line 🌊. The main question is whether this "
+        "line lines up with surprise — answered by the chance score 🎱 above, not "
         "by these averages alone."
     )
 
     resonance = result["resonance"]
     if not resonance.empty:
-        st.subheader("Echo of past surprise")
+        st.subheader("🧿 Echo of past surprise")
         st.caption(
-            "A delayed echo of past race surprise. Used to pick days in picky "
-            "betting — **not** for the main wave test. Do not read this as "
-            "extra proof of McKenna's calendar."
+            "A delayed echo of past race surprise 🌙. Used to pick days in picky "
+            "betting 🎲 — **not** for the main wave test. Do not read this as "
+            "extra proof of McKenna's calendar 🍄."
         )
         rstat = series_stats(resonance)
         rc1, rc2, rc3, rc4, rc5 = st.columns(5)
@@ -2181,8 +2228,8 @@ def render_novelty_timewave(state: dict) -> None:
         rc4.metric("Highest", f"{rstat['max']:.4f}")
         rc5.metric("Last day", f"{rstat['current']:.4f}")
         st.caption(
-            "Higher echo = a \"hotter\" day for the picky-betting gate. "
-            "Interesting for that side experiment only."
+            "Higher echo = a \"hotter\" day for the picky-betting gate 🎲. "
+            "Interesting for that side experiment only ✨."
         )
 
     st.plotly_chart(
@@ -2192,7 +2239,7 @@ def render_novelty_timewave(state: dict) -> None:
     )
     st.caption(
         "Same timeline as Overview. Watch whether the two lines move opposite "
-        "ways, as McKenna guessed. No clear opposite dance = null."
+        "ways, as McKenna guessed ☯️. No clear opposite dance = null 🎱."
     )
     st.plotly_chart(
         animate_novelty_distribution(scores, metric=opts["metric"]),
@@ -2200,14 +2247,14 @@ def render_novelty_timewave(state: dict) -> None:
         key="novelty_hist",
     )
     st.caption(
-        "How surprise scores are spread across races. Play adds races one batch "
-        "at a time. A wide spread is normal; it does not mean the wave matched."
+        "How surprise scores are spread across races 🏇. Play adds races one batch "
+        "at a time. A wide spread is normal; it does not mean the wave matched 🎱."
     )
 
-    st.subheader("Extra pictures of the match")
+    st.subheader("🔮 Extra pictures of the match")
     st.caption(
-        "More views of how surprise and the wave relate. "
-        "The official answer still comes from the chance score above — "
+        "More views of how surprise and the wave relate ☯️. "
+        "The official answer still comes from the chance score 🎱 above — "
         "pretty pictures can mislead."
     )
     st.plotly_chart(
@@ -2216,9 +2263,9 @@ def render_novelty_timewave(state: dict) -> None:
         key="novelty_scatter_reveal",
     )
     st.caption(
-        "Each dot is one day — Play reveals them in date order. "
-        "Flat cloud = little match (null). Clear downward slope = direction "
-        "McKenna guessed."
+        "Each dot is one day — Play reveals them in date order 🐴. "
+        "Flat cloud = little match (null) ☯️. Clear downward slope = direction "
+        "McKenna guessed 🍄."
     )
     nc1, nc2 = st.columns(2)
     with nc1:
@@ -2228,8 +2275,8 @@ def render_novelty_timewave(state: dict) -> None:
             key="novelty_scatter",
         )
         st.caption(
-            "One dot per day. Flat cloud = little match (null). "
-            "Clear downward slope = direction McKenna guessed."
+            "One dot per day. Flat cloud = little match (null) ☯️. "
+            "Clear downward slope = direction McKenna guessed 🍄."
         )
     with nc2:
         st.plotly_chart(
@@ -2238,8 +2285,8 @@ def render_novelty_timewave(state: dict) -> None:
             key="novelty_rolling_corr",
         )
         st.caption(
-            "Does the link strengthen or fade in different periods? "
-            "Mostly near zero = still a null overall."
+            "Does the link strengthen or fade in different periods 🌙? "
+            "Mostly near zero = still a null overall 🎱."
         )
 
     st.plotly_chart(
@@ -2248,13 +2295,13 @@ def render_novelty_timewave(state: dict) -> None:
         key="novelty_calendar",
     )
     st.caption(
-        "Surprise by calendar day. Redder = weirder finishes that day of the "
+        "Surprise by calendar day 🌌. Redder = weirder finishes that day of the "
         "month. Seasonal color is background — not the main wave claim."
     )
 
-    st.subheader("What the races look like")
+    st.subheader("🐎 What the races look like")
     st.caption(
-        "Background on field size and favorites — context for the surprise "
+        "Background on field size and favorites 🏇 — context for the surprise "
         "scores, not the main wave test."
     )
     st.plotly_chart(
@@ -2264,7 +2311,7 @@ def render_novelty_timewave(state: dict) -> None:
     )
     st.caption(
         "Bigger fields look \"weirder\" in raw scores, so we compare within "
-        "similar field sizes before averaging by day. That keeps the main test fair."
+        "similar field sizes before averaging by day. That keeps the main test fair ☯️."
     )
     st.plotly_chart(
         plot_winner_profile(scores),
@@ -2272,18 +2319,18 @@ def render_novelty_timewave(state: dict) -> None:
         key="winner_profile",
     )
     st.caption(
-        "Left: how long winners paid. Right: how often the favorite won each "
-        "month. Useful market context — not evidence for or against the wave."
+        "Left: how long winners paid 🐴. Right: how often the favorite won each "
+        "month. Useful market context — not evidence for or against the wave 🌊."
     )
 
     if result["lag"] is not None:
         lag = result["lag"]
         best = lag.loc[lag["spearman_r"].abs().idxmax()]
-        st.subheader("Does surprise lead or lag?")
+        st.subheader("🌙 Does surprise lead or lag?")
         st.caption(
-            "Maybe surprise peaks a few days before or after the wave. "
+            "Maybe surprise peaks a few days before or after the wave 🌀. "
             "Curiosity only — not the main claim. A peak at 0 days with a weak "
-            "link is still a null for timing offsets."
+            "link is still a null for timing offsets 🎱."
         )
         st.write(
             f"Strongest link at a shift of **{int(best['lag_days'])}** days "
@@ -2291,12 +2338,12 @@ def render_novelty_timewave(state: dict) -> None:
         )
         st.plotly_chart(animate_lead_lag(lag), use_container_width=True, key="lead_lag")
         st.caption(
-            "The peak shows the shift (in days) with the strongest link. "
-            "A tall peak far from zero would be interesting; a flat line is null."
+            "The peak shows the shift (in days) with the strongest link 🌙. "
+            "A tall peak far from zero would be interesting ✨; a flat line is null 🎱."
         )
         with st.expander("Lead/lag numbers"):
             st.dataframe(lag, use_container_width=True, hide_index=True)
-            st.caption("One row per day-shift tried. Exploratory only.")
+            st.caption("One row per day-shift tried. Exploratory only 🔮.")
 
     with st.expander("Race-level scores (all columns)", expanded=False):
         display_cols = [
@@ -2305,8 +2352,8 @@ def render_novelty_timewave(state: dict) -> None:
         ]
         st.dataframe(scores[display_cols], use_container_width=True, hide_index=True)
         st.caption(
-            "One row per race with the surprise scores used above. "
-            "For checking the math inputs — not a tip sheet."
+            "One row per race with the surprise scores used above 🏇. "
+            "For checking the math inputs — not a tip sheet 🔮."
         )
 
 
@@ -2323,13 +2370,13 @@ def render_backtest(state: dict) -> None:
         st.markdown(f"**{label}**")
         if key == "strategy":
             st.caption(
-                "Only races on low-wave days. If the wave idea helped, this "
-                "block should look clearly better than \"Bet every race.\""
+                "Only races on low-wave days 🌊. If the wave idea helped, this "
+                "block should look clearly better than \"Bet every race\" 🏇."
             )
         else:
             st.caption(
-                "Same ticket idea with no day filter — the baseline. "
-                "Expect a return near −track cut when there is no edge."
+                "Same ticket idea with no day filter — the baseline 🏁. "
+                "Expect a return near −track cut when there is no edge ☯️."
             )
         bc1, bc2, bc3, bc4, bc5, bc6 = st.columns(6)
         bc1.metric("Races", f"{s['races']:,}")
@@ -2339,7 +2386,7 @@ def render_backtest(state: dict) -> None:
         bc5.metric("Return %", f"{s['roi_pct']:+.2f}%")
         bc6.metric("Winning races", f"{s['hit_profit_pct']:.1f}%")
         st.caption(
-            "Return % is profit or loss divided by money spent. "
+            "Return % is profit or loss divided by money spent 🏇. "
             "Winning races is the share of races that paid more than they cost. "
             "A high win rate with a bad return still loses money overall."
         )
@@ -2349,9 +2396,9 @@ def render_backtest(state: dict) -> None:
     st.metric("Wave cutoff value", f"{res['threshold_wave_value']:.6f}")
     src_counts = res["per_race"]["payout_source"].value_counts().to_dict()
     st.caption(
-        f"Wave cutoff value is the wave level that marks \"low enough to bet\" "
+        f"Wave cutoff value is the wave level that marks \"low enough to bet\" 🌊 "
         f"for this run's cutoff %. Payout sources: {src_counts}. "
-        "Real dividends beat modeled ones when both exist."
+        "Real dividends beat modeled ones when both exist ⭐."
     )
 
     st.plotly_chart(
@@ -2360,15 +2407,15 @@ def render_backtest(state: dict) -> None:
         key="cum_pnl",
     )
     st.caption(
-        "Running profit or loss over time. Play walks race by race. "
+        "Running profit or loss over time 🏁. Play walks race by race. "
         "**If wave timing helped**, the green (wave-picked) line should stay "
         "clearly above the red (every-day) one. Lines that both drift down near "
-        "the track's cut = null."
+        "the track's cut = null ☯️."
     )
 
-    st.subheader("Risk and spread")
+    st.subheader("🌀 Risk and spread")
     st.caption(
-        "How bumpy the money ride was — not just the final total. "
+        "How bumpy the money ride was 🏇 — not just the final total. "
         "A slightly better average with huge drawdowns is still a bad ride."
     )
     rc1, rc2 = st.columns(2)
@@ -2379,7 +2426,7 @@ def render_backtest(state: dict) -> None:
             key="pnl_violin",
         )
         st.caption(
-            "Shape of per-race wins and losses on wave-picked days vs other days. "
+            "Shape of per-race wins and losses on wave-picked days vs other days ☯️. "
             "Similar shapes = timing did not change the ride much."
         )
     with rc2:
@@ -2389,7 +2436,7 @@ def render_backtest(state: dict) -> None:
             key="drawdown",
         )
         st.caption(
-            "How far below its best point the running total fell. "
+            "How far below its best point the running total fell 🏁. "
             "Play walks the drawdown over time. Deeper dips = a bumpier, "
             "riskier path even if the end looks okay."
         )
@@ -2399,32 +2446,32 @@ def render_backtest(state: dict) -> None:
         key="monthly_pnl_heatmap",
     )
     st.caption(
-        "Green months made money on wave-picked days; red months lost. "
+        "Green months made money on wave-picked days; red months lost 🏇. "
         "A checkerboard of red and green with no lasting green streak = no "
-        "reliable timing edge."
+        "reliable timing edge ☯️."
     )
 
     if result["sweep"] is not None:
-        st.subheader("What if we change the cutoff?")
+        st.subheader("🔮 What if we change the cutoff?")
         st.caption(
-            "Returns across many wave cutoffs. Good for intuition — "
-            "not a replacement for the locked official cutoff. "
-            "Shopping for the prettiest bump is how you fool yourself."
+            "Returns across many wave cutoffs ✨. Good for intuition — "
+            "not a replacement for the locked official cutoff ⭐. "
+            "Shopping for the prettiest bump is how you fool yourself 🎱."
         )
         st.plotly_chart(plot_sweep(result["sweep"]), use_container_width=True, key="sweep")
         st.caption(
-            "A bump at one cutoff is curiosity, not a new official result. "
-            "A flat line near −track cut across cutoffs = null everywhere."
+            "A bump at one cutoff is curiosity ✨, not a new official result. "
+            "A flat line near −track cut across cutoffs = null everywhere ☯️."
         )
         with st.expander("Cutoff sweep numbers"):
             st.dataframe(result["sweep"], use_container_width=True, hide_index=True)
-            st.caption("One row per cutoff tried. Exploratory only.")
+            st.caption("One row per cutoff tried. Exploratory only 🔮.")
 
     with st.expander("Per-race detail"):
         st.dataframe(res["per_race"], use_container_width=True, hide_index=True)
         st.caption(
             "One row per race with cost, payout, and whether that day was "
-            "wave-picked. Use this to audit a strange month — not to cherry-pick."
+            "wave-picked 🏇. Use this to audit a strange month — not to cherry-pick 🧿."
         )
 
 
@@ -2438,8 +2485,8 @@ def render_mckenna_engine(state: dict) -> None:
     st.subheader("🎲 Picky betting")
     st.caption(TAB_INTROS["engine"])
     st.info(
-        "**Pool bias guess** is an assumption about whether the pool overbets favorites. "
-        "At 1.0 (fair prices), picky betting should find no edge — that is the honest null. "
+        "**Pool bias guess** 🃏 is an assumption about whether the pool overbets favorites. "
+        "At 1.0 (fair prices ☯️), picky betting should find no edge — that is the honest null 🎱. "
         "A win at other values only means \"if the pool were biased that way,\" not that "
         "it is."
     )
@@ -2450,28 +2497,28 @@ def render_mckenna_engine(state: dict) -> None:
     ec3.metric("Max tickets", opts["engine_k_max"])
     ec4.metric("Seed", opts["engine_seed"])
     st.caption(
-        "These are the sidebar settings for this run. "
-        "Bias 1.0 is the honest fair-price case. Lower \"hottest days %\" = pickier."
+        "These are the sidebar settings for this run 🎲. "
+        "Bias 1.0 is the honest fair-price case ☯️. Lower \"hottest days %\" = pickier."
     )
 
     if hexagram is not None:
-        st.markdown(f"### Last coin-cast pick: pattern **{hexagram}** / 64")
+        st.markdown(f"### 🃏 Last coin-cast pick: pattern **{hexagram}** / 64")
         st.caption(
-            "A repeatable random pick used when too many tickets look good. "
-            "Same seed → same pattern. It is a tie-breaker, not a prophecy."
+            "A repeatable random pick 🎴 used when too many tickets look good. "
+            "Same seed → same pattern. It is a tie-breaker, not a prophecy 🔮."
         )
 
     if engine_summary is None:
-        st.info("Turn on **Run picky betting** in the sidebar, then run again.")
+        st.info("Turn on **Run picky betting** 🎲 in the sidebar, then run again 🏇.")
         return
 
     st.info(_interpret_engine(opts, engine_summary))
 
     st.dataframe(engine_summary, use_container_width=True, hide_index=True)
     st.caption(
-        "Each row is a betting rule. Compare returns — at bias 1.0, none should "
-        "look like a free lunch. Big positives only under bias ≠ 1.0 are "
-        "\"interesting if that guess were true,\" not proof."
+        "Each row is a betting rule 🎲. Compare returns — at bias 1.0, none should "
+        "look like a free lunch ☯️. Big positives only under bias ≠ 1.0 are "
+        "\"interesting if that guess were true,\" not proof 🎱."
     )
 
     for _, row in engine_summary.iterrows():
@@ -2485,8 +2532,8 @@ def render_mckenna_engine(state: dict) -> None:
             roi = row["roi_pct"]
             sc6.metric("Return %", f"{roi:+.2f}%" if pd.notna(roi) else "N/A")
             st.caption(
-                "Detail for this one rule. Return near zero or negative at bias "
-                "1.0 is the expected null; a large positive would be surprising."
+                "Detail for this one rule 🃏. Return near zero or negative at bias "
+                "1.0 is the expected null ☯️; a large positive would be surprising 🔮."
             )
 
     from mckenna_derby.mckenna_engine import _compute_gated_days
@@ -2502,9 +2549,9 @@ def render_mckenna_engine(state: dict) -> None:
         key="resonance",
     )
     st.caption(
-        "The line is the echo of past surprise. Marks show the hottest days we "
+        "The line is the echo of past surprise 🧿. Marks show the hottest days we "
         "would bet on under the gate %. Fewer marks = pickier. This chart shows "
-        "*when* we bet, not whether we made money."
+        "*when* we bet, not whether we made money 🏇."
     )
 
     with st.spinner("Building bias comparison animation …"):
@@ -2520,8 +2567,8 @@ def render_mckenna_engine(state: dict) -> None:
             key="roi_beta",
         )
     st.caption(
-        "Slider steps through bias guesses from 1.00 to 1.20. "
-        "Play cycles returns for each rule. **Only 1.0 is the fair-price case** — "
+        "Slider steps through bias guesses from 1.00 to 1.20 🎱. "
+        "Play cycles returns for each rule. **Only 1.0 is the fair-price case** ☯️ — "
         "returns that appear only at higher bias are \"if favorites were overbet,\" "
         "not a claim that they are."
     )
@@ -2538,14 +2585,14 @@ def render_raw_data(state: dict) -> None:
     st.write(f"First 100 rows ({len(runners):,} total)")
     st.dataframe(runners.head(100), use_container_width=True, hide_index=True)
     st.caption(
-        "Each row is one horse in one race — the raw input to the analysis. "
+        "Each row is one horse in one race 🐴 — the raw input to the analysis. "
         "If something looks wrong here, the charts above are wrong too."
     )
 
     st.subheader("📥 Downloads")
     st.caption(
-        "Save the scored races, daily surprise line, or picky-betting summary. "
-        "Useful for checking our work or plotting elsewhere — not a tip feed."
+        "Save the scored races, daily surprise line, or picky-betting summary 📁. "
+        "Useful for checking our work or plotting elsewhere — not a tip feed 🔮."
     )
     dc1, dc2, dc3 = st.columns(3)
     dc1.download_button(
@@ -2573,7 +2620,7 @@ def render_raw_data(state: dict) -> None:
     with st.expander("Column types"):
         st.json({c: str(runners[c].dtype) for c in runners.columns})
         st.caption(
-            "Technical column types for the race table above. "
+            "Technical column types for the race table above 🐎. "
             "For debugging imports — skip unless you are fixing a CSV."
         )
 
@@ -2589,8 +2636,9 @@ def main() -> None:
     with st.container(key="tour_app_header"):
         st.title("🐴 McKenna Derby")
         st.caption(
-            "Do weird horse-race days line up with McKenna's calendar wave? "
-            "Click **🏇 Run Analysis** to find out."
+            "Do weird 🐎 horse-race days line up with Terence McKenna's 🌊 "
+            "Timewave Zero? Mystique in the story — honest numbers in the charts. "
+            "Click **🏇 Run Analysis** to find out 🔮."
         )
 
     prereg = load_prereg()
@@ -2613,12 +2661,12 @@ def main() -> None:
         if st.session_state.get("analysis"):
             with st.container(key="tour_empty_intro"):
                 st.caption(
-                    "Weird race days vs McKenna's calendar wave. "
-                    "Change the sidebar and click **Run Analysis** to refresh."
+                    "Weird 🐎 race days vs McKenna's 🌊 calendar wave. "
+                    "Change the sidebar and click **🏇 Run Analysis** to refresh."
                 )
             st.info(
                 "Showing the last run. Change the sidebar and click "
-                "**Run Analysis** to refresh."
+                "**🏇 Run Analysis** to refresh ✨."
             )
             _render_result_tabs(st.session_state["analysis"])
             maybe_start_tour(has_results=True)
@@ -2635,12 +2683,12 @@ def main() -> None:
 
     with st.container(key="tour_empty_intro"):
         st.caption(
-            "Weird race days vs McKenna's calendar wave."
+            "Weird 🐎 race days vs McKenna's 🌊 calendar wave 🍄."
         )
 
     n_races = runners["race_id"].nunique()
     st.success(
-        f"Loaded **{source_label}**: {n_races:,} races, {len(runners):,} horses "
+        f"Loaded **{source_label}** 🏇: {n_races:,} races, {len(runners):,} horses "
         f"({runners['date'].min().date()} → {runners['date'].max().date()})"
     )
 

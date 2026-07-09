@@ -24,10 +24,13 @@ TOUR_STEPS: list[dict[str, Any]] = [
         "popover": {
             "title": "🐴 Welcome to McKenna Derby",
             "description": (
-                "Two questions: do surprising race days line up with McKenna's "
-                "calendar wave (his map of when the world should feel more "
-                "chaotic)? And does betting only on those \"wave\" days help — "
-                "or do you still lose the track's cut?"
+                "Terence McKenna 🍄 — mystical genius, ethnobotanist, psychedelic "
+                "philosopher, raconteur — mapped \"novelty\" onto <b>Timewave Zero</b> 🌊, "
+                "a fractal calendar from ☯️ I Ching number tables "
+                "(low wave ↔ high chaos; zero-date lore ~2012). "
+                "We ask: do surprising 🐎 race days line up with that wave? "
+                "And does betting only on \"wave\" days beat the track's cut? "
+                "Mystique in the story; honest nulls in the numbers 🎱."
             ),
             "side": "over",
             "align": "center",
@@ -36,10 +39,10 @@ TOUR_STEPS: list[dict[str, Any]] = [
     {
         "element": "tour_app_header",
         "popover": {
-            "title": "The question",
+            "title": "✨ The question",
             "description": (
                 "The title is the research question. Charts and numbers below "
-                "are the evidence — not betting tips."
+                "are the evidence — not betting tips 🔮."
             ),
             "side": "bottom",
             "align": "start",
@@ -48,10 +51,12 @@ TOUR_STEPS: list[dict[str, Any]] = [
     {
         "element": "tour_empty_intro",
         "popover": {
-            "title": "Start here",
+            "title": "🎠 Start here",
             "description": (
-                "Short plain-English intro. Real Hong Kong races (1997–2005) "
-                "are already loaded. Next: click <b>🏇 Run Analysis</b> in the sidebar."
+                "Plain-English intro: who McKenna was, what Timewave Zero is, "
+                "and how the ☯️ I Ching ties in (wave tables + coin-cast "
+                "hexagram-style picks 🃏). Real Hong Kong 🏇 races (1997–2005) "
+                "are already loaded. Next: click <b>🏇 Run Analysis</b>."
             ),
             "side": "left",
             "align": "start",
@@ -62,9 +67,10 @@ TOUR_STEPS: list[dict[str, Any]] = [
         "popover": {
             "title": "📁 Your data (sidebar)",
             "description": (
-                "Default is <b>real Hong Kong races</b> — no upload needed. "
-                "Open Advanced options only for a fake null demo (should show "
-                "no signal) or your own CSV."
+                "Default is <b>real Hong Kong races</b> 🐎 — no upload needed. "
+                "Open Advanced options only for a fake null demo 🎱 (should show "
+                "no signal) or your own CSV. Sidebar also has "
+                "<b>Who is Terence McKenna?</b> for the mystique."
             ),
             "side": "right",
             "align": "start",
@@ -75,9 +81,9 @@ TOUR_STEPS: list[dict[str, Any]] = [
         "popover": {
             "title": "🏇 Run settings",
             "description": (
-                "Knobs for this run of the main test (wave table, cutoff, "
-                "track's cut, surprise score). Change them to explore — don't "
-                "treat a new combo as the official locked result."
+                "Knobs for this run of the main test (I Ching–derived wave table, "
+                "cutoff, track's cut, surprise score). Change them to explore ✨ — "
+                "don't treat a new combo as the official locked result ⭐."
             ),
             "side": "right",
             "align": "start",
@@ -88,9 +94,10 @@ TOUR_STEPS: list[dict[str, Any]] = [
         "popover": {
             "title": "🎲 Picky betting (optional)",
             "description": (
-                "A stricter side experiment: fewer days, fewer tickets. "
-                "<b>Bias guess = 1.0</b> means fair prices (no free lunch). "
-                "Higher values pretend favorites are overbet — a guess, not a fact."
+                "A stricter side experiment: fewer days, fewer tickets, plus a "
+                "coin-cast hexagram-style picker 🃏 (☯️ I Ching 64-pattern vibe). "
+                "<b>Bias guess = 1.0</b> means fair prices ☯️ (no free lunch). "
+                "Higher values pretend favorites are overbet — a guess 🎱, not a fact."
             ),
             "side": "right",
             "align": "start",
@@ -101,9 +108,9 @@ TOUR_STEPS: list[dict[str, Any]] = [
         "popover": {
             "title": "🏇 Run Analysis",
             "description": (
-                "Click this, then open <b>Overview</b> for the plain-English "
-                "answer. On this data the main finding is often \"no match\" — "
-                "honest, not a tip sheet."
+                "Click this, then open <b>📊 Overview</b> for the plain-English "
+                "answer. On this data the main finding is often \"no match\" ☯️ — "
+                "honest, not a tip sheet 🔮."
             ),
             "side": "right",
             "align": "center",
@@ -116,7 +123,7 @@ TOUR_STEPS: list[dict[str, Any]] = [
             "description": (
                 "Replay anytime from the sidebar (<b>Replay guided tour</b>). "
                 "Reading the sidebar top→bottom explains each control. "
-                "Stay skeptical of pretty numbers."
+                "Stay skeptical of pretty numbers 🧿."
             ),
             "side": "over",
             "align": "center",

@@ -122,6 +122,15 @@ def test_dashboard_has_plain_english_empty_state_copy():
     assert "Advanced options" in DASHBOARD_SOURCE
     assert "Wave number table" in DASHBOARD_SOURCE
     assert "Pool bias guess" in DASHBOARD_SOURCE
+    # Mystique framing for newcomers
+    assert "WHO_IS_MCKENNA" in DASHBOARD_SOURCE
+    assert "mystical genius" in DASHBOARD_SOURCE
+    assert "Timewave Zero" in DASHBOARD_SOURCE
+    assert "I Ching" in DASHBOARD_SOURCE
+    assert "64 hexagrams" in DASHBOARD_SOURCE
+    assert "low wave" in DASHBOARD_SOURCE and "high chaos" in DASHBOARD_SOURCE
+    assert "2012" in DASHBOARD_SOURCE
+    assert "Who is Terence McKenna?" in DASHBOARD_SOURCE
 
 
 def test_dashboard_sidebar_teaches_the_experiment():
@@ -129,8 +138,9 @@ def test_dashboard_sidebar_teaches_the_experiment():
     assert "SIDEBAR_INTRO" in DASHBOARD_SOURCE
     assert "SIDEBAR_CONTROL_CAPTIONS" in DASHBOARD_SOURCE
     assert "What this software does" in DASHBOARD_SOURCE
-    assert "surprising race days line up" in DASHBOARD_SOURCE
-    assert "calendar wave" in DASHBOARD_SOURCE
+    assert "open **📊 Overview**" in DASHBOARD_SOURCE or "open **Overview**" in DASHBOARD_SOURCE
+    assert "surprising" in DASHBOARD_SOURCE and "race days line up" in DASHBOARD_SOURCE
+    assert "calendar wave" in DASHBOARD_SOURCE or "Timewave Zero" in DASHBOARD_SOURCE
     assert "What is the Hong Kong data?" in DASHBOARD_SOURCE
     assert "Jockey Club" in DASHBOARD_SOURCE
     assert "about 6,000 races" in DASHBOARD_SOURCE
@@ -146,13 +156,15 @@ def test_dashboard_sidebar_teaches_the_experiment():
     assert "What is this section?" in DASHBOARD_SOURCE
     assert "Official test settings" not in DASHBOARD_SOURCE
     assert "View locked settings" not in DASHBOARD_SOURCE
-    assert "open **Overview**" in DASHBOARD_SOURCE
+    assert "hexagram-style" in DASHBOARD_SOURCE
     # Sidebar controls should use visible captions, not hover help=
     sidebar_start = DASHBOARD_SOURCE.index("def render_sidebar")
     sidebar_end = DASHBOARD_SOURCE.index("\ndef load_runners")
     sidebar_src = DASHBOARD_SOURCE[sidebar_start:sidebar_end]
     assert "help=" not in sidebar_src
     assert 'st.caption(SIDEBAR_CONTROL_CAPTIONS["number_set"])' in sidebar_src
+    assert "Who is Terence McKenna?" in sidebar_src
+    assert "WHO_IS_MCKENNA" in sidebar_src
 
 
 def test_dashboard_wires_first_visit_tour():

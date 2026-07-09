@@ -37,10 +37,14 @@ def test_tour_module_exposes_replay_control_label():
     src = (Path(__file__).resolve().parents[1] / "mckenna_derby" / "tour.py").read_text()
     assert "Replay guided tour" in src
     assert "render_tour_sidebar_controls" in src
-    assert "calendar wave" in src
+    assert "Timewave Zero" in src
+    assert "I Ching" in src
+    assert "mystical genius" in src
     assert "Picky betting" in src
     assert "Bias guess" in src
     assert "popover tips" in src
     assert "track's cut" in src
     assert "no upload needed" in src
     assert "sidebar top→bottom" in src
+    assert "hexagram-style" in src
+    assert "Who is Terence McKenna?" in src
