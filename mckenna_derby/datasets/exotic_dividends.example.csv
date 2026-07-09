@@ -1,0 +1,2 @@
+race_id,date,trifecta_payout,tierce_payout,trio_payout,notes
+0,1997-06-02,,,,"Replace this file with real per-$1 dividends. trifecta_payout (or tierce_payout) is ordered 1-2-3; trio_payout is any-order and is NOT used by the trifecta backtest."
