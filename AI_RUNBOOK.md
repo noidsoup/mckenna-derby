@@ -28,13 +28,14 @@ mckenna-derby/
 │   ├── novelty.py          # Surprisal scoring (FROZEN)
 │   ├── compare.py          # Correlation + permutation (FROZEN)
 │   ├── backtest.py         # Trifecta P&L strategy
-│   ├── data.py             # Loaders (bundled HK default + synthetic)
-│   ├── datasets/           # Committed hk_runners.csv (default real data)
+│   ├── data.py             # Loaders (bundled HK default, UK exploratory, synthetic)
+│   ├── datasets/           # Committed hk_runners.csv + uk_runners.csv
 │   ├── report.py           # Markdown report writer
 │   └── wavesets/           # I Ching number sets (txt)
 ├── run_analysis.py         # CLI pipeline
 ├── dashboard.py            # Streamlit UI
-├── scripts/build_bundled_data.py  # Rebuild datasets/ from rawdata/
+├── scripts/build_bundled_data.py  # Rebuild hk_runners.csv from rawdata/
+├── scripts/build_bundled_uk.py    # Rebuild uk_runners.csv from rawdata-uk/
 ├── prereg.json             # Primary analysis (do not edit after real-data run)
 ├── tests/                  # Golden + integration tests
 ├── output/                 # Generated reports (gitignored)
@@ -53,6 +54,7 @@ source .venv/bin/activate
 pip install -e . pytest
 pytest -q
 python run_analysis.py                              # bundled Hong Kong (default)
+python run_analysis.py --uk                           # UK/Ireland exploratory free slice
 python run_analysis.py --sweep --max-lag 30           # exploratory sections
 python run_analysis.py --synthetic                    # market-calibrated null demo
 python run_analysis.py --hk rawdata/                  # raw Kaggle layout

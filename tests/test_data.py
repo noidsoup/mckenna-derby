@@ -54,6 +54,21 @@ def test_load_bundled_hk():
     assert not has_tri
 
 
+def test_load_bundled_uk():
+    """Exploratory UK/Ireland slice — larger free source, not the locked claim."""
+    path = data.bundled_uk_path()
+    assert path.is_file(), f"missing bundled UK dataset at {path}"
+    out = data.load_bundled_uk()
+    assert set(out.columns) >= data.REQUIRED_COLUMNS
+    assert out["race_id"].nunique() >= 10_000
+    assert out["date"].min().year == 2008
+    assert out["date"].max().year == 2012
+    assert len(data.validate_runners(out)) == len(out)
+    # No real dividends on this free slice (odds from implied probability only).
+    assert "win_payout" not in out.columns or out["win_payout"].isna().all()
+    assert out["decimal_odds"].min() > 1.0
+
+
 def test_load_uk_racing_converts_implied_probability(tmp_path):
     """hwaitt decimalPrice is an implied win probability, not decimal odds."""
     (tmp_path / "races_2010.csv").write_text(

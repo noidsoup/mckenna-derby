@@ -671,8 +671,9 @@ SIDEBAR_HELP = {
         "Jockey Club, years **1997–2005** — about 6,000 races with odds and "
         "finish order. They ship inside this app (from a public Kaggle set), "
         "so you do not need to upload anything.\n\n"
-        "That history is the default for the main test. Open **Advanced options** "
-        "only for a fake null demo 🎱 (should show no signal) or your own CSV."
+        "That history is the default for the **locked** main test. Open "
+        "**Advanced options** for a larger free UK/Ireland slice (exploratory "
+        "only — not the official claim), a fake null demo 🎱, or your own CSV."
     ),
     "locked": (
         "**What is this section?** ⭐ Before looking at results, we wrote down the "
@@ -2865,21 +2866,30 @@ def render_sidebar(prereg: dict) -> dict:
 
             with st.expander("Advanced options", expanded=False):
                 st.caption(
-                    "Leave the default alone for the real Hong Kong 🏇 test. "
-                    "Synthetic demo builds fake races that should show no wave "
-                    "signal 🎱. Upload CSV is for your own race file."
+                    "Leave the default alone for the locked Hong Kong 🏇 test. "
+                    "UK/Ireland is a larger free exploratory set (not the official "
+                    "claim). Synthetic demo builds fake races that should show no "
+                    "wave signal 🎱. Upload CSV is for your own race file."
                 )
                 advanced = st.radio(
                     "Use a different source",
                     [
                         "Use default (Hong Kong bundled)",
+                        "UK/Ireland (free, exploratory)",
                         "Synthetic demo",
                         "Upload CSV",
                     ],
                     index=0,
                     key="tour_source_radio",
                 )
-                if advanced == "Synthetic demo":
+                if advanced == "UK/Ireland (free, exploratory)":
+                    source = "UK/Ireland (bundled)"
+                    st.caption(
+                        "About **34,000** races (2008–2012) from Kaggle "
+                        "`hwaitt/horse-racing`. Odds from market probabilities; "
+                        "no real win/place/trifecta dividends. Exploratory only."
+                    )
+                elif advanced == "Synthetic demo":
                     source = "Synthetic demo"
                     col1, col2 = st.columns(2)
                     with col1:
@@ -3027,6 +3037,12 @@ def load_runners(opts: dict) -> tuple[pd.DataFrame, str] | None:
         if source == "Hong Kong (bundled)":
             runners = data.load_bundled_hk()
             label = "Hong Kong bundled (gdaley/hkracing 1997–2005)"
+        elif source == "UK/Ireland (bundled)":
+            runners = data.load_bundled_uk()
+            label = (
+                "UK/Ireland bundled exploratory "
+                "(hwaitt/horse-racing 2008–2012; not locked HK claim)"
+            )
         elif source == "Synthetic demo":
             runners = data.synthetic_races(opts["start"], opts["end"])
             label = f"synthetic demo ({opts['start']} to {opts['end']})"

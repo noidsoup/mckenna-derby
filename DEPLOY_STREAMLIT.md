@@ -41,6 +41,7 @@ They open the link, enter the password once per browser session, then use the da
 | Feature | Cloud |
 |---------|-------|
 | Hong Kong bundled (default) | Yes (`mckenna_derby/datasets/hk_runners.csv`) |
+| UK/Ireland exploratory (Advanced) | Yes (`mckenna_derby/datasets/uk_runners.csv`) |
 | Synthetic demo (Advanced) | Yes |
 | Upload CSV (Advanced) | Yes |
 | Raw Kaggle `rawdata/` | No (gitignored; not needed) |

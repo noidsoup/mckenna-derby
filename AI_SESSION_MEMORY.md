@@ -104,3 +104,26 @@ Append-only log for AI assistants. Summarize completed work, decisions, and next
 
 **Next steps:**
 - Obtain race-matched trifecta/tierce dividends (paid archive or remapped IDs), then `build_bundled_data.py --exotics …` and re-run edge hunt for actual `payout_source`
+
+---
+
+## 2026-07-09 — Free datasets hunt + UK/Ireland wire-in
+
+**Branch:** `main`
+
+**Completed:**
+- Inventoried local free dumps (`rawdata/`, `rawdata-uk`, HK 2013–20 / 2014–17, results 2017–20)
+- Web-reviewed free Kaggle/GitHub candidates; skipped paid Renavon/Equibase
+- Bundled exploratory `uk_runners.csv` (~34,449 races, 2008–2012) from `hwaitt/horse-racing`
+- Wired `load_bundled_uk()`, `scripts/build_bundled_uk.py`, dashboard Advanced radio, CLI `--uk`
+- Docs: `docs/FREE_DATASETS.md` (+ `output/FREE_DATASETS.md`), datasets README, AGENTS/RUNBOOK/README/DEPLOY
+- Tests for UK loader + dashboard option; 63 pytest passed
+- Exploratory smoke: favorite ROI ≈ −3.4%; primary compare null (p≈0.49) — **not** a McKenna edge; HK remains locked default
+
+**Key decisions:**
+- Ship 2008–2012 UK slice (~16 MB) rather than full 1990–2020 raw (~725 MB gitignored)
+- Do not edit `prereg.json`; UK labeled exploratory only
+
+**Next steps:**
+- Optional: rebuild wider UK window locally via `build_bundled_uk.py --start …`
+- Still blocked on free ordered exotic dividends for HK trifecta cash settlement

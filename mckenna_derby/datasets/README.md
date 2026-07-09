@@ -1,6 +1,6 @@
 # Bundled race datasets
 
-## `hk_runners.csv`
+## `hk_runners.csv` (default / locked claim)
 
 Processed Hong Kong Jockey Club races derived from the Kaggle dataset
 [`gdaley/hkracing`](https://www.kaggle.com/datasets/gdaley/hkracing).
@@ -17,7 +17,37 @@ This file is the **default** data source for the dashboard and CLI so users do
 not need a Kaggle token or CSV upload. Redistribution is subject to
 [Kaggle Terms](https://www.kaggle.com/terms) and the dataset page.
 
-### What the Kaggle dump actually contains
+## `uk_runners.csv` (exploratory free source)
+
+Validated slice of Kaggle [`hwaitt/horse-racing`](https://www.kaggle.com/datasets/hwaitt/horse-racing)
+(international dump commonly used for UK/Ireland analysis).
+
+| Field | Value |
+|-------|--------|
+| Races | ~34,449 (after validation) |
+| Date range | 2008-01-01 → 2012-12-19 |
+| Required columns | `date`, `race_id`, `horse`, `decimal_odds`, `finish_position` |
+| Odds | From `decimalPrice` implied win probability → `1 / p` |
+| Real win/place/trifecta | **None** — backtest settlement stays modeled |
+
+**Not** the locked primary claim (`prereg.json` / Hong Kong default). Use for
+exploratory compare / null checks only. Rebuild:
+
+```bash
+kaggle datasets download -d hwaitt/horse-racing -p rawdata-uk --unzip
+python scripts/build_bundled_uk.py
+```
+
+Optional wider window (larger file):
+
+```bash
+python scripts/build_bundled_uk.py --start 2005-01-01 --end 2012-12-20
+```
+
+See **`docs/FREE_DATASETS.md`** (and `output/FREE_DATASETS.md` after a local hunt)
+for the free-data inventory.
+
+### What the HK Kaggle dump actually contains
 
 `rawdata/races.csv` has **win** and **place** combination + dividend columns
 (published per $10; the build script converts to per $1). It does **not**
@@ -27,14 +57,15 @@ Alternate local dumps checked (`rawdata-hk-2013-20`, `rawdata-hk-2014-17`,
 `rawdata-uk`, `rawdata-results-2017-20`) likewise lack ordered exotic
 dividends usable for trifecta cash settlement on the same races.
 
-### Rebuild from raw Kaggle download
+### Rebuild HK from raw Kaggle download
 
 ```bash
 kaggle datasets download -d gdaley/hkracing -p rawdata --unzip
 python scripts/build_bundled_data.py
 ```
 
-Raw `rawdata/` stays gitignored; only this processed CSV is committed.
+Raw `rawdata/` / `rawdata-*/` stay gitignored; only processed CSVs under
+`datasets/` are committed.
 
 ### Attaching real exotic (trifecta/tierce) dividends when you get them
 

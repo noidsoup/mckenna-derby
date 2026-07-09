@@ -70,7 +70,7 @@ TOUR_STEPS: list[dict[str, Any]] = [
             "title": "📁 Your data (sidebar)",
             "description": (
                 "Default is <b>real Hong Kong races</b> 🐎 — no upload needed. "
-                "Open Advanced options only for a fake null demo 🎱 (should show "
+                "Open Advanced options for UK/Ireland exploratory data, a fake null demo 🎱 (should show "
                 "no signal) or your own CSV. Sidebar also has "
                 "<b>Who is Terence McKenna?</b> for the mystique."
             ),

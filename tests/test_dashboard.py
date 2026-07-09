@@ -221,6 +221,8 @@ def test_dashboard_sidebar_teaches_the_experiment():
     assert "open **📊 Overview**" in DASHBOARD_SOURCE or "open **Overview**" in DASHBOARD_SOURCE
     assert "surprising" in DASHBOARD_SOURCE and "race days line up" in DASHBOARD_SOURCE
     assert "calendar wave" in DASHBOARD_SOURCE or "Timewave Zero" in DASHBOARD_SOURCE
+    assert "UK/Ireland (free, exploratory)" in DASHBOARD_SOURCE
+    assert "load_bundled_uk" in DASHBOARD_SOURCE
     assert "What is the Hong Kong data?" in DASHBOARD_SOURCE
     assert "Jockey Club" in DASHBOARD_SOURCE
     assert "about 6,000 races" in DASHBOARD_SOURCE

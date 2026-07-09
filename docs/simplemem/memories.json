@@ -33,5 +33,16 @@
     },
     "namespace": "mckenna-derby",
     "timestamp": 1783614658.8118222
+  },
+  {
+    "id": "local_1783634118270",
+    "text": "Wired free exploratory UK/Ireland race dataset (hwaitt/horse-racing 2008-2012, ~34449 races) as uk_runners.csv with load_bundled_uk, dashboard Advanced option, and CLI --uk. HK bundled remains locked default; prereg.json unchanged. Paid Renavon/Equibase skipped. Inventory in docs/FREE_DATASETS.md. Exploratory smoke: favorite ROI ~-3%, timewave compare null.",
+    "metadata": {
+      "source": "free-datasets-hunt",
+      "date": "2026-07-09",
+      "branch": "main"
+    },
+    "namespace": "mckenna-derby",
+    "timestamp": 1783634118.270598
   }
 ]

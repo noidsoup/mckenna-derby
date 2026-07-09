@@ -59,9 +59,10 @@ streamlit run dashboard.py
 ```
 
 The dashboard defaults to the **bundled Hong Kong** dataset. Open **Advanced**
-in the sidebar for a synthetic null demo or a custom CSV upload. Analysis
-defaults come from `prereg.json`; you can override number set, threshold, and
-takeout for exploratory runs.
+in the sidebar for a larger free **UK/Ireland** exploratory slice, a synthetic
+null demo, or a custom CSV upload. Analysis defaults come from `prereg.json`;
+you can override number set, threshold, and takeout for exploratory runs.
+UK/Ireland is **not** the locked primary claim.
 
 ### Share on Streamlit Community Cloud
 
@@ -75,7 +76,11 @@ Cloud (no local `rawdata/` needed).
 **Default:** packaged `load_bundled_hk()` — processed from Kaggle
 [`gdaley/hkracing`](https://www.kaggle.com/datasets/gdaley/hkracing).
 
-CLI flags: `--synthetic`, `--hk DIR` (raw Kaggle layout), `--csv FILE`,
+**Exploratory free:** packaged `load_bundled_uk()` — slice of Kaggle
+[`hwaitt/horse-racing`](https://www.kaggle.com/datasets/hwaitt/horse-racing)
+(~34k races, 2008–2012). CLI: `--uk`. See `docs/FREE_DATASETS.md`.
+
+CLI flags: `--synthetic`, `--uk`, `--hk DIR` (raw Kaggle layout), `--csv FILE`,
 `--sweep`, `--max-lag N`, `--start` / `--end` (synthetic range only). Primary
 analysis params (number set, threshold, takeout, metric) come from
 `prereg.json` — the CLI does not override them.

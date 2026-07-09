@@ -1,4 +1,4 @@
-"""Data loading: bundled HK races, Kaggle downloads, CSVs, or synthetic demo.
+"""Data loading: bundled HK/UK races, Kaggle downloads, CSVs, or synthetic demo.
 
 All loaders return a runner-level dataframe with columns:
     date, race_id, horse, decimal_odds, finish_position
@@ -30,10 +30,20 @@ Rebuild from a local Kaggle download::
     kaggle datasets download -d gdaley/hkracing -p rawdata --unzip
     python scripts/build_bundled_data.py
 
+Additional free bundled source
+------------------------------
+``load_bundled_uk`` reads ``uk_runners.csv`` — a validated slice of Kaggle
+``hwaitt/horse-racing`` (UK/Ireland-style international dump, 2008–2012).
+Exploratory only; does **not** replace the locked HK primary claim.
+Rebuild::
+
+    kaggle datasets download -d hwaitt/horse-racing -p rawdata-uk --unzip
+    python scripts/build_bundled_uk.py
+
 Other sources
 -------------
 - ``load_hk_racing`` — raw ``races.csv`` + ``runs.csv`` under a directory
-- ``hwaitt/horse-racing`` UK/Ireland via ``load_uk_racing``
+- ``hwaitt/horse-racing`` full dump via ``load_uk_racing`` (optional date filter)
 - ``synthetic_races`` — market-calibrated null fixture (Harville-sampled)
 """
 
@@ -105,6 +115,32 @@ def load_bundled_hk() -> pd.DataFrame:
         raise FileNotFoundError(
             f"bundled HK data missing at {path}; "
             "run: python scripts/build_bundled_data.py"
+        )
+    return load_generic_csv(path)
+
+
+def bundled_uk_path() -> Path:
+    """Filesystem path to the committed UK/Ireland runners CSV (exploratory)."""
+    try:
+        root = resources.files("mckenna_derby.datasets")
+        return Path(str(root.joinpath("uk_runners.csv")))
+    except (TypeError, FileNotFoundError, ModuleNotFoundError):
+        return Path(__file__).resolve().parent / "datasets" / "uk_runners.csv"
+
+
+def load_bundled_uk() -> pd.DataFrame:
+    """Load the packaged UK/Ireland slice (exploratory free source).
+
+    Derived from Kaggle ``hwaitt/horse-racing`` (2008-01-01 → 2012-12-20).
+    Odds come from implied win probabilities (``decimalPrice`` → ``1/p``).
+    No real win/place/trifecta dividends are attached — backtest settlement
+    stays modeled. Not the locked primary claim (see ``prereg.json`` / HK).
+    """
+    path = bundled_uk_path()
+    if not path.is_file():
+        raise FileNotFoundError(
+            f"bundled UK data missing at {path}; "
+            "run: python scripts/build_bundled_uk.py"
         )
     return load_generic_csv(path)
 
