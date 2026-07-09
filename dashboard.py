@@ -954,22 +954,20 @@ coin-cast hexagram-style picker 🃏 (same 64-pattern vibe — not a money tip).
 
 **What to do:** Click **🏇 Run Analysis** below (on this page).
 
-Then open **📊 Overview**. On this data the main answer is usually "no match" ☯️.
-That is an honest finding, not a tip sheet 🔮.
+Then open **📊 Overview** for the plain-English read of *this* run 🔮.
 """
 
 SIDEBAR_INTRO = (
     "This app asks two questions ☯️: Do surprising 🐎 race days line up with "
     "Terence McKenna's 🌊 Timewave Zero (his 🍄 map of when the world should feel "
-    "more 🌀 chaotic)? And does betting only on those \"wave\" days help — or do "
-    "you still lose the track's cut?\n\n"
+    "more 🌀 chaotic)? And does betting only on those \"wave\" days beat betting "
+    "every day against the track's cut?\n\n"
     "McKenna was a mystical genius — ethnobotanist, psychedelic philosopher, "
     "raconteur — who built that wave from fractal ☯️ I Ching tables "
     "(low wave ↔ high novelty; zero-date lore ~2012). We keep the mystique in "
     "the story and the honesty in the numbers 🎱.\n\n"
-    "Dig it: if the wave flops, don't say we didn't warn you, man.\n\n"
     "Read the controls below top to bottom, then hit **🏇 Run Analysis** "
-    "on the main page."
+    "on the main page — Overview tells you what *this* run found."
 )
 
 WHO_IS_MCKENNA = """
