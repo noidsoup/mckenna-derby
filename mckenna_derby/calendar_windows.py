@@ -16,7 +16,6 @@ If someone asks "Friday 5–8pm", the honest answer is: we can say whether
 from __future__ import annotations
 
 import datetime as dt
-from typing import Iterable
 
 import pandas as pd
 
@@ -145,71 +144,3 @@ def format_window_rows(windows: pd.DataFrame) -> pd.DataFrame:
         }
     )
     return out
-
-
-def payout_settlement_summary(payout_sources: Iterable[str] | dict) -> dict:
-    """Summarize actual vs modeled trifecta settlement for UI captions.
-
-    Accepts either a sequence of ``payout_source`` labels or a
-    ``value_counts()``-style dict.
-    """
-    if isinstance(payout_sources, dict):
-        counts = {str(k): int(v) for k, v in payout_sources.items()}
-    else:
-        counts: dict[str, int] = {}
-        for src in payout_sources:
-            key = str(src)
-            counts[key] = counts.get(key, 0) + 1
-
-    n_actual = int(counts.get("actual", 0))
-    n_modeled = int(counts.get("modeled", 0))
-    n_total = n_actual + n_modeled + sum(
-        v for k, v in counts.items() if k not in ("actual", "modeled")
-    )
-
-    if n_actual > 0 and n_modeled == 0 and n_total == n_actual:
-        mode = "cash"
-        label = "Cash dividends"
-        detail = (
-            f"All {n_actual:,} races settled with real `trifecta_payout` "
-            "(cash dividends)."
-        )
-    elif n_actual > 0 and n_modeled > 0:
-        mode = "mixed"
-        label = "Mixed: cash + modeled"
-        detail = (
-            f"{n_actual:,} races with **cash dividends**; "
-            f"{n_modeled:,} with **modeled payouts** (no real trifecta file for those)."
-        )
-    else:
-        mode = "modeled"
-        label = "Modeled payouts (no real trifecta file)"
-        detail = (
-            f"All {n_modeled or n_total:,} races use modeled parimutuel payouts "
-            "(no real trifecta dividends attached)."
-        )
-
-    return {
-        "mode": mode,
-        "label": label,
-        "detail": detail,
-        "n_actual": n_actual,
-        "n_modeled": n_modeled,
-        "n_total": n_total,
-        "counts": counts,
-    }
-
-
-HOW_TO_ADD_DIVIDENDS = """
-**No cash trifecta dividends in this run.** Settlement is **modeled**
-(expected return ≈ −track cut when there is no edge).
-
-To attach real ordered 1-2-3 dividends when you have them:
-
-1. Build a companion CSV like `mckenna_derby/datasets/exotic_dividends.example.csv`
-   with `race_id` + `trifecta_payout` (per $1 stake).
-2. Rebuild: `python scripts/build_bundled_data.py --exotics path/to/exotic_dividends.csv`
-3. See `mckenna_derby/datasets/README.md` for the schema (and optional Renavon remap).
-
-Until then, treat trifecta P&L as a timing/model exercise — not cash settlement.
-""".strip()

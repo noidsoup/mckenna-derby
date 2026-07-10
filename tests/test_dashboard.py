@@ -237,9 +237,10 @@ def test_dashboard_has_plain_english_empty_state_copy():
     assert "every possible 1-2-3" in DASHBOARD_SOURCE or "every possible 1-2-3 order" in DASHBOARD_SOURCE
     assert "Upcoming high-novelty windows" in DASHBOARD_SOURCE
     assert "render_upcoming_novelty_windows" in DASHBOARD_SOURCE
-    assert "render_settlement_caption" in DASHBOARD_SOURCE
-    assert "Cash dividends" in DASHBOARD_SOURCE or "Cash dividend" in DASHBOARD_SOURCE
-    assert "Modeled payouts" in DASHBOARD_SOURCE
+    assert "render_settlement_caption" not in DASHBOARD_SOURCE
+    assert "HOW_TO_ADD_DIVIDENDS" not in DASHBOARD_SOURCE
+    assert "Cash dividend races" not in DASHBOARD_SOURCE
+    assert "Modeled payouts (no real trifecta file)" not in DASHBOARD_SOURCE
     assert "TAB_INTROS" in DASHBOARD_SOURCE
     assert "TAB_LABELS" in DASHBOARD_SOURCE
     assert "Surprise vs the wave" in DASHBOARD_SOURCE
@@ -264,7 +265,7 @@ def test_dashboard_has_plain_english_empty_state_copy():
     # Empty-state calendar is a list/table, not a new Plotly chart.
     assert "plotly_chart" not in DASHBOARD_SOURCE[
         DASHBOARD_SOURCE.index("def render_upcoming_novelty_windows") : DASHBOARD_SOURCE.index(
-            "def render_settlement_caption"
+            "def render_sidebar"
         )
     ]
 
@@ -358,8 +359,6 @@ def test_dashboard_blurbs_under_main_views():
         "Return is profit or loss",
         "if timing helped",
         "cover-all trifecta",
-        "Cash dividend races",
-        "Modeled payouts (no real trifecta file)",
         "Upcoming high-novelty windows",
         "Each row is a betting rule",
         "Each row is one horse in one race",

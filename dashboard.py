@@ -27,10 +27,8 @@ from mckenna_derby.assets import (
     pick_random_assets,
 )
 from mckenna_derby.calendar_windows import (
-    HOW_TO_ADD_DIVIDENDS,
     RESOLUTION_NOTE,
     format_window_rows,
-    payout_settlement_summary,
     upcoming_novelty_windows,
 )
 from mckenna_derby.mckenna_engine import (
@@ -3303,34 +3301,6 @@ def render_upcoming_novelty_windows(
         )
 
 
-def render_settlement_caption(per_race: pd.DataFrame) -> None:
-    """Cash vs modeled trifecta settlement as clear metrics text (no chart)."""
-    if per_race is None or per_race.empty or "payout_source" not in per_race.columns:
-        st.caption(
-            "Settlement: **Modeled payouts (no real trifecta file)** — "
-            "no `payout_source` column on this run."
-        )
-        st.info(HOW_TO_ADD_DIVIDENDS)
-        return
-
-    counts = per_race["payout_source"].value_counts().to_dict()
-    summary = payout_settlement_summary(counts)
-    st.markdown(f"**Settlement:** {summary['label']}")
-    sc1, sc2, sc3 = st.columns(3)
-    sc1.metric("Cash dividend races", f"{summary['n_actual']:,}")
-    sc2.metric("Modeled races", f"{summary['n_modeled']:,}")
-    sc3.metric("Total races", f"{summary['n_total']:,}")
-    st.caption(summary["detail"])
-    if summary["mode"] == "modeled":
-        st.info(HOW_TO_ADD_DIVIDENDS)
-    elif summary["mode"] == "mixed":
-        st.caption(
-            "Mixed runs still use modeled payouts where `trifecta_payout` is "
-            "missing. See `mckenna_derby/datasets/exotic_dividends.example.csv` "
-            "and `datasets/README.md` to attach more cash dividends."
-        )
-
-
 def render_sidebar(prereg: dict) -> dict:
     """Render sidebar controls and always return the current opts dict.
 
@@ -3587,9 +3557,6 @@ def render_overview(state: dict) -> None:
     )
     render_interpret_info(_interpret_match(primary), key="overview_match")
 
-    st.markdown("##### Trifecta settlement (this run)")
-    render_settlement_caption(res["per_race"])
-
     with st.expander("All run settings & data summary", expanded=True):
         st.caption(
             "What this run used 🏇. Confirm the data source and locked-style knobs "
@@ -3796,7 +3763,6 @@ def render_backtest(state: dict) -> None:
         "**Cover-all trifecta on high-novelty (low-wave) windows** — buy every "
         "possible 1-2-3 order on wave-picked days (not pick horses)."
     )
-    render_settlement_caption(res["per_race"])
     for label, key in [
         ("Cover-all trifecta — wave-picked (high-novelty) days", "strategy"),
         ("Cover-all trifecta — every race (no day filter)", "bet_every_race"),
