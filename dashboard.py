@@ -26,6 +26,13 @@ from mckenna_derby.assets import (
     CLIPART,
     pick_random_assets,
 )
+from mckenna_derby.calendar_windows import (
+    HOW_TO_ADD_DIVIDENDS,
+    RESOLUTION_NOTE,
+    format_window_rows,
+    payout_settlement_summary,
+    upcoming_novelty_windows,
+)
 from mckenna_derby.mckenna_engine import (
     IChingSelector,
     RollingTimewave,
@@ -954,8 +961,16 @@ def render_clipart_row(
 EMPTY_STATE_MARKDOWN = """
 ### 🐴 What is this?
 
-Do weird 🐎 race days line up with Terence McKenna's 🌊 Timewave Zero
-(his 🍄 map of when the world should feel more 🌀 chaotic)?
+Three steps, dude:
+
+1. **Build novelty** from historical odds + finishes — predictable favorites =
+   low novelty; upsets / longshots = high.
+2. **Compare** that surprise calendar to McKenna's 🌊 I Ching **Timewave Zero**
+   (in his story: **low wave ↔ high chaos/novelty**).
+3. On high-novelty (low-wave) windows, place a **cover-all trifecta**: buy
+   *every* possible 1-2-3 order — you are not picking horses. Profit depends
+   on the payout; wild finishes can pay more than the cost of all tickets;
+   favorites finishing as expected usually don't.
 
 Hong Kong 🏇 races (1997–2005) are already loaded. Tap **🏇 Run Analysis**
 above, then open **📊 Overview** for the plain-English read of *this* run 🔮.
@@ -972,19 +987,39 @@ wave across time. Wild idea. We test it with honest stats 🎱.
 The lore peaks at a "zero date" around **2012-12-21** — we use the historical
 window before that.
 
+**The wager:** A **cover-all trifecta** on high-novelty (low-wave) days means
+buying every exact 1-2-3 ticket for that race. You are covering the board, not
+hand-picking ponies. See **Upcoming high-novelty windows** below for which
+*days* the wave currently flags (daily resolution only — not hours).
+
 **I Ching:** Ancient Chinese oracle of **64 hexagrams** 🔮. McKenna mined its
 structure for the wave tables. This app's picky-betting mode also uses a
 coin-cast hexagram-style picker 🃏 (same 64-pattern vibe — not a money tip).
 """
 
+# Strategy spelled once for Overview / expanders (hippie tone OK, clear).
+STRATEGY_MARKDOWN = """
+### ☯️ The cover-all trifecta idea
+
+1. Score how **surprising** finishes were given the odds (novelty).
+2. Line that up with McKenna's **Timewave Zero** — low wave = high novelty zone.
+3. On those windows, buy a **cover-all trifecta**: every possible 1-2-3 order
+   (not pick horses). You win the one ticket that matches the finish; profit
+   only if that payout beats the cost of *all* tickets.
+
+This is a timing + settlement experiment — dig the numbers for *this* run,
+then read **So what?** 🎱.
+"""
+
 SIDEBAR_INTRO = (
-    "This app asks two questions ☯️: Do surprising 🐎 race days line up with "
-    "Terence McKenna's 🌊 Timewave Zero (his 🍄 map of when the world should feel "
-    "more 🌀 chaotic)? And does betting only on those \"wave\" days beat betting "
-    "every day against the track's cut?\n\n"
+    "Three moves ☯️: (1) score **novelty** from odds + finishes "
+    "(predictable = low, upsets = high); (2) compare to McKenna's 🌊 "
+    "**Timewave Zero** (low wave ↔ high chaos); (3) on high-novelty windows, "
+    "backtest a **cover-all trifecta** — buy every 1-2-3 order, not pick horses. "
+    "Profit depends on payout vs the cost of all tickets.\n\n"
     "McKenna was a mystical genius — ethnobotanist, psychedelic philosopher, "
     "raconteur — who built that wave from fractal ☯️ I Ching tables "
-    "(low wave ↔ high novelty; zero-date lore ~2012).\n\n"
+    "(zero-date lore ~2012).\n\n"
     "Read the controls below top to bottom, then hit **🏇 Run Analysis** "
     "on the main page — Overview tells you what *this* run found."
 )
@@ -1031,9 +1066,10 @@ SIDEBAR_HELP = {
         "above. Changing them is fine for curiosity 🔮 — not a new official result."
     ),
     "engine": (
-        "A stricter side experiment 🎲: fewer days, fewer tickets, and an optional "
-        "pool-bias guess. When too many tickets look good, a **coin-cast "
-        "hexagram-style** picker 🃏 (☯️ I Ching vibe — 64 patterns) thins the field. "
+        "A stricter side experiment 🎲 on the same **cover-all trifecta** idea: "
+        "fewer days, fewer tickets, and an optional pool-bias guess. When too "
+        "many tickets look good, a **coin-cast hexagram-style** picker 🃏 "
+        "(☯️ I Ching vibe — 64 patterns) thins the field. "
         "**Bias guess = 1.0** means fair prices ☯️ (no built-in pool tilt). "
         "Higher values pretend favorites are overbet — a guess 🎱, not a fact."
     ),
@@ -1047,7 +1083,8 @@ SIDEBAR_CONTROL_CAPTIONS = {
         "waves. **Kelley** is the locked default."
     ),
     "threshold_pct": (
-        "Only treat days in the lowest X% of the wave as \"bet days\" 🏇. "
+        "Only treat days in the lowest X% of the wave as **cover-all trifecta** "
+        "windows 🏇 (high-novelty / low-wave zone). "
         "Lower cutoff = fewer, more extreme days. In McKenna's story, "
         "**low wave = high 🌀 chaos/novelty**."
     ),
@@ -1094,28 +1131,30 @@ SIDEBAR_CONTROL_CAPTIONS = {
 
 TAB_INTROS = {
     "overview": (
-        "Big picture 📊 for this run, dude: how much 🐎 data you have, whether "
-        "surprising race days lined up with McKenna's 🌊 Timewave Zero (his I Ching–built "
-        "chaos calendar 🍄), and whether betting only on \"wave\" days beat betting "
-        "every day. Read the **So what?** boxes for what *this* run actually found."
+        "Big picture 📊 for this run: novelty from odds + finishes, match to "
+        "McKenna's 🌊 Timewave Zero, and whether a **cover-all trifecta** on "
+        "high-novelty (low-wave) windows beat betting every day. "
+        "Read the **So what?** boxes for what *this* run actually found."
     ),
     "novelty": (
         "**Surprise score** ✨ = how unexpected the finishes were, given the odds. "
         "**The wave** 🌊 = McKenna's Timewave Zero calendar of 🌀 chaos, built from "
         "☯️ I Ching number tables. His idea: **low wave ↔ high surprise** ☯️ "
         "(they should move opposite ways). Chance score + rank link below tell "
-        "the story for *this* run — dig the charts, then read **So what?**."
+        "the story for *this* run — the dual graph lives on **📊 Overview**; "
+        "here are the numbers and tables. Then read **So what?**."
     ),
     "backtest": (
-        "Pretend we buy every top-3 ticket on chosen days 🏇. The track keeps a cut. "
-        "Compare wave-picked days vs betting every day — if timing helped, wave days "
-        "should look clearly better. Numbers first; **So what?** says whether "
+        "**Cover-all trifecta** on high-novelty (low-wave) windows 🏇: buy every "
+        "possible 1-2-3 order (not pick horses). The track keeps a cut. "
+        "Compare wave-picked days vs betting every day — if timing helped, wave "
+        "days should look clearly better. Numbers first; **So what?** says whether "
         "*this* run printed anything interesting 🏁."
     ),
     "engine": (
-        "A pickier side experiment 🎲: fewer tickets, fewer days, optional pool-bias "
-        "guess, and a coin-cast **hexagram-style** ticket thinner 🃏 (same 64-pattern "
-        "☯️ I Ching vibe McKenna used for the wave tables). Bias = 1.0 means fair "
+        "A pickier take on the same **cover-all trifecta** idea 🎲: fewer tickets, "
+        "fewer days, optional pool-bias guess, and a coin-cast **hexagram-style** "
+        "ticket thinner 🃏 (☯️ I Ching 64-pattern vibe). Bias = 1.0 means fair "
         "prices ☯️. Higher bias is a guess 🎱 — explore it, then read **So what?** "
         "for what *this* table actually did."
     ),
@@ -1137,6 +1176,15 @@ TAB_LABELS = [
     "🎲 Picky betting",
     "📁 Race data",
 ]
+
+# Plain-English caption for the single primary chart (Overview only).
+PRIMARY_CHART_CAPTION = (
+    "This is the novelty graph: **predictable wins = low novelty**, "
+    "**surprising wins = high novelty**. The other line is Terence McKenna's "
+    "original I Ching–based Timewave Zero timeline (flipped so high means "
+    "\"chaos\" in his story). Look for whether the patterns align — then read "
+    "**So what?** for *this* run. Hit **Play** or drag the slider to walk through time."
+)
 
 
 def _hippie_pick(variants: tuple[str, ...], *seed_parts: object) -> str:
@@ -3184,6 +3232,105 @@ def series_stats(s: pd.Series) -> dict:
 # ---------------------------------------------------------------------------
 
 
+def render_strategy_prose() -> None:
+    """Spell the cover-all trifecta strategy in plain English (no charts)."""
+    with st.expander("☯️ The cover-all trifecta strategy", expanded=False):
+        st.markdown(STRATEGY_MARKDOWN)
+
+
+def render_upcoming_novelty_windows(
+    *,
+    number_set: str = "kelley",
+    threshold_pct: float = 20.0,
+    horizon_days: int = 60,
+    key_prefix: str = "upcoming",
+) -> None:
+    """Simple date list/table of upcoming high-novelty (low-wave) days.
+
+    Daily resolution only — no Plotly, no hourly fake precision.
+    """
+    st.subheader("📅 Upcoming high-novelty windows")
+    st.caption(
+        "Days ahead where McKenna's wave sits in the **high chaos / high novelty** "
+        f"zone (lowest {threshold_pct:.0f}% under the same causal cutoff as the "
+        f"backtest; number table **{number_set}**). "
+        "These are the windows where the experiment would place a "
+        "**cover-all trifecta**."
+    )
+    st.caption(RESOLUTION_NOTE)
+    try:
+        windows = upcoming_novelty_windows(
+            start=dt.date.today(),
+            horizon_days=int(horizon_days),
+            number_set=number_set,
+            threshold_pct=float(threshold_pct),
+        )
+    except Exception as exc:
+        st.warning(f"Could not build the upcoming-windows list: {exc}")
+        return
+
+    zone = windows[windows["in_bet_zone"]] if not windows.empty else windows
+    n_zone = int(len(zone))
+    if n_zone == 0:
+        st.info(
+            f"No days in the next {horizon_days} are in the bet zone under "
+            f"this cutoff (table `{number_set}`, lowest {threshold_pct:.0f}%). "
+            "The full day list is below for the wave values."
+        )
+    else:
+        st.markdown(
+            f"**{n_zone}** day(s) in the bet zone over the next "
+            f"**{horizon_days}** days:"
+        )
+        lines = []
+        for _, row in zone.iterrows():
+            d = row["date"]
+            label = d.isoformat() if hasattr(d, "isoformat") else str(d)
+            lines.append(f"- **{label}** — wave {row['wave_value']:.6f}")
+        st.markdown("\n".join(lines))
+
+    with st.expander("All upcoming days (wave + bet zone)", expanded=False):
+        st.dataframe(
+            format_window_rows(windows),
+            use_container_width=True,
+            hide_index=True,
+            key=f"{key_prefix}_windows_table",
+        )
+        st.caption(
+            "Bet zone = wave at or below the causal expanding-percentile cutoff "
+            "(same rule as the historical backtest). History before today warms "
+            "the cutoff; we only list days from today forward."
+        )
+
+
+def render_settlement_caption(per_race: pd.DataFrame) -> None:
+    """Cash vs modeled trifecta settlement as clear metrics text (no chart)."""
+    if per_race is None or per_race.empty or "payout_source" not in per_race.columns:
+        st.caption(
+            "Settlement: **Modeled payouts (no real trifecta file)** — "
+            "no `payout_source` column on this run."
+        )
+        st.info(HOW_TO_ADD_DIVIDENDS)
+        return
+
+    counts = per_race["payout_source"].value_counts().to_dict()
+    summary = payout_settlement_summary(counts)
+    st.markdown(f"**Settlement:** {summary['label']}")
+    sc1, sc2, sc3 = st.columns(3)
+    sc1.metric("Cash dividend races", f"{summary['n_actual']:,}")
+    sc2.metric("Modeled races", f"{summary['n_modeled']:,}")
+    sc3.metric("Total races", f"{summary['n_total']:,}")
+    st.caption(summary["detail"])
+    if summary["mode"] == "modeled":
+        st.info(HOW_TO_ADD_DIVIDENDS)
+    elif summary["mode"] == "mixed":
+        st.caption(
+            "Mixed runs still use modeled payouts where `trifecta_payout` is "
+            "missing. See `mckenna_derby/datasets/exotic_dividends.example.csv` "
+            "and `datasets/README.md` to attach more cash dividends."
+        )
+
+
 def render_sidebar(prereg: dict) -> dict:
     """Render sidebar controls and always return the current opts dict.
 
@@ -3196,6 +3343,9 @@ def render_sidebar(prereg: dict) -> dict:
 
         with st.expander("🍄 Who is Terence McKenna?", expanded=False):
             st.markdown(WHO_IS_MCKENNA)
+
+        with st.expander("☯️ Cover-all trifecta (the wager)", expanded=False):
+            st.markdown(STRATEGY_MARKDOWN)
 
 
         with st.container(key="data_source_section"):
@@ -3414,6 +3564,12 @@ def render_overview(state: dict) -> None:
 
     st.subheader("📊 Overview")
     st.caption(TAB_INTROS["overview"])
+    render_strategy_prose()
+    render_upcoming_novelty_windows(
+        number_set=opts.get("number_set", "kelley"),
+        threshold_pct=float(opts.get("threshold_pct", 20.0)),
+        key_prefix="overview",
+    )
     render_clipart_row(hero=True, n=6, slot="overview_hero")
     c1, c2, c3, c4, c5 = st.columns(5)
     c1.metric("Races", f"{runners['race_id'].nunique():,}")
@@ -3431,10 +3587,13 @@ def render_overview(state: dict) -> None:
     )
     render_interpret_info(_interpret_match(primary), key="overview_match")
 
+    st.markdown("##### Trifecta settlement (this run)")
+    render_settlement_caption(res["per_race"])
+
     with st.expander("All run settings & data summary", expanded=True):
         st.caption(
             "What this run used 🏇. Confirm the data source and locked-style knobs "
-            "before reading the charts as an \"official\" answer ⭐."
+            "before reading the graph as an \"official\" answer ⭐."
         )
         sc1, sc2, sc3 = st.columns(3)
         sc1.metric("Data source", state["source_label"])
@@ -3455,110 +3614,39 @@ def render_overview(state: dict) -> None:
                     "reads what *this* run actually did 🔮."
                 )
 
-    # Wider gauge column so the dial number/subtitle are not cramped.
-    gc1, gc2 = st.columns([1.2, 1.8])
-    with gc1:
-        st.plotly_chart(
-            plot_verdict_gauge(primary["permutation_p"], primary["spearman_r"]),
-            use_container_width=True,
-            key="overview_verdict_gauge",
-        )
-        st.caption(
-            "Verdict dial 🎱 — green zone (under ~0.05) = unlikely by chance. "
-            "Gray zone = chance score is not small. The big number is the chance "
-            "score — read **So what?** for the plain-English take."
-        )
-        st.plotly_chart(
-            plot_vibe_meter(primary),
-            use_container_width=True,
-            key="overview_vibe_meter",
-        )
-        st.caption(
-            "Vibe meter ☯️ — a soft radar of match / null chill / chaos spark from "
-            "the same chance score and rank link. Descriptive flair only — "
-            "**So what?** carries the honest read for *this* run 🎱."
-        )
-    with gc2:
-        st.plotly_chart(
-            animate_novelty_timewave(daily, tw),
-            use_container_width=True,
-            key="overview_timeline",
-        )
-        st.caption(
-            "Blue = how weird race days were (cyan line) ✨. Purple = McKenna's wave "
-            "(flipped so high means \"chaos\" 🌀 in his story). The shaded violet band "
-            "is the high-chaos zone on the wave. **How to read:** if his idea worked, "
-            "blue highs would tend to sit with purple highs ☯️. Hit **Play** or drag "
-            "the slider to walk through time — then check **So what?**."
-        )
-
-    oc1, oc2 = st.columns(2)
-    with oc1:
-        st.plotly_chart(
-            plot_novelty_vs_timewave_scatter(daily, tw),
-            use_container_width=True,
-            key="overview_scatter",
-        )
-        st.caption(
-            "Each dot is one day 🐴. A clear downward slope would match McKenna "
-            "(high surprise on low wave) ☯️ — far out if you see it. A flat cloud = "
-            "little match. Dig the shape, then read **So what?** 🎱."
-        )
-    with oc2:
-        st.plotly_chart(
-            animate_rolling_correlation(daily, tw),
-            use_container_width=True,
-            key="overview_rolling_corr",
-        )
-        st.caption(
-            "Does the match come and go over time 🌙? Play reveals the rolling "
-            "rank link. Values near zero mean little link in that window. A brief "
-            "spike is curiosity ✨, not a new main claim."
-        )
-
-    odds_fig = animate_odds_decile_roi(runners)
-    if odds_fig is not None:
-        st.plotly_chart(
-            odds_fig,
-            use_container_width=True,
-            key="overview_odds_decile",
-        )
-        st.caption(
-            "Win return by odds band 🐴 — pretend we buy every horse for $1 and "
-            "cash real win payouts when they land. Play reveals short→long bands. "
-            "Compare bands to the track's cut for market context ☯️."
-        )
+    st.subheader("✨ Novelty vs McKenna's timewave")
+    st.plotly_chart(
+        animate_novelty_timewave(daily, tw),
+        use_container_width=True,
+        key="overview_timeline",
+    )
+    st.caption(PRIMARY_CHART_CAPTION)
 
     if hexagram is not None:
-        hx1, hx2 = st.columns([1.4, 1.0])
-        with hx1:
-            st.plotly_chart(
-                animate_hexagram_slots(hexagram),
-                use_container_width=True,
-                key="overview_hexagram_ring",
-            )
-            st.caption(
-                "64-pattern ring 🃏 — same I Ching-style coin-cast vibe McKenna "
-                "mined for the wave tables. Amber spoke = this run's seed-tied "
-                "cast. Theme flair for picky betting 🎲 — not a prophecy, man."
-            )
-        with hx2:
-            render_clipart_row(n=4, slot="overview_hexagram", bobble=True)
-            st.caption(
-                f"Last cast pattern **{hexagram}** / 64 🔮. Same seed → same "
-                "pattern. Oracle vibes only — your old lady still wants the rent."
-            )
+        st.caption(
+            f"Last coin-cast pattern **{hexagram}** / 64 🔮 (seed-tied tie-breaker "
+            "for picky betting — theme flair, not a prophecy)."
+        )
 
-    st.markdown("**🏁 Did the wave help pick better days?**")
+    st.markdown("**🏁 Cover-all trifecta — did the wave help pick better days?**")
     st.caption(
-        "Wave-picked days = bet only when the wave is low 🌊. "
-        "Bet every race = no filter (expect to lose about the track's cut) 🏇."
+        "Wave-picked days = **cover-all trifecta** only when the wave is low "
+        "(high-novelty zone) 🌊. Every race = same tickets with no day filter "
+        "(expect to lose about the track's cut) 🏇."
     )
     bc1, bc2 = st.columns(2)
     s = res["strategy"]
-    bc1.metric("Wave-picked days", f"Return {s['roi_pct']:+.2f}%", f"Profit/loss ${s['total_pnl']:+,.0f}")
+    bc1.metric(
+        "Cover-all on high-novelty days",
+        f"Return {s['roi_pct']:+.2f}%",
+        f"Profit/loss ${s['total_pnl']:+,.0f}",
+    )
     s_all = res["bet_every_race"]
-    bc2.metric("Bet every race", f"Return {s_all['roi_pct']:+.2f}%", f"Profit/loss ${s_all['total_pnl']:+,.0f}")
+    bc2.metric(
+        "Cover-all every race",
+        f"Return {s_all['roi_pct']:+.2f}%",
+        f"Profit/loss ${s_all['total_pnl']:+,.0f}",
+    )
     st.caption(
         "Return is profit or loss as a percent of money spent. "
         "Compare wave-picked vs every-day — if timing helped, wave days should "
@@ -3663,96 +3751,9 @@ def render_novelty_timewave(state: dict) -> None:
             "Interesting for that side experiment only ✨."
         )
 
-    st.plotly_chart(
-        animate_novelty_timewave(daily, tw),
-        use_container_width=True,
-        key="novelty_timeline",
-    )
-    st.caption(
-        "Same timeline as Overview. Watch whether the two lines move opposite "
-        "ways, as McKenna guessed ☯️. Then read **So what?** for *this* run 🎱."
-    )
-    st.plotly_chart(
-        animate_novelty_distribution(scores, metric=opts["metric"]),
-        use_container_width=True,
-        key="novelty_hist",
-    )
-    st.caption(
-        "How surprise scores are spread across races 🏇. Play adds races one batch "
-        "at a time. A wide spread is normal; it does not mean the wave matched 🎱."
-    )
-
-    st.subheader("🔮 Extra pictures of the match")
-    st.caption(
-        "More views of how surprise and the wave relate ☯️. "
-        "The official answer still comes from the chance score 🎱 above — "
-        "pretty pictures can mislead."
-    )
-    st.plotly_chart(
-        animate_scatter_reveal(daily, tw),
-        use_container_width=True,
-        key="novelty_scatter_reveal",
-    )
-    st.caption(
-        "Each dot is one day — Play reveals them in date order 🐴. "
-        "Flat cloud = little match ☯️. Clear downward slope = direction "
-        "McKenna guessed 🍄."
-    )
-    nc1, nc2 = st.columns(2)
-    with nc1:
-        st.plotly_chart(
-            plot_novelty_vs_timewave_scatter(daily, tw),
-            use_container_width=True,
-            key="novelty_scatter",
-        )
-        st.caption(
-            "One dot per day. Flat cloud = little match ☯️. "
-            "Clear downward slope = direction McKenna guessed 🍄."
-        )
-    with nc2:
-        st.plotly_chart(
-            animate_rolling_correlation(daily, tw),
-            use_container_width=True,
-            key="novelty_rolling_corr",
-        )
-        st.caption(
-            "Does the link strengthen or fade in different periods 🌙? "
-            "Play walks the rolling rank link. Values near zero mean little link "
-            "in that window 🎱."
-        )
-
-    st.plotly_chart(
-        plot_novelty_calendar_heatmap(daily),
-        use_container_width=True,
-        key="novelty_calendar",
-    )
-    st.caption(
-        "Surprise by calendar day 🌌. Redder = weirder finishes that day of the "
-        "month. Seasonal color is background — not the main wave claim."
-    )
-
-    st.subheader("🐎 What the races look like")
-    st.caption(
-        "Background on field size and favorites 🏇 — context for the surprise "
-        "scores, not the main wave test."
-    )
-    st.plotly_chart(
-        plot_field_size_novelty(scores, metric=opts["metric"]),
-        use_container_width=True,
-        key="field_size_box",
-    )
-    st.caption(
-        "Bigger fields look \"weirder\" in raw scores, so we compare within "
-        "similar field sizes before averaging by day. That keeps the main test fair ☯️."
-    )
-    st.plotly_chart(
-        plot_winner_profile(scores),
-        use_container_width=True,
-        key="winner_profile",
-    )
-    st.caption(
-        "Left: how long winners paid 🐴. Right: how often the favorite won each "
-        "month. Useful market context — not evidence for or against the wave 🌊."
+    st.info(
+        "The dual novelty vs McKenna timewave graph is on **📊 Overview** — one chart for the whole app. "
+        "This tab keeps the match numbers, wave-table peek, and score tables."
     )
 
     if result["lag"] is not None:
@@ -3767,12 +3768,6 @@ def render_novelty_timewave(state: dict) -> None:
         st.write(
             f"Strongest link at a shift of **{int(best['lag_days'])}** days "
             f"(rank link = {best['spearman_r']:+.4f})"
-        )
-        st.plotly_chart(animate_lead_lag(lag), use_container_width=True, key="lead_lag")
-        st.caption(
-            "The peak shows the shift (in days) with the strongest link 🌙. "
-            "A tall peak far from zero would be interesting ✨; a flat line means "
-            "little lead/lag structure 🎱."
         )
         with st.expander("Lead/lag numbers"):
             st.dataframe(lag, use_container_width=True, hide_index=True)
@@ -3794,21 +3789,29 @@ def render_backtest(state: dict) -> None:
     result = state["result"]
     opts = state["opts"]
     res = result["backtest"]
-    mckenna_daily = state.get("mckenna_daily_pnl")
 
     st.subheader("🏁 Did timing help?")
     st.caption(TAB_INTROS["backtest"])
-    for label, key in [("Wave-picked days", "strategy"), ("Bet every race", "bet_every_race")]:
+    st.markdown(
+        "**Cover-all trifecta on high-novelty (low-wave) windows** — buy every "
+        "possible 1-2-3 order on wave-picked days (not pick horses)."
+    )
+    render_settlement_caption(res["per_race"])
+    for label, key in [
+        ("Cover-all trifecta — wave-picked (high-novelty) days", "strategy"),
+        ("Cover-all trifecta — every race (no day filter)", "bet_every_race"),
+    ]:
         s = res[key]
         st.markdown(f"**{label}**")
         if key == "strategy":
             st.caption(
-                "Only races on low-wave days 🌊. If the wave idea helped, this "
-                "block should look clearly better than \"Bet every race\" 🏇."
+                "Only races on low-wave / high-novelty days 🌊 — the "
+                "**cover-all trifecta** windows. If the wave idea helped, this "
+                "block should look clearly better than \"every race\" 🏇."
             )
         else:
             st.caption(
-                "Same ticket idea with no day filter — the baseline 🏁. "
+                "Same cover-all trifecta with no day filter — the baseline 🏁. "
                 "Expect a return near −track cut when there is no edge ☯️."
             )
         bc1, bc2, bc3, bc4, bc5, bc6 = st.columns(6)
@@ -3830,75 +3833,28 @@ def render_backtest(state: dict) -> None:
     )
 
     st.metric("Wave cutoff value", f"{res['threshold_wave_value']:.6f}")
-    src_counts = res["per_race"]["payout_source"].value_counts().to_dict()
     st.caption(
-        f"Wave cutoff value is the wave level that marks \"low enough to bet\" 🌊 "
-        f"for this run's cutoff %. Payout sources: {src_counts}. "
-        "Real dividends beat modeled ones when both exist ⭐."
+        "Wave cutoff value is the wave level that marks \"low enough to bet\" 🌊 "
+        "for this run's cutoff % (causal expanding window). Settlement counts "
+        "are in the **Settlement** block above."
     )
 
-    st.plotly_chart(
-        animate_cumulative_pnl(res["per_race"], mckenna_daily),
-        use_container_width=True,
-        key="cum_pnl",
-    )
     st.caption(
-        "Running profit or loss over time 🏁. Play walks race by race. "
-        "**If wave timing helped**, the green (wave-picked) line should stay "
-        "clearly above the red (every-day) one — far out if it does. "
-        "Then read **So what?** for *this* run ☯️."
-    )
-
-    st.subheader("🌀 Risk and spread")
-    st.caption(
-        "How bumpy the money ride was 🏇 — not just the final total. "
-        "A slightly better average with huge drawdowns is still a bad ride."
-    )
-    rc1, rc2 = st.columns(2)
-    with rc1:
-        st.plotly_chart(
-            plot_pnl_distribution(res["per_race"]),
-            use_container_width=True,
-            key="pnl_violin",
-        )
-        st.caption(
-            "Shape of per-race wins and losses on wave-picked days vs other days ☯️. "
-            "Similar shapes = timing did not change the ride much."
-        )
-    with rc2:
-        st.plotly_chart(
-            animate_drawdown(res["per_race"]),
-            use_container_width=True,
-            key="drawdown",
-        )
-        st.caption(
-            "How far below its best point the running total fell 🏁. "
-            "Play walks the drawdown over time. Deeper dips = a bumpier, "
-            "riskier path even if the end looks okay."
-        )
-    st.plotly_chart(
-        animate_monthly_pnl_heatmap(res["per_race"]),
-        use_container_width=True,
-        key="monthly_pnl_heatmap",
-    )
-    st.caption(
-        "Green months made money on wave-picked days; red months lost 🏇. "
-        "Play reveals year by year. A checkerboard of red and green with no "
-        "lasting green streak = no reliable timing edge ☯️."
+        "Money charts were removed so the app stays focused on the one "
+        "novelty vs timewave graph on **📊 Overview**. Numbers and tables below."
     )
 
     if result["sweep"] is not None:
         st.subheader("🔮 What if we change the cutoff?")
         st.caption(
-            "Returns across many wave cutoffs ✨. Good for intuition — "
+            "Returns across many wave cutoffs ✨ (table only). Good for intuition — "
             "not a replacement for the locked official cutoff ⭐. "
             "Shopping for the prettiest bump is how you fool yourself 🎱."
         )
-        st.plotly_chart(plot_sweep(result["sweep"]), use_container_width=True, key="sweep")
         st.caption(
             "A bump at one cutoff is curiosity ✨, not a new official result. "
-            "Compare the shape across cutoffs — locked claim still uses the "
-            "official cutoff ☯️."
+            "Locked claim still uses the official cutoff ☯️ — dig the table, "
+            "not a chart."
         )
         with st.expander("Cutoff sweep numbers"):
             st.dataframe(result["sweep"], use_container_width=True, hide_index=True)
@@ -3914,8 +3870,6 @@ def render_backtest(state: dict) -> None:
 
 def render_mckenna_engine(state: dict) -> None:
     opts = state["opts"]
-    runners = state["runners"]
-    result = state["result"]
     engine_summary = state.get("engine_summary")
     hexagram = state.get("hexagram")
 
@@ -3942,15 +3896,6 @@ def render_mckenna_engine(state: dict) -> None:
         st.caption(
             "A repeatable random pick 🎴 used when too many tickets look good. "
             "Same seed → same pattern. It is a tie-breaker, not a prophecy 🔮."
-        )
-        st.plotly_chart(
-            animate_hexagram_slots(hexagram),
-            use_container_width=True,
-            key="engine_hexagram_ring",
-        )
-        st.caption(
-            "64-slot ring ☯️ — amber spoke is this seed's cast. Theme flair for "
-            "the ticket thinner 🎱."
         )
         render_clipart_row(n=3, slot="engine_hexagram", bobble=True)
 
@@ -3982,43 +3927,6 @@ def render_mckenna_engine(state: dict) -> None:
                 "**So what?** summarizes the best rule for *this* run 🔮."
             )
 
-    from mckenna_derby.mckenna_engine import _compute_gated_days
-
-    resonance = result["resonance"]
-    gated_days = _compute_gated_days(
-        result["daily"], opts["engine_gate_pct"], wave_factor=64, levels=3
-    )
-
-    st.plotly_chart(
-        animate_resonance(resonance, gated_days),
-        use_container_width=True,
-        key="resonance",
-    )
-    st.caption(
-        "The line is the echo of past surprise 🧿. Marks show the hottest days we "
-        "would bet on under the gate %. Fewer marks = pickier. This chart shows "
-        "*when* we bet, not whether we made money 🏇."
-    )
-
-    with st.spinner("Building bias comparison animation …"):
-        st.plotly_chart(
-            animate_roi_by_beta(
-                runners,
-                gate_pct=opts["engine_gate_pct"],
-                k_max=opts["engine_k_max"],
-                takeout=opts["takeout"],
-                seed=opts["engine_seed"],
-            ),
-            use_container_width=True,
-            key="roi_beta",
-        )
-    st.caption(
-        "Slider steps through bias guesses from 1.00 to 1.20 🎱. "
-        "Play cycles returns for each rule. **Only 1.0 is the fair-price case** ☯️ — "
-        "returns that appear only at higher bias are \"if favorites were overbet,\" "
-        "not a claim that they are."
-    )
-
 
 def render_raw_data(state: dict) -> None:
     runners = state["runners"]
@@ -4032,7 +3940,7 @@ def render_raw_data(state: dict) -> None:
     st.dataframe(runners.head(100), use_container_width=True, hide_index=True)
     st.caption(
         "Each row is one horse in one race 🐴 — the raw input to the analysis. "
-        "If something looks wrong here, the charts above are wrong too."
+        "If something looks wrong here, the Overview graph and metrics are wrong too."
     )
 
     st.subheader("📥 Downloads")
@@ -4142,6 +4050,14 @@ def main() -> None:
             st.markdown(EMPTY_STATE_MARKDOWN)
             render_clipart_row(hero=True, n=3, slot="empty_state")
             st.markdown(EMPTY_STATE_DETAILS)
+            render_strategy_prose()
+            render_upcoming_novelty_windows(
+                number_set=opts.get("number_set", prereg.get("primary_number_set", "kelley")),
+                threshold_pct=float(
+                    opts.get("threshold_pct", prereg.get("primary_threshold_pct", 20.0))
+                ),
+                key_prefix="empty",
+            )
         if not run_clicked:
             return
 
@@ -4175,21 +4091,11 @@ def main() -> None:
         )
 
     engine_summary = None
-    mckenna_daily_pnl = None
-    # Seed-tied cast for the 64-slot visual (same RNG as picky betting when enabled).
+    # Seed-tied cast for picky-betting tie-breaker (same RNG when engine enabled).
     hexagram = IChingSelector(seed=opts["engine_seed"]).cast_hexagram()
     if opts["run_engine"]:
         with st.spinner("Running picky betting (four rules) …"):
             engine_summary = run_engine_summary(
-                runners,
-                opts["engine_beta"],
-                opts["engine_gate_pct"],
-                opts["engine_k_max"],
-                opts["takeout"],
-                opts["engine_seed"],
-            )
-        with st.spinner("Computing picky-betting money series …"):
-            mckenna_daily_pnl = mckenna_gated_daily_pnl(
                 runners,
                 opts["engine_beta"],
                 opts["engine_gate_pct"],
@@ -4205,7 +4111,6 @@ def main() -> None:
         "result": result,
         "engine_summary": engine_summary,
         "hexagram": hexagram,
-        "mckenna_daily_pnl": mckenna_daily_pnl,
     }
     st.session_state["analysis"] = state
 

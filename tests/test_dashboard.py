@@ -96,20 +96,23 @@ def test_dashboard_clipart_and_extra_animations():
     )[0]
     assert "md-metric-bounce-mobile" in DASHBOARD_SOURCE
     assert 'initial_sidebar_state="auto"' in DASHBOARD_SOURCE
-    assert "def animate_odds_decile_roi" in DASHBOARD_SOURCE
-    assert "def animate_hexagram_slots" in DASHBOARD_SOURCE
-    assert "def plot_vibe_meter" in DASHBOARD_SOURCE
-    assert "def animate_rolling_correlation" in DASHBOARD_SOURCE
-    assert "def animate_monthly_pnl_heatmap" in DASHBOARD_SOURCE
+    assert "def animate_novelty_timewave" in DASHBOARD_SOURCE
     assert "MAX_ANIM_FRAMES" in DASHBOARD_SOURCE
+    assert "PRIMARY_CHART_CAPTION" in DASHBOARD_SOURCE
     assert "render_clipart_row(" in DASHBOARD_SOURCE
     assert 'slot="header"' in DASHBOARD_SOURCE
     assert 'slot="empty_state"' in DASHBOARD_SOURCE
     assert "ensure_clipart_seed(reshuffle=True)" in DASHBOARD_SOURCE
-    assert "overview_vibe_meter" in DASHBOARD_SOURCE
-    assert "animate_odds_decile_roi(runners)" in DASHBOARD_SOURCE
-    assert "animate_rolling_correlation(daily, tw)" in DASHBOARD_SOURCE
-    assert "animate_monthly_pnl_heatmap" in DASHBOARD_SOURCE
+    # Single-chart UI: only novelty vs timewave is rendered via plotly_chart.
+    assert 'key="overview_timeline"' in DASHBOARD_SOURCE
+    assert DASHBOARD_SOURCE.count("st.plotly_chart(") == 1
+    assert "animate_novelty_timewave(daily, tw)" in DASHBOARD_SOURCE
+    assert "overview_vibe_meter" not in DASHBOARD_SOURCE
+    assert "animate_odds_decile_roi(runners)" not in DASHBOARD_SOURCE
+    assert "animate_rolling_correlation(daily, tw)" not in DASHBOARD_SOURCE
+    assert "animate_monthly_pnl_heatmap(" not in DASHBOARD_SOURCE.split(
+        "def render_overview"
+    )[1].split("def render_novelty_timewave")[0]
 
     from mckenna_derby.assets import (
         CLIPART,
@@ -216,10 +219,18 @@ def test_dashboard_has_plain_english_empty_state_copy():
     """Empty state should explain the app in plain English (no About tab)."""
     assert "EMPTY_STATE_MARKDOWN" in DASHBOARD_SOURCE
     assert "EMPTY_STATE_DETAILS" in DASHBOARD_SOURCE
+    assert "STRATEGY_MARKDOWN" in DASHBOARD_SOURCE
     assert "render_about" not in DASHBOARD_SOURCE
     assert "ABOUT_MARKDOWN" not in DASHBOARD_SOURCE
     assert "What is this?" in DASHBOARD_SOURCE
     assert "Run Analysis" in DASHBOARD_SOURCE
+    assert "cover-all trifecta" in DASHBOARD_SOURCE
+    assert "every possible 1-2-3" in DASHBOARD_SOURCE or "every possible 1-2-3 order" in DASHBOARD_SOURCE
+    assert "Upcoming high-novelty windows" in DASHBOARD_SOURCE
+    assert "render_upcoming_novelty_windows" in DASHBOARD_SOURCE
+    assert "render_settlement_caption" in DASHBOARD_SOURCE
+    assert "Cash dividends" in DASHBOARD_SOURCE or "Cash dividend" in DASHBOARD_SOURCE
+    assert "Modeled payouts" in DASHBOARD_SOURCE
     assert "TAB_INTROS" in DASHBOARD_SOURCE
     assert "TAB_LABELS" in DASHBOARD_SOURCE
     assert "Surprise vs the wave" in DASHBOARD_SOURCE
@@ -241,7 +252,12 @@ def test_dashboard_has_plain_english_empty_state_copy():
     # Short intro + details below Run so the button stays above the fold on phones.
     assert "Tap **🏇 Run Analysis**" in DASHBOARD_SOURCE
     assert "EMPTY_STATE_DETAILS" in DASHBOARD_SOURCE
-
+    # Empty-state calendar is a list/table, not a new Plotly chart.
+    assert "plotly_chart" not in DASHBOARD_SOURCE[
+        DASHBOARD_SOURCE.index("def render_upcoming_novelty_windows") : DASHBOARD_SOURCE.index(
+            "def render_settlement_caption"
+        )
+    ]
 
 def test_dashboard_sidebar_teaches_the_experiment():
     """Sidebar copy should explain the point and each control in plain English."""
@@ -249,7 +265,8 @@ def test_dashboard_sidebar_teaches_the_experiment():
     assert "SIDEBAR_CONTROL_CAPTIONS" in DASHBOARD_SOURCE
     assert "What this software does" in DASHBOARD_SOURCE
     assert "open **📊 Overview**" in DASHBOARD_SOURCE or "open **Overview**" in DASHBOARD_SOURCE
-    assert "surprising" in DASHBOARD_SOURCE and "race days line up" in DASHBOARD_SOURCE
+    assert "cover-all trifecta" in DASHBOARD_SOURCE
+    assert "novelty" in DASHBOARD_SOURCE.lower()
     assert "calendar wave" in DASHBOARD_SOURCE or "Timewave Zero" in DASHBOARD_SOURCE
     assert "UK/Ireland (free, exploratory)" in DASHBOARD_SOURCE
     assert "load_bundled_uk" in DASHBOARD_SOURCE
@@ -277,7 +294,8 @@ def test_dashboard_sidebar_teaches_the_experiment():
     assert 'st.caption(SIDEBAR_CONTROL_CAPTIONS["number_set"])' in sidebar_src
     assert "Who is Terence McKenna?" in sidebar_src
     assert "WHO_IS_MCKENNA" in sidebar_src
-
+    assert "Cover-all trifecta" in sidebar_src
+    assert "STRATEGY_MARKDOWN" in sidebar_src
 
 def test_dashboard_has_no_guided_tour_wiring():
     """Dashboard should not auto-launch the old guided tour or expose replay UI."""
@@ -322,13 +340,16 @@ def test_dashboard_main_run_button_on_intro():
 
 
 def test_dashboard_blurbs_under_main_views():
-    """Major charts and metric blocks should have captions underneath."""
+    """Metric blocks and the single chart should have captions underneath."""
     for needle in (
-        "Blue = how weird race days were",
-        "Each dot is one day",
+        "PRIMARY_CHART_CAPTION",
+        "Novelty vs McKenna's timewave",
         "Return is profit or loss",
-        "If wave timing helped",
-        "Green months made money",
+        "if timing helped",
+        "cover-all trifecta",
+        "Cash dividend races",
+        "Modeled payouts (no real trifecta file)",
+        "Upcoming high-novelty windows",
         "Each row is a betting rule",
         "Each row is one horse in one race",
         "**So what?**",
