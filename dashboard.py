@@ -129,10 +129,24 @@ def inject_app_css() -> None:
     --md-neon: rgba(167, 139, 250, 0.85);
     --md-neon-cyan: rgba(56, 189, 248, 0.75);
   }}
-  /* Guard against horizontal scroll from neon glow / stickers */
-  html, body, [data-testid="stAppViewContainer"] {{
-    overflow-x: hidden;
-    max-width: 100vw;
+  /* Clip horizontal bleed from neon glow / stickers WITHOUT locking vertical scroll.
+     Avoid overflow-x:hidden on stAppViewContainer (Streamlit already uses overflow:hidden
+     there) and avoid max-width:100vw (iOS scrollbar/viewport trap that can freeze scroll). */
+  html, body {{
+    overflow-x: clip;
+    overflow-y: auto;
+    max-width: 100%;
+  }}
+  [data-testid="stAppViewContainer"] {{
+    max-width: 100%;
+  }}
+  /* Streamlit's real mobile scroll parent — keep vertical pan/scroll explicit */
+  [data-testid="stMain"] {{
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-y: contain;
+    touch-action: pan-y;
   }}
   /* Metric cards — neon glow + gentle bounce */
   div[data-testid="stMetric"] {{
@@ -469,10 +483,16 @@ def inject_app_css() -> None:
     /* Empty-state neon frame — less padding, no overflow from glow */
     div[class*="st-key-intro_panel"] {{
       padding: 0.55rem 0.7rem;
+      overflow: visible;
       box-shadow:
         0 0 14px rgba(167, 139, 250, 0.28),
         0 0 28px rgba(56, 189, 248, 0.1),
         inset 0 0 18px rgba(167, 139, 250, 0.05);
+    }}
+    /* Keep primary Run Analysis near the top of the intro on phones */
+    div[class*="st-key-intro_panel"] .stButton {{
+      margin-top: 0.35rem;
+      margin-bottom: 0.5rem;
     }}
     /* Tabs with emoji labels — horizontal scroll, no wrap blowout */
     div[data-baseweb="tab-list"],
@@ -930,12 +950,19 @@ def render_clipart_row(
 # Plain-English copy (shown in the UI)
 # ---------------------------------------------------------------------------
 
+# Short blurb under the early Run button (button itself is above this copy).
 EMPTY_STATE_MARKDOWN = """
 ### 🐴 What is this?
 
-**Question:** Do weird 🐎 race days line up with Terence McKenna's 🌊 calendar wave
+Do weird 🐎 race days line up with Terence McKenna's 🌊 Timewave Zero
 (his 🍄 map of when the world should feel more 🌀 chaotic)?
 
+Hong Kong 🏇 races (1997–2005) are already loaded. Tap **🏇 Run Analysis**
+above, then open **📊 Overview** for the plain-English read of *this* run 🔮.
+"""
+
+# Optional detail below the button (scrollable; not required to start a run).
+EMPTY_STATE_DETAILS = """
 **Who was he?** Ethnobotanist, psychedelic philosopher, and legendary raconteur —
 a **mystical genius** who tried to chart "novelty" (how wild history feels) as a
 wave across time. Wild idea. We test it with honest stats 🎱.
@@ -948,12 +975,6 @@ window before that.
 **I Ching:** Ancient Chinese oracle of **64 hexagrams** 🔮. McKenna mined its
 structure for the wave tables. This app's picky-betting mode also uses a
 coin-cast hexagram-style picker 🃏 (same 64-pattern vibe — not a money tip).
-
-**Data:** Real Hong Kong 🏇 races (1997–2005) are already loaded.
-
-**What to do:** Click **🏇 Run Analysis** below (on this page).
-
-Then open **📊 Overview** for the plain-English read of *this* run 🔮.
 """
 
 SIDEBAR_INTRO = (
@@ -4059,6 +4080,17 @@ def main() -> None:
     )
     inject_app_css()
     require_auth()
+
+    def _main_run_button() -> bool:
+        return st.button(
+            "🏇 Run Analysis",
+            type="primary",
+            key="run_analysis_button",
+            use_container_width=True,
+        )
+
+    run_clicked = False
+    has_analysis = bool(st.session_state.get("analysis"))
     with st.container(key="app_header"):
         st.title("🐴 McKenna Derby")
         st.caption(
@@ -4066,7 +4098,13 @@ def main() -> None:
             "Timewave Zero? Click **🏇 Run Analysis**, then read **So what?** "
             "for *this* run 🔮."
         )
-        render_clipart_row(n=4, slot="header", bobble=True)
+        # Empty state: Run Analysis immediately under the title so phones see it
+        # without scrolling past a tall intro. Stickers/details come after.
+        if not has_analysis:
+            run_clicked = _main_run_button()
+            render_clipart_row(n=3, slot="header", bobble=True)
+        else:
+            render_clipart_row(n=4, slot="header", bobble=True)
 
     prereg = load_prereg()
     opts = render_sidebar(prereg)
@@ -4085,16 +4123,7 @@ def main() -> None:
         with tab_raw:
             render_raw_data(state)
 
-    def _main_run_button() -> bool:
-        return st.button(
-            "🏇 Run Analysis",
-            type="primary",
-            key="run_analysis_button",
-            use_container_width=True,
-        )
-
-    run_clicked = False
-    if st.session_state.get("analysis"):
+    if has_analysis:
         with st.container(key="intro_panel"):
             st.caption(
                 "Weird 🐎 race days vs McKenna's 🌊 calendar wave. "
@@ -4111,8 +4140,8 @@ def main() -> None:
     else:
         with st.container(key="intro_panel"):
             st.markdown(EMPTY_STATE_MARKDOWN)
-            render_clipart_row(hero=True, n=6, slot="empty_state")
-            run_clicked = _main_run_button()
+            render_clipart_row(hero=True, n=3, slot="empty_state")
+            st.markdown(EMPTY_STATE_DETAILS)
         if not run_clicked:
             return
 

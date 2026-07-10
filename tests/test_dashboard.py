@@ -86,7 +86,14 @@ def test_dashboard_clipart_and_extra_animations():
     assert "prefers-reduced-motion" in DASHBOARD_SOURCE
     assert "@media (max-width: 768px)" in DASHBOARD_SOURCE
     assert "@media (max-width: 480px)" in DASHBOARD_SOURCE
-    assert "overflow-x: hidden" in DASHBOARD_SOURCE
+    # Horizontal clip must not lock the Streamlit main scroll parent on mobile.
+    assert "overflow-x: clip" in DASHBOARD_SOURCE
+    assert 'overflow-y: auto !important' in DASHBOARD_SOURCE
+    assert '[data-testid="stMain"]' in DASHBOARD_SOURCE
+    assert "touch-action: pan-y" in DASHBOARD_SOURCE
+    assert "max-width: 100vw" not in DASHBOARD_SOURCE.split("def inject_app_css")[1].split(
+        "def inject_sticker_click_js"
+    )[0]
     assert "md-metric-bounce-mobile" in DASHBOARD_SOURCE
     assert 'initial_sidebar_state="auto"' in DASHBOARD_SOURCE
     assert "def animate_odds_decile_roi" in DASHBOARD_SOURCE
@@ -208,6 +215,7 @@ def test_plot_verdict_gauge_no_competing_titles():
 def test_dashboard_has_plain_english_empty_state_copy():
     """Empty state should explain the app in plain English (no About tab)."""
     assert "EMPTY_STATE_MARKDOWN" in DASHBOARD_SOURCE
+    assert "EMPTY_STATE_DETAILS" in DASHBOARD_SOURCE
     assert "render_about" not in DASHBOARD_SOURCE
     assert "ABOUT_MARKDOWN" not in DASHBOARD_SOURCE
     assert "What is this?" in DASHBOARD_SOURCE
@@ -230,6 +238,9 @@ def test_dashboard_has_plain_english_empty_state_copy():
     assert "low wave" in DASHBOARD_SOURCE and "high chaos" in DASHBOARD_SOURCE
     assert "2012" in DASHBOARD_SOURCE
     assert "Who is Terence McKenna?" in DASHBOARD_SOURCE
+    # Short intro + details below Run so the button stays above the fold on phones.
+    assert "Tap **🏇 Run Analysis**" in DASHBOARD_SOURCE
+    assert "EMPTY_STATE_DETAILS" in DASHBOARD_SOURCE
 
 
 def test_dashboard_sidebar_teaches_the_experiment():
@@ -290,7 +301,7 @@ def test_dashboard_main_run_button_on_intro():
     assert "render_main_run_button" not in DASHBOARD_SOURCE
     assert 'key="run_analysis_button_main"' not in DASHBOARD_SOURCE
     # Empty-state + sidebar copy point at the main-page button.
-    assert "Click **🏇 Run Analysis** below (on this page)" in DASHBOARD_SOURCE
+    assert "Tap **🏇 Run Analysis**" in DASHBOARD_SOURCE
     assert "hit **🏇 Run Analysis** on the main page" in DASHBOARD_SOURCE
     assert "Settings above — then hit **🏇 Run Analysis** on the main page" in DASHBOARD_SOURCE
     # Sidebar must not own the primary Run button.
@@ -299,11 +310,15 @@ def test_dashboard_main_run_button_on_intro():
     sidebar_src = DASHBOARD_SOURCE[sidebar_start:sidebar_end]
     assert 'key="run_analysis_button"' not in sidebar_src
     assert "Run Analysis" not in sidebar_src or "on the main page" in sidebar_src
-    # Main() wires the button inside the intro panel.
+    # Main() puts empty-state Run under the title (above fold), details below.
     main_start = DASHBOARD_SOURCE.index("def main()")
     main_src = DASHBOARD_SOURCE[main_start:]
     assert 'key="run_analysis_button"' in main_src
     assert "run_clicked" in main_src
+    assert 'key="app_header"' in main_src
+    # Empty-state path: button before intro details markdown.
+    assert main_src.index("if not has_analysis:") < main_src.index("EMPTY_STATE_DETAILS")
+    assert main_src.index("_main_run_button()") < main_src.index("EMPTY_STATE_DETAILS")
 
 
 def test_dashboard_blurbs_under_main_views():
