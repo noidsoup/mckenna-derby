@@ -27,9 +27,11 @@ from mckenna_derby.assets import (
     pick_random_assets,
 )
 from mckenna_derby.calendar_windows import (
+    DEFAULT_TIMEZONE,
     RESOLUTION_NOTE,
+    collapse_contiguous_windows,
     format_window_rows,
-    upcoming_novelty_windows,
+    upcoming_novelty_hours,
 )
 from mckenna_derby.mckenna_engine import (
     IChingSelector,
@@ -985,10 +987,10 @@ wave across time. Wild idea. We test it with honest stats 🎱.
 The lore peaks at a "zero date" around **2012-12-21** — we use the historical
 window before that.
 
-**The wager:** A **cover-all trifecta** on high-novelty (low-wave) days means
+**The wager:** A **cover-all trifecta** on high-novelty (low-wave) windows means
 buying every exact 1-2-3 ticket for that race. You are covering the board, not
 hand-picking ponies. See **Upcoming high-novelty windows** below for which
-*days* the wave currently flags (daily resolution only — not hours).
+*hours* the wave currently flags (Pacific time; contiguous hours collapsed).
 
 **I Ching:** Ancient Chinese oracle of **64 hexagrams** 🔮. McKenna mined its
 structure for the wave tables. This app's picky-betting mode also uses a
@@ -3243,61 +3245,72 @@ def render_upcoming_novelty_windows(
     horizon_days: int = 60,
     key_prefix: str = "upcoming",
 ) -> None:
-    """Simple date list/table of upcoming high-novelty (low-wave) days.
+    """List/table of upcoming high-novelty (low-wave) hour windows.
 
-    Daily resolution only — no Plotly, no hourly fake precision.
+    Hourly samples in ``DEFAULT_TIMEZONE``, collapsed into contiguous spans
+    (e.g. Fri Jul 11, 5:00–8:00 PM). No Plotly.
     """
     st.subheader("📅 Upcoming high-novelty windows")
     st.caption(
-        "Days ahead where McKenna's wave sits in the **high chaos / high novelty** "
+        "Hours ahead where McKenna's wave sits in the **high chaos / high novelty** "
         f"zone (lowest {threshold_pct:.0f}% under the same causal cutoff as the "
-        f"backtest; number table **{number_set}**). "
-        "These are the windows where the experiment would place a "
-        "**cover-all trifecta**."
+        f"backtest; number table **{number_set}**; timezone **{DEFAULT_TIMEZONE}**). "
+        "Contiguous hours are collapsed into windows."
     )
     st.caption(RESOLUTION_NOTE)
     try:
-        windows = upcoming_novelty_windows(
-            start=dt.date.today(),
+        hours = upcoming_novelty_hours(
             horizon_days=int(horizon_days),
             number_set=number_set,
             threshold_pct=float(threshold_pct),
+            timezone=DEFAULT_TIMEZONE,
         )
+        collapsed = collapse_contiguous_windows(hours, only_bet_zone=True)
     except Exception as exc:
         st.warning(f"Could not build the upcoming-windows list: {exc}")
         return
 
-    zone = windows[windows["in_bet_zone"]] if not windows.empty else windows
-    n_zone = int(len(zone))
-    if n_zone == 0:
+    n_windows = int(len(collapsed))
+    n_hours = int(hours["in_bet_zone"].sum()) if not hours.empty else 0
+    if n_windows == 0:
         st.info(
-            f"No days in the next {horizon_days} are in the bet zone under "
-            f"this cutoff (table `{number_set}`, lowest {threshold_pct:.0f}%). "
-            "The full day list is below for the wave values."
+            f"No hours in the next {horizon_days} days are in the bet zone under "
+            f"this cutoff (table `{number_set}`, lowest {threshold_pct:.0f}%, "
+            f"{DEFAULT_TIMEZONE}). "
+            "The full hour table is below for the wave values."
         )
     else:
         st.markdown(
-            f"**{n_zone}** day(s) in the bet zone over the next "
-            f"**{horizon_days}** days:"
+            f"**{n_windows}** window(s) (**{n_hours}** hour(s)) in the bet zone "
+            f"over the next **{horizon_days}** days ({DEFAULT_TIMEZONE}):"
         )
         lines = []
-        for _, row in zone.iterrows():
-            d = row["date"]
-            label = d.isoformat() if hasattr(d, "isoformat") else str(d)
-            lines.append(f"- **{label}** — wave {row['wave_value']:.6f}")
+        for _, row in collapsed.iterrows():
+            lines.append(
+                f"- **{row['label']}** — {int(row['n_hours'])}h, "
+                f"wave min {row['wave_min']:.6f}"
+            )
         st.markdown("\n".join(lines))
 
-    with st.expander("All upcoming days (wave + bet zone)", expanded=False):
+    with st.expander("Collapsed bet-zone windows", expanded=False):
         st.dataframe(
-            format_window_rows(windows),
+            format_window_rows(collapsed),
+            use_container_width=True,
+            hide_index=True,
+            key=f"{key_prefix}_collapsed_table",
+        )
+
+    with st.expander("All upcoming hours (wave + bet zone)", expanded=False):
+        st.dataframe(
+            format_window_rows(hours),
             use_container_width=True,
             hide_index=True,
             key=f"{key_prefix}_windows_table",
         )
         st.caption(
             "Bet zone = wave at or below the causal expanding-percentile cutoff "
-            "(same rule as the historical backtest). History before today warms "
-            "the cutoff; we only list days from today forward."
+            "(same rule as the historical backtest, applied to hourly samples). "
+            f"History before now warms the cutoff; times are {DEFAULT_TIMEZONE}."
         )
 
 
