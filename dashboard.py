@@ -963,8 +963,7 @@ SIDEBAR_INTRO = (
     "every day against the track's cut?\n\n"
     "McKenna was a mystical genius — ethnobotanist, psychedelic philosopher, "
     "raconteur — who built that wave from fractal ☯️ I Ching tables "
-    "(low wave ↔ high novelty; zero-date lore ~2012). We keep the mystique in "
-    "the story and the honesty in the numbers 🎱.\n\n"
+    "(low wave ↔ high novelty; zero-date lore ~2012).\n\n"
     "Read the controls below top to bottom, then hit **🏇 Run Analysis** "
     "on the main page — Overview tells you what *this* run found."
 )
@@ -1077,8 +1076,7 @@ TAB_INTROS = {
         "Big picture 📊 for this run, dude: how much 🐎 data you have, whether "
         "surprising race days lined up with McKenna's 🌊 Timewave Zero (his I Ching–built "
         "chaos calendar 🍄), and whether betting only on \"wave\" days beat betting "
-        "every day. Mystique in the story; honesty in the numbers 🎱. "
-        "Read the **So what?** boxes for what *this* run actually found."
+        "every day. Read the **So what?** boxes for what *this* run actually found."
     ),
     "novelty": (
         "**Surprise score** ✨ = how unexpected the finishes were, given the odds. "
@@ -4065,8 +4063,8 @@ def main() -> None:
         st.title("🐴 McKenna Derby")
         st.caption(
             "Do weird 🐎 horse-race days line up with Terence McKenna's 🌊 "
-            "Timewave Zero? Mystique in the story — honest numbers in the charts. "
-            "Click **🏇 Run Analysis**, then read **So what?** for *this* run 🔮."
+            "Timewave Zero? Click **🏇 Run Analysis**, then read **So what?** "
+            "for *this* run 🔮."
         )
         render_clipart_row(n=4, slot="header", bobble=True)
 
