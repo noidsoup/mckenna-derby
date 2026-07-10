@@ -44,5 +44,16 @@
     },
     "namespace": "mckenna-derby",
     "timestamp": 1783634118.270598
+  },
+  {
+    "id": "local_1783643585476",
+    "text": "Fixed critical mobile UX: empty-state Run Analysis was below fold (~1100px) after tall intro; also CSS overflow-x:hidden + max-width:100vw on html/body/stAppViewContainer risked locking vertical scroll. Moved Run under title on empty state, shortened intro, split EMPTY_STATE_DETAILS below, set stMain overflow-y:auto + touch-action:pan-y, use overflow-x:clip on html/body without 100vw. Verified Playwright 390x844 and 320x568 button in view and clickable.",
+    "metadata": {
+      "source": "mobile-scroll-fix",
+      "date": "2026-07-09",
+      "branch": "main"
+    },
+    "namespace": "mckenna-derby",
+    "timestamp": 1783643585.476056
   }
 ]
