@@ -43,11 +43,20 @@ def test_dashboard_observatory_dark_theme():
     assert 'template="plotly_dark"' in DASHBOARD_SOURCE
     assert "def inject_app_css" in DASHBOARD_SOURCE
     assert "PALETTE" in DASHBOARD_SOURCE
-    assert "plot_verdict_gauge" in DASHBOARD_SOURCE
-    assert "animate_scatter_reveal" in DASHBOARD_SOURCE
-    assert "animate_drawdown" in DASHBOARD_SOURCE
+    assert "def animate_novelty_timewave" in DASHBOARD_SOURCE
     assert "inject_app_css()" in DASHBOARD_SOURCE
     assert "return apply_plotly_theme(fig)" in DASHBOARD_SOURCE
+
+
+def test_dashboard_single_primary_chart_caption():
+    """Overview caption matches the user's novelty vs I Ching timewave ask."""
+    assert "PRIMARY_CHART_CAPTION" in DASHBOARD_SOURCE
+    assert "predictable wins = low novelty" in DASHBOARD_SOURCE
+    assert "surprising wins = high novelty" in DASHBOARD_SOURCE
+    assert "I Ching" in DASHBOARD_SOURCE
+    assert "patterns align" in DASHBOARD_SOURCE
+    assert DASHBOARD_SOURCE.count("st.plotly_chart(") == 1
+    assert 'key="overview_timeline"' in DASHBOARD_SOURCE
 
 
 def test_dashboard_clipart_and_extra_animations():
@@ -344,6 +353,8 @@ def test_dashboard_blurbs_under_main_views():
     for needle in (
         "PRIMARY_CHART_CAPTION",
         "Novelty vs McKenna's timewave",
+        "predictable wins = low novelty",
+        "surprising wins = high novelty",
         "Return is profit or loss",
         "if timing helped",
         "cover-all trifecta",
