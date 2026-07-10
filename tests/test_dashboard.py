@@ -343,11 +343,22 @@ def test_dashboard_blurbs_under_main_views():
         "Burning Man",
         "commune",
         "ashram",
-        "gonna be broke",
         "this run is a flop",
         "proved nothing",
+        "yurt has no Wi-Fi",
+        "playa is not texting",
+        "only agenda item",
+        "sash is just laundry",
     ):
         assert needle in DASHBOARD_SOURCE, f"missing blurb: {needle}"
+
+    # Persona endings must stay distinct — no shared three-beat closer.
+    for formula in (
+        "I'm gonna be broke",
+        "What a drag — and I'm getting",
+        "I'm gonna be broke and annoyed. What a drag",
+    ):
+        assert formula not in DASHBOARD_SOURCE, f"formulaic closer leaked: {formula}"
 
     # Doubt / flop language belongs in So what helpers only — not general UI copy.
     start = DASHBOARD_SOURCE.index("def _hippie_pick")
@@ -417,17 +428,26 @@ def test_interpret_helpers_plain_english():
     assert "null" in null_txt.lower()
     assert "So what?" in null_txt
     assert _is_flop(null_txt)
-    assert "broke" in null_txt.lower()
     assert _has_persona(null_txt)
     assert "0.4200" in null_txt and "-0.0100" in null_txt
     # Same metrics → same persona (no Streamlit flicker).
     assert null_txt == ns["_interpret_match"]({"permutation_p": 0.42, "spearman_r": -0.01})
 
+    # Severe match personas must not share one formulaic closer.
+    severe_endings = {
+        ns["_interpret_match"]({"permutation_p": p, "spearman_r": -0.01})
+        for p in (0.40, 0.55, 0.72, 0.91)
+    }
+    assert len(severe_endings) >= 2
+    for txt in severe_endings:
+        assert "gonna be broke" not in txt.lower()
+        assert "what a drag — and i'm getting" not in txt.lower()
+
     # Interesting hit: Far out — do NOT force flop language.
     hit_txt = ns["_interpret_match"]({"permutation_p": 0.01, "spearman_r": -0.3})
     assert "interesting" in hit_txt.lower() or "McKenna" in hit_txt
     assert "far out" in hit_txt.lower()
-    assert "broke" not in hit_txt.lower()
+    assert "gonna be broke" not in hit_txt.lower()
     assert "flop" not in hit_txt.lower()
     assert "proved nothing" not in hit_txt.lower()
 
@@ -457,8 +477,8 @@ def test_interpret_helpers_plain_english():
     )
     assert "null/negative" in timing_hurt.lower()
     assert _is_flop(timing_hurt)
-    assert "broke" in timing_hurt.lower()
     assert _has_persona(timing_hurt)
+    assert "gonna be broke" not in timing_hurt.lower()
     assert "-5.87%" in timing_hurt and "+1.95%" in timing_hurt
     assert timing_hurt == ns["_interpret_timing"](
         {"roi_pct": -5.87}, {"roi_pct": 1.95}, 0.18
@@ -470,6 +490,9 @@ def test_interpret_helpers_plain_english():
         for a, b in ((-5.87, 1.95), (-12.0, 3.0), (-8.5, 0.5), (-20.0, 5.0))
     }
     assert len(hurt_variants) >= 2
+    for txt in hurt_variants:
+        assert "gonna be broke" not in txt.lower()
+        assert "what a drag — and i'm getting" not in txt.lower()
 
     # Mild fair-pool null (near-zero ROI).
     engine_mild = ns["_interpret_engine"](
@@ -486,8 +509,8 @@ def test_interpret_helpers_plain_english():
     )
     assert _is_flop(engine)
     assert "null" in engine.lower() or "free lunch" in engine.lower()
-    assert "broke" in engine.lower()
     assert _has_persona(engine)
+    assert "gonna be broke" not in engine.lower()
     assert "-5.00%" in engine
     assert engine == ns["_interpret_engine"](
         {"engine_beta": 1.0},

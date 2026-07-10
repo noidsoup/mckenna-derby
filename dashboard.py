@@ -1165,55 +1165,54 @@ _MATCH_MILD = (
 )
 
 _MATCH_SEVERE = (
-    "Man… what a drag. **This run is a dead flop** — it **proved nothing**. Dead "
-    "**null**: race days don't line up with McKenna's 🌊 wave. Dig it: I sold the "
-    "VW bus for trifecta tickets, sleeping in a yurt, and my old lady is packing "
-    "her incense and leaving. I'm gonna be broke. Didn't print money. "
-    "*Increasingly annoyed* ☯️.",
-    "Man… what a drag. **Dead flop** — **this run proved nothing**. Dead **null** — "
-    "no lineup with McKenna's 🌊 wave. Missed Burning Man *and* the Dead reunion "
-    "because the ponies ate the ticket money. Crystal ball? Pawned. I'm gonna be "
-    "broke and mad. Festival burnout is *real* ☯️.",
-    "Man… what a drag. **Flop.** **Proved nothing.** Dead **null** — race days vs "
-    "McKenna's 🌊 wave = dust. I lost the commune's mushroom-fund / grocery money "
-    "chasing the calendar. The circle is holding a meeting. I'm gonna be broke. "
-    "*Increasingly annoyed* ☯️.",
-    "Man… what a drag. **This run flopped hard** — **proved nothing**. Dead **null** "
-    "— no wave match 🌊. Was gonna teach Timewave Zero at the ashram; now I'm "
-    "washing dishes and the guru revoked my sash. I'm gonna be broke. Disgrace "
-    "vibes turning into real annoyance ☯️.",
+    "Man… **this run is a dead flop** — it **proved nothing**. Dead **null**: race "
+    "days don't line up with McKenna's 🌊 wave. Dig it: I sold the VW bus for "
+    "trifecta tickets, sleeping in a yurt, and my old lady is packing her incense "
+    "and leaving. Van-life dream = dust. Didn't print money — just condensation "
+    "on the yurt wall ☯️.",
+    "Man… **dead flop** — **this run proved nothing**. Dead **null** — no lineup "
+    "with McKenna's 🌊 wave. Missed Burning Man *and* the Dead reunion because the "
+    "ponies ate the ticket money. Crystal ball? Pawned. Festival burnout is *real*, "
+    "and the playa is not texting back ☯️.",
+    "Man… **flop.** **Proved nothing.** Dead **null** — race days vs McKenna's 🌊 "
+    "wave = dust. I lost the commune's mushroom-fund / grocery money chasing the "
+    "calendar. The circle is holding a meeting. Spoiler: I'm the only agenda item "
+    "☯️.",
+    "Man… **this run flopped hard** — **proved nothing**. Dead **null** — no wave "
+    "match 🌊. Was gonna teach Timewave Zero at the ashram; now I'm washing dishes "
+    "and the guru revoked my sash. The sash is just laundry now. Guru disgrace, "
+    "full stop ☯️.",
 )
 
 _TIMING_BASELINE = (
     "Sorry man — **this run is a flop** on timing. **Proved nothing.** That's the "
     "**boring baseline**: timing did not help, didn't print money ☯️. My old lady "
     "is gonna ask where the grocery money went and I gotta say \"the ponies, babe.\" "
-    "What a drag.",
+    "Awkward silence incoming.",
     "Sorry man, soft bummer — **flop**. **Proved nothing.** **Boring baseline**, no "
     "timing edge ☯️. Almost hocked the van stereo for more tickets. Peace… wallet "
     "still crying.",
     "Sorry man, mild drag — **this run flopped**. **Proved nothing.** **Boring "
     "baseline** ☯️. Commune treasurer already asked about the \"research\" line "
-    "item. No edge, dude. What a drag.",
+    "item. No edge, dude — and the spreadsheet has feelings.",
     "Sorry man — **flop**. Timing **proved nothing** this run. **Boring baseline**, "
     "didn't pay ☯️. Ashram dish duty looks likelier than a lecture tour. Peace.",
 )
 
 _TIMING_HURT = (
     "**This run is a flop** — filtering by the wave *hurt* and **proved nothing** "
-    "good. Bummer vibes turning into real annoyance: I sold the VW bus for "
-    "trifecta tickets, sleeping in a yurt, and my old lady is packing her incense "
-    "and leaving. I'm gonna be broke. Rent money? Gone on the ponies. What a drag "
-    "— and I'm getting *mad* about it.",
+    "good. I sold the VW bus for trifecta tickets, sleeping in a yurt, and my old "
+    "lady is packing her incense and leaving. Rent money? Gone on the ponies. The "
+    "yurt has no Wi-Fi and no exit plan.",
     "**Flop.** **Proved nothing** — the wave filter *ate* the bankroll. Missed "
-    "Burning Man and the Dead reunion. Crystal ball pawned. I'm gonna be broke. "
-    "Ponies 1, cosmos 0. What a drag — and I'm getting *mad* about it.",
+    "Burning Man and the Dead reunion. Crystal ball pawned. Ponies 1, cosmos 0. "
+    "I'm not even mad — I'm *done* with the calendar.",
     "**This run flopped.** **Proved nothing.** I lost the mushroom-fund / grocery "
-    "money on McKenna's wave. The circle is holding a meeting. I'm gonna be broke. "
-    "Rent? Ponies. What a drag — and I'm getting *mad* about it.",
+    "money on McKenna's wave. The circle is holding a meeting. Spoiler: I'm the "
+    "agenda. Bring snacks; I can't.",
     "**Flop city.** **Proved nothing.** Was gonna teach Timewave Zero at the "
-    "ashram, now washing dishes while the sash gathers dust. I'm gonna be broke. "
-    "Calendar trip = dust. What a drag — and I'm getting *mad* about it.",
+    "ashram, now washing dishes while the sash gathers dust. Calendar trip = dust. "
+    "Dish duty until further notice, man.",
 )
 
 _TIMING_CLOSE = (
@@ -1226,30 +1225,31 @@ _TIMING_CLOSE = (
 _ENGINE_EMPTY = (
     "**This run is a flop** on picky betting — **proved nothing.** Zero tickets "
     "worth reading, dude. Sold the bus vibes for an empty table; my old lady is "
-    "packing incense. I'm gonna be broke and annoyed. What a drag.",
+    "packing incense. Empty grid, empty tank — nothing to hitchhike home on.",
     "**Flop.** **Proved nothing.** Zero tickets — festival burnout with nothing "
-    "to show. Crystal ball fogged. I'm gonna be broke and annoyed. What a drag.",
+    "to show. Crystal ball fogged. The lineup never dropped; neither did a payout.",
     "**This run flopped.** **Proved nothing.** Zero tickets; commune treasurer is "
-    "calling a circle over an empty engine. I'm gonna be broke and annoyed. "
-    "What a drag.",
+    "calling a circle over an empty engine. Minutes will be taken. I will not enjoy "
+    "them.",
     "**Flop city.** **Proved nothing.** Zero tickets; guru revoked the demo slot; "
-    "dish duty it is. I'm gonna be broke and annoyed. What a drag.",
+    "dish duty it is. The whiteboard still says \"Timewave\" — someone should erase "
+    "it.",
 )
 
 _ENGINE_SEVERE = (
     "**This run is a dead flop** — **proved nothing**, didn't print money. I sold "
     "the VW bus energy for a fractal hexagram trip and got dust. Sleeping in a "
-    "yurt; old lady packing incense. I'm gonna be broke. Rent? Gone. Peace and "
-    "love? Temporarily suspended. *Increasingly annoyed* ☮️.",
+    "yurt; old lady packing incense. Peace and love? Temporarily suspended. The "
+    "bus is gone; the null remains ☮️.",
     "**Dead flop.** **Proved nothing.** Missed Burning Man because this fair-pool "
-    "trip ate the ticket money. Crystal ball pawned. I'm gonna be broke. Rent? "
-    "Gone. Honest null, festival burnout, *increasingly annoyed* ☮️.",
+    "trip ate the ticket money. Crystal ball pawned. Honest null, festival burnout "
+    "— the playa refunded nothing ☮️.",
     "**Flop.** **Proved nothing.** Lost the commune's mushroom-fund on a hexagram "
-    "thinner. The circle is holding a meeting. I'm gonna be broke. Rent? Gone. "
-    "Expected null and I am *increasingly annoyed* ☮️.",
+    "thinner. The circle is holding a meeting. Expected null, unexpected shame. "
+    "Pass the talking stick; I'm done ☮️.",
     "**This run flopped hard** — **proved nothing.** Was gonna teach Timewave Zero "
-    "at the ashram; now washing dishes after this dead fair-pool run. I'm gonna "
-    "be broke. Rent? Gone. Guru disgrace, *increasingly annoyed* ☮️.",
+    "at the ashram; now washing dishes after this dead fair-pool run. Guru disgrace "
+    "complete — the sash stays in the laundry pile ☮️.",
 )
 
 _ENGINE_MILD = (
@@ -1258,10 +1258,10 @@ _ENGINE_MILD = (
     "is gonna ask about the grocery money. Keep the peace ☮️, but yeah… I'm bummed.",
     "Sorry man, soft bummer — **flop**. **Proved nothing.** **Expected null**, no "
     "free lunch at fair prices. Almost pawned the crystal for more tickets. Keep "
-    "the peace ☮️.",
+    "the peace ☮️ — foggy orb, clearer math.",
     "Sorry man, mild drag — **this run flopped**. **Proved nothing.** **Expected "
     "null** under fair prices. Commune treasurer already frowning. Keep the peace "
-    "☮️, but yeah… I'm bummed.",
+    "☮️; the ledger does not.",
     "Sorry man — **flop**. **Proved nothing.** **Expected null**, no free lunch. "
     "Ashram dish rotation looks busy. Keep the peace ☮️.",
 )
