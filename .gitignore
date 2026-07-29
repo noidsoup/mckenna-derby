@@ -8,3 +8,5 @@ uncommitted/
 rawdata/
 output/
 .DS_Store
+uncommitted/
+.loops

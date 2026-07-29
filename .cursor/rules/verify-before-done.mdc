@@ -1,0 +1,26 @@
+---
+description: Verify before done — run the gate, paste real output, never claim success on faith
+alwaysApply: true
+---
+
+# Verify before "done"
+
+Before you say a change is done, shipped, or working:
+
+1. **Run the project's verify gate.** In priority order, whichever exists:
+   - `npm run verify` (or `verify:quick` for a fast inner loop)
+   - `make check`
+   - `python3 scripts/verify.sh` / the project's test command
+2. **Read the actual output.** Exit code + the last few lines.
+3. **Paste the real result into your reply** — the literal exit code and tail,
+   not "tests pass." `write_file` succeeding is NOT proof the change works.
+4. **Ship or fix.** If it's red, fix it or say exactly what's blocked and why.
+   Never fabricate output you didn't actually produce.
+
+**Anti-cheat:** tests are *added* to cover behavior, never *weakened* to go green.
+Do not loosen or delete an assertion to pass. If a test must change, the change
+must clarify behavior, and you must say so explicitly.
+
+**Restart what you changed:** if you edited a running service, discover it
+(`lsof -i :PORT`), stop it, restart it the same way, and smoke-check — don't ask
+the user to restart what you can restart yourself.
