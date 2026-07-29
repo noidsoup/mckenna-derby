@@ -1,0 +1,7 @@
+# Local LanceDB project-knowledge index (scripts/*_project_knowledge_lancedb.py)
+# Install: python3 -m pip install -r requirements-lancedb.txt
+# Agent tooling only — not a runtime dependency of the app.
+lancedb>=0.26.1,<1
+sentence-transformers>=3,<4
+python-dotenv>=1,<2
+numpy>=1.26,<3

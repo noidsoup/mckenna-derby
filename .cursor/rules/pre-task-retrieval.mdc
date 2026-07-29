@@ -1,0 +1,28 @@
+---
+description: Pre-task retrieval — query project knowledge before the first tool call on any non-trivial task
+alwaysApply: true
+---
+
+# Pre-task retrieval (mandatory)
+
+Before the first tool call on a non-trivial task, pull context so you don't repeat
+past mistakes or miss established patterns. Search cheapest-first, stop at the first
+good hit:
+
+1. **SimpleMem** (if `simplemem_cli.py` exists) — `python3 simplemem_cli.py query --question "<topic>"`
+2. **LanceDB** (if `scripts/search_project_knowledge_lancedb.py` exists) —
+   `python3 -u scripts/search_project_knowledge_lancedb.py "<question>" --top-k 8`
+3. **Cross-repo vault recall** (if available on this machine).
+4. **Long-term memory** (Honcho / memory tool) — last resort, costs tokens.
+
+**Fires on:** references to a feature/module/client by name; bugs or regressions;
+"we did this before"; any code change or refactor; "what did we do about X".
+
+**Skip on:** pure lookups, in-session follow-ups, chitchat.
+
+Treat semantic-search scores conservatively — high score = actionable; low score =
+weak signal, verify in the actual file before quoting it as fact. Never invent
+retrieved content; open the source file if a hit is truncated.
+
+**Keep retrieval fresh:** after editing indexed docs, re-index at close-out —
+`python3 -u scripts/index_project_knowledge_lancedb.py --apply --files <changed paths>`.
