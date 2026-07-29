@@ -1,0 +1,24 @@
+---
+description: Local LanceDB semantic search over project docs/code (offline embeddings) — search before exploring
+alwaysApply: true
+---
+
+# Project knowledge — LanceDB (local semantic search)
+
+This repo has a local semantic index (LanceDB + sentence-transformers, fully offline). **Search it BEFORE grep/reading multiple files** when answering "where is X", "how does X work", or recalling decisions/docs — it's faster and uses far fewer tokens than exploring blind.
+
+## Commands
+
+```bash
+python3 -u scripts/search_project_knowledge_lancedb.py "<question>" --top-k 8
+python3 -u scripts/index_project_knowledge_lancedb.py --apply
+python3 -u scripts/index_project_knowledge_lancedb.py --apply --files AGENTS.md docs/foo.md
+```
+
+Index store: `uncommitted/lancedb_project_knowledge/` (gitignored) unless `PROJECT_KNOWLEDGE_LANCEDB_DIR` is set in `.env`. Rebuild if search errors or results look stale.
+
+## Agent responsibility
+
+1. **Search first** for repo Q&A, doc recall, "where does X live" — fall back to grep/files only if search misses.
+2. **Refresh after doc edits** — after changing indexed content (`*.md`, `docs/`, `.cursor/rules/`, etc.), re-index before close-out: targeted `--files` or full `--apply`.
+3. A daily cron (`lancedb-reindex-daily` on the Mac) rebuilds all indexes, so staleness self-heals overnight.
