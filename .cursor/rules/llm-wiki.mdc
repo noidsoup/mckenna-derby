@@ -1,0 +1,18 @@
+---
+description: LLM Wiki — read mckenna-derby wiki/SCHEMA.md before any wiki operation
+globs:
+  - "mckenna-derby wiki/**"
+alwaysApply: false
+---
+
+# LLM Wiki
+
+This project's Obsidian vault is **`mckenna-derby wiki/`** (repository folder name + space + `wiki`).
+
+Before creating, updating, or querying wiki pages, read `mckenna-derby wiki/SCHEMA.md` for conventions.
+
+The vault uses `[[wikilinks]]` for internal links. Every page has YAML frontmatter.
+
+When the user says "ingest", "add to wiki", "lint wiki", or "query wiki", follow the workflows in SCHEMA.md (and the global **llm-wiki** skill when applicable).
+
+After significant work sessions, suggest filing key decisions and learnings into the wiki.
