@@ -2,7 +2,7 @@
 title: Run the analysis pipeline
 type: guide
 created: 2026-07-30
-updated: 2026-07-30
+updated: 2026-09-12
 tags: [runbook, cli, pytest, dashboard]
 status: active
 ---
@@ -28,13 +28,15 @@ pytest -q
 ### 2. Synthetic null demo
 
 ```bash
-python run_analysis.py
+python run_analysis.py --synthetic
 python run_analysis.py --sweep --max-lag 30   # exploratory sections
 ```
 
 Outputs: `output/report.md`, `output/race_scores.csv`, `output/novelty_vs_timewave.png`
 
 ### 3. Real Hong Kong data
+
+The **default** dataset is the bundled Hong Kong slice (`mckenna_derby/datasets/hk_runners.csv`), so `python run_analysis.py` runs on real bundled HK with no download. For the full raw Kaggle dataset:
 
 1. Confirm [[prereg-json]] is committed and unchanged.
 2. Kaggle token at `~/.kaggle/kaggle.json`.
@@ -46,6 +48,22 @@ python run_analysis.py --hk rawdata/ --sweep --max-lag 30
 ```
 
 Report primary result verbatim — do not tune parameters to improve p-values.
+
+### 3b. UK/Ireland exploratory slice
+
+The bundled UK/Ireland slice (`uk_runners.csv`, ~34,449 races, 2008–2012) is **exploratory only** — not the locked primary claim; do not edit `prereg.json` for it. HK remains the locked default.
+
+```bash
+python run_analysis.py --uk          # CLI
+# Or via dashboard: Advanced → radio to UK/Ireland
+python scripts/build_bundled_uk.py --start …   # rebuild a wider window locally
+```
+
+See [[0003-uk-exploratory-slice]] and `docs/FREE_DATASETS.md`.
+
+### 3c. Exotic dividends (partial / blocked)
+
+The bundled `hk_runners.csv` carries real `win_payout`/`place_payout` (per $1). Real trifecta/tierce cash settlement is **blocked** on exotic source data — prefer real `trifecta_payout` over modeled parimutuel when present, and merge via `scripts/build_bundled_data.py --exotics`. Do not claim trifecta cash settlement until then (see [[ai-session-memory-2026-07-09]]).
 
 ### 4. McKenna Engine
 
@@ -61,6 +79,8 @@ streamlit run dashboard.py
 # or
 ./scripts/start-dashboard.sh
 ```
+
+First visit shows a plain-English **About** landing section + a 30-second try-it guide. (A first-visit Driver.js guided tour was added then removed on 2026-07-09 — see [[0004-driver-js-then-removed]].)
 
 ### 6. SimpleMem (optional)
 
@@ -83,3 +103,6 @@ python3 simplemem_cli.py import-ai-session --path AI_SESSION_MEMORY.md
 - [[streamlit-dashboard]]
 - [[mckenna-engine-selective-betting]]
 - [[mckenna-derby-package]]
+- [[0003-uk-exploratory-slice]]
+- [[0004-driver-js-then-removed]]
+- [[ai-session-memory-2026-07-09]]

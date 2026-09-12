@@ -2,7 +2,7 @@
 title: Wiki Index
 type: index
 created: 2026-07-30
-updated: 2026-07-30
+updated: 2026-09-12
 ---
 
 # McKenna Derby Wiki
@@ -21,6 +21,7 @@ updated: 2026-07-30
 | Page | Summary | Date |
 |------|---------|------|
 | [[readme-project-overview]] | Hypothesis, pipeline stages, McKenna Engine, honest expectations | 2026-07-30 |
+| [[ai-session-memory-2026-07-09]] | 2026-07-09 session log: dashboard copy/tour (add+remove), UK slice, exotic dividends, mobile fix | 2026-09-12 |
 
 ## Entities
 
@@ -46,6 +47,8 @@ updated: 2026-07-30
 |---|----------|--------|
 | [[0001-local-simplemem-backend]] | SimpleMem local JSON in `docs/simplemem/` travels with repo | Accepted |
 | [[0002-preregistered-primary-analysis]] | Primary params locked in `prereg.json` after first real-data run | Accepted |
+| [[0003-uk-exploratory-slice]] | Ship the bundled UK/Ireland 2008–2012 slice as exploratory-only; HK stays locked default | Accepted |
+| [[0004-driver-js-then-removed]] | Use self-contained Driver.js for the first-visit tour, then remove the tour entirely | Accepted |
 
 ## Guides
 
