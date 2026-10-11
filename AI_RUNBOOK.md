@@ -73,7 +73,7 @@ streamlit run dashboard.py
 
 ### Add a feature (AI-assisted)
 
-1. For non-trivial work: use the global `plan-and-implement` skill (writes to `.cursor/plans/PLAN.md`)
+1. For non-trivial work: use the global `loops-plan-and-implement` skill (say "plan-and-implement")
 2. Implement task-by-task; run `pytest -q` after each change to frozen modules
 3. Append **AI_SESSION_MEMORY.md**; optionally `python3 simplemem_cli.py add --text "..."`
 

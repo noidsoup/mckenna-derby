@@ -2,7 +2,7 @@
 title: Session memories in the wiki (SimpleMem)
 type: guide
 created: 2026-07-30
-updated: 2026-07-30
+updated: 2026-10-10
 tags: [simplemem, memories, wiki]
 status: active
 ---
@@ -24,7 +24,7 @@ Re-export entries into [[simplemem-archive]] when `docs/simplemem/memories.json`
 
 ## Privacy
 
-Same rules as SimpleMem: no secrets, tokens, or passwords. See `.cursor/rules/simplemem.mdc`.
+Same rules as SimpleMem: no secrets, tokens, or passwords. See `.claude/rules/simplemem.md`.
 
 ## Related
 

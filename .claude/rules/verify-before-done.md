@@ -1,6 +1,5 @@
 ---
 description: Verify before done — run the gate, paste real output, never claim success on faith
-alwaysApply: true
 ---
 
 # Verify before "done"

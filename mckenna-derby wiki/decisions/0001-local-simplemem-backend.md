@@ -2,7 +2,7 @@
 title: Local SimpleMem backend
 type: decision
 created: 2026-07-30
-updated: 2026-07-30
+updated: 2026-10-10
 tags: [simplemem, memory, ai]
 aliases: [0001, simplemem local]
 sources: []
@@ -27,7 +27,7 @@ Use SimpleMem with **`SIMPLEMEM_BACKEND=local`** only. Store committed JSON at *
 
 - Memories travel with the repo; no cloud API keys required.
 - Wiki mirror at [[simplemem-archive]] for Obsidian graph and human reading.
-- Same privacy rules: no secrets, API keys, or PII (see `.cursor/rules/simplemem.mdc`).
+- Same privacy rules: no secrets, API keys, or PII (see `.claude/rules/simplemem.md`).
 
 ## Related
 

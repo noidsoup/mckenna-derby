@@ -1,8 +1,7 @@
 ---
 description: LLM Wiki — read mckenna-derby wiki/SCHEMA.md before any wiki operation
-globs:
+paths:
   - "mckenna-derby wiki/**"
-alwaysApply: false
 ---
 
 # LLM Wiki
