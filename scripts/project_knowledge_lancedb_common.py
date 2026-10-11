@@ -48,7 +48,7 @@ def _extra_dirs(root: Path) -> list[Path]:
 
 
 def discover_indexable_files(root: Path) -> list[Path]:
-    """Markdown and Cursor rules under common agent/doc locations."""
+    """Markdown, Cursor rules, and Claude rules/skills under common agent/doc locations."""
     found: list[Path] = []
     singles = (
         "AGENTS.md",
@@ -72,6 +72,11 @@ def discover_indexable_files(root: Path) -> list[Path]:
     rules = root / ".cursor" / "rules"
     if rules.is_dir():
         found.extend(sorted(p.resolve() for p in rules.glob("*.mdc") if p.is_file()))
+    claude = root / ".claude"
+    for sub, pattern in (("rules", "*.md"), ("skills", "*/SKILL.md")):
+        d = claude / sub
+        if d.is_dir():
+            found.extend(sorted(p.resolve() for p in d.glob(pattern) if p.is_file()))
     for extra in _extra_dirs(root):
         found.extend(sorted(p.resolve() for p in extra.rglob("*.md") if p.is_file()))
         found.extend(sorted(p.resolve() for p in extra.rglob("*.mdc") if p.is_file()))

@@ -2,7 +2,7 @@
 title: LanceDB project-knowledge search
 type: entity
 created: 2026-07-30
-updated: 2026-07-30
+updated: 2026-10-10
 tags: [lancedb, retrieval, semantic-search]
 aliases: [lancedb, project-knowledge]
 sources: []
@@ -25,7 +25,7 @@ Local offline semantic search over repo markdown, rules, and agent docs using **
 
 Index output: `uncommitted/lancedb_project_knowledge/` (gitignored). Deps: `requirements-lancedb.txt`.
 
-Agents: search before grep on non-trivial tasks (see `.cursor/rules/project-knowledge-lancedb.mdc` and `.cursor/rules/pre-task-retrieval.mdc`). Re-index after doc edits.
+Agents: search before grep on non-trivial tasks (see `.claude/rules/pre-task-retrieval.md`). Re-index after doc edits.
 
 ## Key details
 

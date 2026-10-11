@@ -9,7 +9,7 @@ It lives at:
 There is a **space** between `mckenna-derby` and `wiki` (project wiki naming rule: *repository folder name* + space + `wiki`).
 
 - **In Obsidian:** *Open folder as vault* → choose the `mckenna-derby wiki` directory inside this repo.
-- **In Cursor / Explorer:** expand the repo root and look for **`mckenna-derby wiki`** (not `wiki` alone).
+- **In your editor / Explorer:** expand the repo root and look for **`mckenna-derby wiki`** (not `wiki` alone).
 
 Start here: **`mckenna-derby wiki/SCHEMA.md`**.
 

@@ -11,3 +11,7 @@ output/
 .DS_Store
 uncommitted/
 .loops
+
+# Claude Code local state
+.claude/worktrees/
+.claude/settings.local.json

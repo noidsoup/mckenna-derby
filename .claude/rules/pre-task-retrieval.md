@@ -1,6 +1,5 @@
 ---
 description: Pre-task retrieval — query project knowledge before the first tool call on any non-trivial task
-alwaysApply: true
 ---
 
 # Pre-task retrieval (mandatory)

@@ -2,6 +2,8 @@
 
 Primary always-on context for AI assistants. Read **AI_RUNBOOK.md** for operational detail.
 
+Claude Code loads this file through `.claude/CLAUDE.md`. Always-on rules are in `.claude/rules/` (the wiki rule loads only for files in `mckenna-derby wiki/`), and the repo skills are linked from `.claude/skills/`.
+
 ## Start of session
 
 1. Read **AI_RUNBOOK.md** and **AI_SESSION_MEMORY.md**
@@ -24,15 +26,15 @@ Primary always-on context for AI assistants. Read **AI_RUNBOOK.md** for operatio
 
 ## Critical patterns
 
-- **Frozen core:** Do not change `timewave.py`, `novelty.py`, or `compare.py` without explicit user approval and golden test updates
+- **Frozen core:** Do not change `mckenna_derby/timewave.py`, `mckenna_derby/novelty.py`, or `mckenna_derby/compare.py` without explicit user approval and golden test updates
 - **Pre-registration:** Primary analysis params live in `prereg.json`; exploratory runs need Bonferroni labels
 - **Honest nulls:** Synthetic data (`--synthetic`) is market-calibrated — expect no timewave signal and ROI ≈ −takeout
 - **Default data:** Bundled Hong Kong races in `mckenna_derby/datasets/hk_runners.csv` (no Kaggle/upload required)
-- **Exploratory free:** Bundled UK/Ireland slice in `uk_runners.csv` (`--uk` / Advanced options); not the locked claim — see `docs/FREE_DATASETS.md`
+- **Exploratory free:** Bundled UK/Ireland slice in `mckenna_derby/datasets/uk_runners.csv` (`--uk` / Advanced options); not the locked claim — see `docs/FREE_DATASETS.md`
 - **Payouts:** Bundled CSV includes real `win_payout` / `place_payout` (per $1). Prefer real `trifecta_payout` over modeled parimutuel when present — Kaggle `gdaley/hkracing` has **no** trifecta/tierce; merge via `scripts/build_bundled_data.py --exotics` (see `mckenna_derby/datasets/README.md`)
 - **Timewave after 2012-12-21:** Mirrored extension is flagged; usable historical window ends at zero date
 
-## Repo skills (`.agents/skills/`)
+## Repo skills (`.agents/skills/`, linked from `.claude/skills/`)
 
 | Skill | When to use |
 |-------|-------------|
@@ -55,6 +57,7 @@ Prefer library IDs in `.cursor/context7-libraries.md`. Use for Streamlit, SciPy 
 ```bash
 python3 -m venv .venv && source .venv/bin/activate
 pip install -e . pytest
+bash .verify.sh                        # the gate: pytest -q via .venv/bin/pytest
 pytest -q
 python run_analysis.py                 # bundled HK (default)
 python run_analysis.py --uk            # UK/Ireland exploratory free slice
@@ -71,4 +74,7 @@ streamlit run dashboard.py
 
 ## Relevant rules
 
-- `.cursor/rules/simplemem.mdc` — memory namespace and security
+- `.claude/rules/pre-task-retrieval.md` — SimpleMem, then LanceDB, then vault recall before non-trivial work
+- `.claude/rules/verify-before-done.md` — run `bash .verify.sh` and paste the real result
+- `.claude/rules/simplemem.md` — memory namespace and security
+- `.claude/rules/llm-wiki.md` — read `mckenna-derby wiki/SCHEMA.md` before wiki work (path-scoped)
