@@ -1,14 +1,15 @@
 ---
 title: README — project overview
 type: source
+summary: "Digest of README.md: hypothesis, pipeline stages, McKenna Engine, honest expectations."
+status: active
 created: 2026-07-30
 updated: 2026-07-30
+last_verified: 2026-07-30
+sources: []
 tags: [readme, hypothesis, pipeline]
 aliases: [readme]
-sources: []
-status: active
 ---
-
 # README — project overview
 
 McKenna Derby tests whether horse-racing **chaos** (outcome surprisal under betting-market odds) aligns with Terence McKenna's **Timewave Zero**, and whether a timewave-filtered **buy-all-trifecta-combinations** strategy can beat random timing. The deliverable is an honest statistical result, not a betting product.

@@ -1,14 +1,15 @@
 ---
 title: LanceDB project-knowledge search
 type: entity
+summary: Local LanceDB search over repo docs, rules and the wiki; index lives in uncommitted/.
+status: active
 created: 2026-07-30
 updated: 2026-10-10
+last_verified: 2026-10-10
+sources: []
 tags: [lancedb, retrieval, semantic-search]
 aliases: [lancedb, project-knowledge]
-sources: []
-status: active
 ---
-
 # LanceDB project-knowledge search
 
 ## What it is

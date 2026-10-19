@@ -1,14 +1,15 @@
 ---
 title: Local SimpleMem backend
 type: decision
+summary: SimpleMem uses a local JSON store in docs/simplemem/ that is committed with the repo.
+status: active
 created: 2026-07-30
 updated: 2026-10-10
+last_verified: 2026-10-10
+sources: []
 tags: [simplemem, memory, ai]
 aliases: [0001, simplemem local]
-sources: []
-status: accepted
 ---
-
 # Local SimpleMem backend
 
 ## Status

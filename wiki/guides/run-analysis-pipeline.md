@@ -1,12 +1,13 @@
 ---
 title: Run the analysis pipeline
 type: guide
+summary: Install, pytest, CLI analysis on bundled HK/UK/synthetic data, McKenna Engine and dashboard.
+status: active
 created: 2026-07-30
 updated: 2026-09-12
+last_verified: 2026-09-12
 tags: [runbook, cli, pytest, dashboard]
-status: active
 ---
-
 # Run the analysis pipeline
 
 ## Prerequisites

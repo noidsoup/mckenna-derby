@@ -1,13 +1,14 @@
 ---
 title: 0004 — Use Driver.js for the first-visit guided tour, then remove the tour
 type: decision
+summary: A Driver.js first-visit tour shipped and was removed the same day (2026-07-09); onboarding is plain-English copy.
+status: active
 created: 2026-09-12
 updated: 2026-09-12
+last_verified: 2026-09-12
 tags: [decision, dashboard, tour, driver-js, ux]
 aliases: [guided tour, driver js]
-status: accepted
 ---
-
 # 0004 — Use Driver.js for the first-visit guided tour, then remove the tour
 
 ## Context

@@ -2,7 +2,10 @@
 
 Primary always-on context for AI assistants. Read **AI_RUNBOOK.md** for operational detail.
 
-Claude Code loads this file through `.claude/CLAUDE.md`. Always-on rules are in `.claude/rules/` (the wiki rule loads only for files in `mckenna-derby wiki/`), and the repo skills are linked from `.claude/skills/`.
+**Project wiki:** read `wiki/index.md` before non-trivial work; open pages it points to only when relevant.
+After a repeated failure, check `wiki/gotchas.md`. Writing to the wiki: follow `wiki/SCHEMA.md`.
+
+Claude Code loads this file through `.claude/CLAUDE.md`. Always-on rules are in `.claude/rules/` (the wiki rule loads only for files in `wiki/`), and the repo skills are linked from `.claude/skills/`.
 
 ## Start of session
 
@@ -77,4 +80,4 @@ streamlit run dashboard.py
 - `.claude/rules/pre-task-retrieval.md` — SimpleMem, then LanceDB, then vault recall before non-trivial work
 - `.claude/rules/verify-before-done.md` — run `bash .verify.sh` and paste the real result
 - `.claude/rules/simplemem.md` — memory namespace and security
-- `.claude/rules/llm-wiki.md` — read `mckenna-derby wiki/SCHEMA.md` before wiki work (path-scoped)
+- `.claude/rules/llm-wiki.md` — read `wiki/SCHEMA.md` before wiki work (path-scoped)

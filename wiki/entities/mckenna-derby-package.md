@@ -1,19 +1,20 @@
 ---
 title: McKenna Derby package (this repository)
 type: entity
+summary: The mckenna_derby Python package, its CLIs and which modules are frozen.
+status: active
 created: 2026-07-30
-updated: 2026-07-30
+updated: 2026-10-19
+last_verified: 2026-10-19
+sources: ["[[readme-project-overview]]"]
 tags: [mckenna-derby, python, package]
 aliases: [mckenna-derby, this repo]
-sources: ["[[readme-project-overview]]"]
-status: active
 ---
-
 # McKenna Derby package (this repository)
 
 ## What it is
 
-The **mckenna-derby** repository: a Python 3.9+ research package (`mckenna_derby`) that scores racing novelty, compares it to Timewave Zero, and backtests trifecta strategies. GitHub: `noidsoup/mckenna-derby`.
+The **mckenna-derby** repository: a Python 3.9+ research package (`mckenna_derby`) that scores racing novelty, compares it to Timewave Zero, and backtests trifecta strategies. GitHub: `noidsoup/mckenna-derby` (public as of 2026-10-19).
 
 ## How it's used in the project
 
@@ -24,7 +25,10 @@ The **mckenna-derby** repository: a Python 3.9+ research package (`mckenna_derby
 | `mckenna_derby/compare.py` | Correlation + permutation (**frozen**) |
 | `mckenna_derby/backtest.py` | Buy-all trifecta P&L |
 | `mckenna_derby/mckenna_engine.py` | Selective betting engine |
-| `mckenna_derby/data.py` | Loaders + synthetic null data |
+| `mckenna_derby/data.py` | Loaders (bundled HK/UK, Kaggle HK, UK raw) + synthetic null data |
+| `mckenna_derby/calendar_windows.py` | Upcoming high-novelty day/hour windows for the dashboard (added 2026-07-09, commit `95f0c3f`) |
+| `mckenna_derby/assets/` | Local clipart used by the dashboard |
+| `mckenna_derby/datasets/` | Bundled `hk_runners.csv`, `uk_runners.csv` and their README ([[bundled-datasets]]) |
 | `run_analysis.py` | CLI pipeline |
 | `run_mckenna.py` | McKenna Engine CLI |
 | `dashboard.py` | Streamlit UI |

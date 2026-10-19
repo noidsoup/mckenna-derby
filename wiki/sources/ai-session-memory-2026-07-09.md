@@ -1,13 +1,14 @@
 ---
 title: AI session memory — 2026-07-09
 type: source
+summary: "Digest of the five 2026-07-09 session-memory entries: plain-English copy, tour add/remove, exotic dividends, UK slice."
+status: active
 created: 2026-09-12
 updated: 2026-09-12
-tags: [session-memory, source, 2026-07-09]
+last_verified: 2026-09-12
 sources: ["AI_SESSION_MEMORY.md"]
-status: active
+tags: [session-memory, source, 2026-07-09]
 ---
-
 # AI session memory — 2026-07-09
 
 Summarizes the 2026-07-09 entries in **`AI_SESSION_MEMORY.md`** (five sessions), the most recent work not yet reflected in the vault. No git commits land in the 24-hour gardener window; these entries capture dashboard UX, dataset, and settlement work on 2026-07-09.

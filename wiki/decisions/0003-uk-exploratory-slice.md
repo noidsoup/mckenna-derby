@@ -1,13 +1,14 @@
 ---
 title: 0003 — Ship the UK/Ireland exploratory slice alongside the locked HK default
 type: decision
+summary: Bundle a 2008-2012 UK/Ireland slice as exploratory only; Hong Kong stays the locked default.
+status: active
 created: 2026-09-12
 updated: 2026-09-12
+last_verified: 2026-09-12
 tags: [decision, datasets, uk, exploratory]
 aliases: [uk slice, free datasets]
-status: accepted
 ---
-
 # 0003 — Ship the UK/Ireland exploratory slice alongside the locked HK default
 
 ## Context

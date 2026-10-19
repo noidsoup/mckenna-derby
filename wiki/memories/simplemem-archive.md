@@ -1,14 +1,17 @@
 ---
 title: SimpleMem archive
-type: guide
+type: source
+summary: Archived mirror of SimpleMem entries up to 2026-07-09.
+status: archived
 created: 2026-07-30
-updated: 2026-09-12
+updated: 2026-10-19
+last_verified: 2026-10-19
 tags: [simplemem, archive, session-memory]
 aliases: [simplemem memories]
-status: active
 ---
-
 # SimpleMem archive
+
+> **Archived 2026-10-19.** Frozen copy; the live store is `docs/simplemem/memories.json`.
 
 > Compiled from **`docs/simplemem/memories.json`** (committed store). Do not edit by hand — refresh from the JSON store when memories change.
 >

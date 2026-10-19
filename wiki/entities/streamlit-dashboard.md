@@ -1,14 +1,15 @@
 ---
 title: Streamlit dashboard
 type: entity
+summary: "dashboard.py: Streamlit + Plotly UI, data sources, hippie copy, calendar windows, password gate."
+status: active
 created: 2026-07-30
-updated: 2026-09-12
+updated: 2026-10-19
+last_verified: 2026-10-19
+sources: ["[[readme-project-overview]]", "[[ai-session-memory-2026-07-09]]"]
 tags: [streamlit, plotly, ui]
 aliases: [dashboard, dashboard.py]
-sources: ["[[readme-project-overview]]", "[[ai-session-memory-2026-07-09]]"]
-status: active
 ---
-
 # Streamlit dashboard
 
 ## What it is
@@ -42,9 +43,27 @@ Charts: daily novelty with rolling mean, inverted timewave, cumulative P&L, corr
 
 - Empty-state Run button moved under the title (was below the fold at ~1100px); intro shortened, `EMPTY_STATE_DETAILS` split below; `stMain overflow-y:auto` + `touch-action:pan-y`; `overflow-x:clip` on `html/body` (no `100vw`). Verified in Playwright at 390x844 and 320x568.
 
+## Later 2026-07-09 changes (after the tour removal)
+
+Nicholas iterated on tone and flair in a long same-day series of direct commits to `main`; several were reversed within hours. What stands now:
+
+| Feature | State | Commits |
+|---|---|---|
+| Dark "observatory" theme, richer chart flair | kept | `3535e3c` |
+| Hippie-voice **So what?** boxes interpreting each run (doubt only in So what; loud "flop" on nulls, "Far out" on hits; varied endings) | kept | `c292b46`, `43c3534`, `3a0204d`, `006f44a`, `e299301` |
+| Random local clipart with click-to-dismiss; "Shuffle stickers" button | clipart kept, shuffle button removed | `120dee8`, `eca281a`, `04d4e65` |
+| Confetti / sparkle rain in So what? boxes | added then removed | `2607bd5`, `2b9dd5e` |
+| Mystique/honesty tagline | removed | `1f32233` |
+| Cash-vs-modeled settlement callouts | removed from UI; backend still prefers real `trifecta_payout` | `dcea57e`, `437510e` |
+| Upcoming high-novelty **calendar windows** (hourly, America/Los_Angeles, e.g. "Fri Jul 10, 5:00 PM–8:00 PM"); the day-level frozen claim is untouched | kept | `95f0c3f` (`calendar_windows.py`) |
+| Single Overview novelty-vs-timewave chart (tests tightened around it) | kept | `9e4413f` |
+
+Dashboard tests assert some of this copy (e.g. the hippie sidebar warning line, `9754277`), so copy edits can fail `pytest`.
+
 ## Key details
 
-- Deploy: see `DEPLOY_STREAMLIT.md` at repo root for Streamlit Community Cloud (private GitHub repo + optional shared password).
+- Deploy: see `DEPLOY_STREAMLIT.md` at repo root for Streamlit Community Cloud. Optional shared password from Streamlit secrets `[dashboard] password` (`_configured_password()` in `dashboard.py`). The doc assumes a private repo; the repo is public as of 2026-10-19, so the password only gates the app, not the code or results. Whether a Cloud app is live is *(unverified)*.
+- Local: `.claude/launch.json` serves the dashboard on `:8501` (commit `453c884`).
 - Context7 library IDs: `.cursor/context7-libraries.md` for Streamlit APIs.
 - UK slice: exploratory only, HK remains the locked default — see [[0003-uk-exploratory-slice]].
 

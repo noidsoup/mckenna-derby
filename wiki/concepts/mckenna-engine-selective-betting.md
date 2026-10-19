@@ -1,14 +1,15 @@
 ---
 title: McKenna Engine selective betting
 type: concept
+summary: Resonance gate, I Ching ticket selector and the beta pool-bias assumption behind any positive ROI.
+status: active
 created: 2026-07-30
 updated: 2026-07-30
+last_verified: 2026-07-30
+sources: ["[[readme-project-overview]]"]
 tags: [mckenna-engine, backtest, beta, iching]
 aliases: [mckenna engine, selective betting, beta assumption]
-sources: ["[[readme-project-overview]]"]
-status: active
 ---
-
 # McKenna Engine selective betting
 
 ## Definition

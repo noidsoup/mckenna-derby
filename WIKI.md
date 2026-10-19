@@ -1,18 +1,7 @@
-# Where is the LLM wiki?
+# Where is the wiki?
 
-The Obsidian vault is **not** a folder named `wiki`.
+The project wiki is **`wiki/`** at the repo root. Start at **`wiki/index.md`**; writing rules are in **`wiki/SCHEMA.md`**.
 
-It lives at:
+It was called `mckenna-derby wiki/` until 2026-10-19. The `.obsidian/` settings moved with it, so in Obsidian choose *Open folder as vault* → `wiki`.
 
-**`mckenna-derby wiki/`**
-
-There is a **space** between `mckenna-derby` and `wiki` (project wiki naming rule: *repository folder name* + space + `wiki`).
-
-- **In Obsidian:** *Open folder as vault* → choose the `mckenna-derby wiki` directory inside this repo.
-- **In your editor / Explorer:** expand the repo root and look for **`mckenna-derby wiki`** (not `wiki` alone).
-
-Start here: **`mckenna-derby wiki/SCHEMA.md`**.
-
-If that folder is missing after a `git pull`, it may not have been committed on the branch you're on yet.
-
-**SimpleMem:** session entries live in **`docs/simplemem/memories.json`** and in the vault as **`mckenna-derby wiki/memories/simplemem-archive.md`**. See [[simplemem-in-wiki]] in the vault.
+**SimpleMem:** the live store is `docs/simplemem/memories.json`. The wiki copy (`wiki/memories/`) is archived.

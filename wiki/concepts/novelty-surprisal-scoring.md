@@ -1,14 +1,15 @@
 ---
 title: Novelty surprisal scoring
 type: concept
+summary: Daily race surprisal (-log2 P) under Harville trifecta odds, z-normalized by field size.
+status: active
 created: 2026-07-30
 updated: 2026-07-30
+last_verified: 2026-07-30
+sources: ["[[readme-project-overview]]"]
 tags: [novelty, surprisal, harville, statistics]
 aliases: [novelty scoring, surprisal]
-sources: ["[[readme-project-overview]]"]
-status: active
 ---
-
 # Novelty surprisal scoring
 
 ## Definition
